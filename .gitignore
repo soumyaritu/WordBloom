@@ -1,0 +1,25 @@
+# Environment & Secrets
+.env
+.env.local
+*.env
+
+# Dependencies
+node_modules/
+backend/venv/
+backend/env/
+venv/
+env/
+
+# Build & Cache Outputs
+.next/
+dist/
+build/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# OS Files
+.DS_Store
+Thumbs.db
