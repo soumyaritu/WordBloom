@@ -192,7 +192,7 @@ export default function HomePage() {
               marginTop: 4,
             }}
           >
-            <span>+ Add a child</span>
+            <span>+ Add Child</span>
           </button>
         </div>
       </div>

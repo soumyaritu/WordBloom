@@ -1,35 +1,35 @@
 ---
 name: sofia
-description: Sofia Sha's learning profile and dyslexia settings
+description: Shriya's learning profile and dyslexia settings
 ---
 
-# Sofia Sha — Learning Profile
+# Shriya — Learning Profile
 
 ## Identity
-- Full name: Sofia Sha
+- Full name: Shriya
 - Parent email: parent@example.com
-- Age: 10
-- School year: Year 5
+- Age: 7
+- School year: Year 3
 
 ## Dyslexia Profile
-- Type: attentional
+- Type: unknown
 - Co-occurring: none
 
 ## Access Settings
-- Input mode: type
-- Display mode: opendyslexic
-- Colour overlay: green
+- Input mode: voice
+- Display mode: standard
+- Colour overlay: pink
 - Show timer: never
 - Score display: stars only
 
 ## Session Settings
 - Session length: 5
 - Break after: 5
-- Approach: phonics
+- Approach: audio_first
 - Encouragement style: warm
 
 ## Current Progress
-- Reading level: 3
+- Reading level: 1
 - Mastered words: cat, dog, run, play, help
 - Struggling with: through, knight, enough
 - Pattern difficulty: silent letters
