@@ -35,23 +35,23 @@ client = genai.Client(
 # TOOL
 # ─────────────────────────────────────────────
 WORD_DATABASE = {
-    "cat":        {"level": 1, "category": "CVC", "audio_hint": "c-a-t", "visual_hint": "c·a·t"},
-    "dog":        {"level": 1, "category": "CVC", "audio_hint": "d-o-g", "visual_hint": "d·o·g"},
-    "run":        {"level": 1, "category": "CVC", "audio_hint": "r-u-n", "visual_hint": "r·u·n"},
-    "big":        {"level": 1, "category": "CVC", "audio_hint": "b-i-g", "visual_hint": "b·i·g"},
-    "red":        {"level": 1, "category": "CVC", "audio_hint": "r-e-d", "visual_hint": "r·e·d"},
-    "plan":       {"level": 2, "category": "digraphs", "audio_hint": "p-l-an", "visual_hint": "p·l·a·n"},
-    "ship":       {"level": 2, "category": "sh digraph", "audio_hint": "sh-ip", "visual_hint": "sh·i·p"},
-    "jump":       {"level": 2, "category": "CCVC", "audio_hint": "j-u-m-p", "visual_hint": "j·u·m·p"},
-    "know":       {"level": 3, "category": "silent letter", "audio_hint": "n-oh", "visual_hint": "kn·ow"},
+    "cat":        {"level": 1, "category": "CVC", "audio_hint": "cat", "visual_hint": "c·a·t"},
+    "dog":        {"level": 1, "category": "CVC", "audio_hint": "dog", "visual_hint": "d·o·g"},
+    "run":        {"level": 1, "category": "CVC", "audio_hint": "run", "visual_hint": "r·u·n"},
+    "big":        {"level": 1, "category": "CVC", "audio_hint": "big", "visual_hint": "b·i·g"},
+    "red":        {"level": 1, "category": "CVC", "audio_hint": "red", "visual_hint": "r·e·d"},
+    "plan":       {"level": 2, "category": "digraphs", "audio_hint": "plan", "visual_hint": "p·l·a·n"},
+    "ship":       {"level": 2, "category": "sh digraph", "audio_hint": "ship", "visual_hint": "sh·i·p"},
+    "jump":       {"level": 2, "category": "CCVC", "audio_hint": "jump", "visual_hint": "j·u·m·p"},
+    "know":       {"level": 3, "category": "silent letter", "audio_hint": "noh", "visual_hint": "kn·ow"},
     "knight":     {"level": 3, "category": "silent letter", "audio_hint": "night", "visual_hint": "k·n·i·g·h·t"},
     "through":    {"level": 3, "category": "silent letter", "audio_hint": "throo", "visual_hint": "t·h·r·o·u·g·h"},
-    "enough":     {"level": 3, "category": "gh pattern", "audio_hint": "e-nuff", "visual_hint": "e·n·o·u·g·h"},
-    "because":    {"level": 3, "category": "sight word", "audio_hint": "be-coz", "visual_hint": "be·cause"},
-    "where":      {"level": 3, "category": "wh digraph", "audio_hint": "wair", "visual_hint": "w·h·e·r·e"},
+    "enough":     {"level": 3, "category": "gh pattern", "audio_hint": "enuff", "visual_hint": "e·n·o·u·g·h"},
+    "because":    {"level": 3, "category": "sight word", "audio_hint": "becoz", "visual_hint": "be·cause"},
+    "where":      {"level": 3, "category": "wh digraph", "audio_hint": "wear", "visual_hint": "w·h·e·r·e"},
     "knee":       {"level": 3, "category": "silent letter", "audio_hint": "nee", "visual_hint": "kn·ee"},
-    "understand": {"level": 4, "category": "multisyllabic", "audio_hint": "un-der-stand", "visual_hint": "un·der·stand"},
-    "together":   {"level": 4, "category": "multisyllabic", "audio_hint": "to-geth-er", "visual_hint": "to·geth·er"},
+    "understand": {"level": 4, "category": "multisyllabic", "audio_hint": "understand", "visual_hint": "un·der·stand"},
+    "together":   {"level": 4, "category": "multisyllabic", "audio_hint": "together", "visual_hint": "to·geth·er"},
 }
 
 def _instant_select_word(

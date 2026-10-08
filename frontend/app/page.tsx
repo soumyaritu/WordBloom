@@ -217,7 +217,7 @@ export default function HomePage() {
 
       {/* Teacher Dashboard Button */}
       <button
-        onClick={() => router.push('/teacher')}
+        onClick={() => router.push(`/teacher?child=${selected}`)}
         aria-label="Go to teacher dashboard"
         style={{
           width: '100%', maxWidth: 460,

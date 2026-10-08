@@ -7,15 +7,26 @@
 
 ## 1. What is WordBloom?
 
-**WordBloom** is an adaptive, AI-powered reading learning system designed on the principles of **Universal Design for Learning (UDL)**. 
+**WordBloom** is an adaptive, AI-powered reading learning system designed on the principles of **Universal Design for Learning (UDL)**.
 
 Traditional reading apps are engineered for a mythical "average child" — using rigid quizzes, speed pressures, and one-size-fits-all grading. But in reality, **no average child exists**. Every child learns differently, processes language at their own rhythm, and thrives under different sensory conditions.
 
-By solving for children with dyslexia, ADHD, Autism, and dyspraxia, WordBloom creates a **vastly superior, stress-free reading experience for ALL children** — early readers, neurotypical students, and neurodivergent learners alike. Powered by a **Google Agent Development Kit (ADK)** multi-agent architecture, WordBloom adapts every session in real time to 6 dyslexia profiles, 3 co-occurring conditions, and 3 multi-modal interaction modes.
+When beginner readers first enter the **world of words and letters**, early experiences shape their lifelong confidence. By solving for children with dyslexia, ADHD, Autism, and dyspraxia, WordBloom creates a **vastly superior, stress-free reading experience for ALL children** — early readers, neurotypical students, and neurodivergent learners alike. Powered by a **Google Agent Development Kit (ADK)** multi-agent architecture, WordBloom adapts every session in real time to 6 dyslexia profiles, 3 co-occurring conditions, and 3 multi-modal interaction modes.
 
 ---
 
-## 2. How WordBloom Helps Children with Learning & Cognitive Differences
+## 2. Early Literacy & Beginner Progression
+
+WordBloom takes beginners step-by-step from foundational phoneme-grapheme mapping to fluent word decoding:
+
+* **Stage 1 (Simple CVC Words)**: Focuses on consonant-vowel-consonant combinations (e.g., *cat*, *dog*, *run*, *play*, *help*).
+* **Stage 2 (Digraphs & Blends)**: Introduces letter pairs and blends (e.g., *ship*, *frog*, *chin*, *stop*).
+* **Stage 3 (Silent Letters)**: Teaches complex silent letter patterns (e.g., *knight*, *thumb*, *through*, *write*).
+* **Stage 4 (Multisyllabic Words)**: Advances to compound and multi-syllable word structure (e.g., *blossom*, *explore*, *together*).
+
+---
+
+## 3. How WordBloom Helps Children with Learning & Cognitive Differences
 
 Children with neurodivergent profiles experience reading in fundamentally different ways. WordBloom addresses these challenges through intentional pedagogical design:
 
@@ -35,11 +46,11 @@ Children with neurodivergent profiles experience reading in fundamentally differ
   * ⌨️ **Type it**: Keyboard input.
   * 🎤 **Say it**: Web Speech voice input.
   * 🔲 **Tap letters**: On-screen letter tile grid (ideal for Dyspraxia/motor control differences).
-* **Sensory Color Overlays**: Customizable background overlays (Yellow, Blue, Green, Pink) to reduce scotopic sensitivity and eye strain.
+* **Sensory Color Overlays**: Customizable background overlays (Yellow `#FEF3C7`, Blue `#DBEAFE`, Green `#D1FAE5`, Pink `#FCE7F3`) to reduce scotopic sensitivity and eye strain.
 
 ---
 
-## 3. Architecture & Multi-Agent Design
+## 4. Architecture & Multi-Agent Design
 
 WordBloom utilizes a **Hybrid Multi-Agent Architecture** powered by Google Cloud Vertex AI and Google ADK. It combines **Sequential Pipeline Orchestration** with **Parallel Execution Optimization**.
 
@@ -66,7 +77,7 @@ graph TD
 
 ---
 
-## 4. Deep Dive: The 6 Specialist Agents
+## 5. Deep Dive: The 6 Specialist Agents
 
 | Agent Name | Primary Responsibility | Execution Mode | Key Output |
 | :--- | :--- | :--- | :--- |
@@ -82,35 +93,63 @@ Nothing is published to parents or permanent records automatically. The `Report 
 
 ---
 
-## 5. Full Technical Stack
+## 6. Profile Setup Screen & Customization Engine (`/profile`)
+
+Teachers and parents can fine-tune every child's experience using the `/profile` route before launching a session:
+
+1. **Identity**: Full Name, Age, School Year.
+2. **Dyslexia Profile Grid**: Selectable cards for 6 profiles (Phonological, Surface, Visual/Spatial, Double Deficit, Attentional, Not Sure Yet).
+3. **Co-occurring Conditions**: Toggleable pills (ADHD, Dyspraxia, Autism, Dyscalculia) with automated warning alerts and lock rules.
+4. **Reading Level**: Stage 1 (CVC), Stage 2 (Blends), Stage 3 (Silent), Stage 4 (Multisyllabic).
+5. **Input Mode**: Type it, Say it (Voice), Tap letters.
+6. **Display Mode**: Standard, OpenDyslexic font, Spotlight line masking.
+7. **Color Overlay**: None, Yellow, Blue, Green, Pink.
+8. **Session Settings**: Session duration & break frequency sliders (Auto-locked to 5 min for ADHD).
+
+---
+
+## 7. Full Technical Stack
 
 WordBloom is built using modern, production-grade web and AI technologies:
 
 ### 🎨 Frontend
 * **Framework**: Next.js 15 (App Router, TypeScript)
-* **Styling**: Vanilla CSS Design Tokens (Dark Mode `#06080F`, glassmorphism panels, high-contrast typography)
+* **Routes**: `/` (Home), `/game` (Word Game), `/teacher` (Teacher Dashboard), `/profile` (Profile Editor)
+* **Styling**: Vanilla CSS Design Tokens (Dark Mode `#06080F`, panel `#111827`, border `#1F2937`, brand green `#10B981`)
 * **Typography**: OpenDyslexic weighted font & Monospace font options
 * **Audio & Speech**: Web Speech API (`SpeechSynthesisUtterance`, `webkitSpeechRecognition`)
 
-### ⚙️ Backend
+### ⚙️ Backend & API
 * **Runtime**: Python 3.14 + FastAPI + Uvicorn
 * **Agent Framework**: Google Agent Development Kit (ADK) + `google-genai` Python SDK
-* **LLM Engine**: Google Cloud Vertex AI (Gemini 2.5 Flash)
+* **LLM Engine**: Google Cloud Vertex AI (`gemini-2.5-flash` / `gemini-flash-latest`, configurable via `GEMINI_MODEL` env)
 * **Skills Storage**: Markdown ADK Skill Packages with YAML frontmatter (`backend/wordbloom_agent/skills/`)
+
+### 🔌 REST Endpoints
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| `POST` | `/session/start` | Initializes session, loads child `SKILL.md`, returns first word |
+| `POST` | `/session/answer` | Evaluates answer, adapts difficulty, returns next word & feedback |
+| `POST` | `/session/end` | Triggers `ReportAgent` to generate teacher summary |
+| `POST` | `/report/approve` | Human-in-the-loop gate approving summary dispatch |
+| `POST` | `/profile/save` | Saves updated `SKILL.md` for a specific child |
+| `GET` | `/profile/{child_id}` | Retrieves current `SKILL.md` content for editing |
+| `GET` | `/children` | Lists all children with saved profiles |
+| `GET` | `/` | Health check endpoint |
 
 ---
 
-## 6. Value Added: What Makes WordBloom Unique?
+## 8. Value Added: What Makes WordBloom Unique?
 
 1. **Observable AI Decision Making**: Every decision made by the agents (why a word was chosen, why difficulty changed, what error was detected) is visible to teachers in plain English.
 2. **Stress-Free Environment**: Eliminating timers and numerical grade penalties creates a psychological safe space for neurodivergent children.
 3. **No Dead Ends**: Sub-second local fallback selectors ensure the app remains responsive even during network latency.
+4. **Universal Access**: Solves learning differences for neurodivergent readers while elevating the baseline experience for all beginner readers.
 
 ---
 
-## 7. Future Roadmap & Enhancements
+## 9. Pitch Line
 
-* **🎙️ Voice Synthesis Fine-Tuning**: Custom phoneme-by-phoneme neural audio synthesis for regional accents.
-* **📊 Longitudinal Progress Dashboards**: Multi-month phonic mastery analytics across school terms.
-* **🌐 Multi-Language Phonics**: Extending adaptive reading support to bilingual children.
-* **👁️ Eye-Tracking & Motion Support**: Integrating webcam-based visual tracking to detect letter flipping in real time.
+> *"Every dyslexia app treats it as one thing. It isn't.  
+> WordBloom is the first multi-agent system that adapts to 6 dyslexia types, 3 co-occurring conditions, and 3 input modes — with every agent decision observable, evaluable, and explainable to teachers in plain English."*

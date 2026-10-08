@@ -18,7 +18,7 @@ description: Emma Clarke's learning profile and dyslexia settings
 ## Access Settings
 - Input mode: voice
 - Display mode: standard
-- Colour overlay: yellow
+- Colour overlay: none
 - Show timer: never
 - Score display: stars only
 

@@ -41,6 +41,16 @@ export default function GamePage() {
     setFeedback(null)
     setPendingWord(null)
 
+    // Apply font & overlay preferences from profile
+    const prof = s.profile || {}
+    const dispMode = (prof.display_mode || prof.displayMode || '').toLowerCase()
+    const colOverlay = (prof.colour_overlay || prof.colourOverlay || prof.color_overlay || '').toLowerCase()
+
+    const classes: string[] = []
+    if (dispMode === 'opendyslexic') classes.push('opendyslexic')
+    if (colOverlay && colOverlay !== 'none') classes.push(`overlay-${colOverlay}`)
+    document.body.className = classes.join(' ')
+
     return () => {
       document.body.className = ''
       if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current)
@@ -98,8 +108,10 @@ export default function GamePage() {
       // End session if over
       if (result.adaptation?.session_over) {
         const endResult = await endSession(session.session_id)
+        const childId = (session.profile?.child_name || 'emma').toLowerCase().split(' ')[0]
         localStorage.setItem('wb_report', JSON.stringify(endResult.report))
-        router.push('/teacher')
+        localStorage.setItem(`wb_report_${childId}`, JSON.stringify(endResult.report))
+        router.push(`/teacher?child=${childId}`)
         return
       }
 
@@ -142,12 +154,14 @@ export default function GamePage() {
   }
 
   const handleEndSession = async () => {
+    const childId = (session?.profile?.child_name || 'emma').toLowerCase().split(' ')[0]
     try {
       const result = await endSession(session.session_id)
       localStorage.setItem('wb_report', JSON.stringify(result.report))
-      router.push('/teacher')
+      localStorage.setItem(`wb_report_${childId}`, JSON.stringify(result.report))
+      router.push(`/teacher?child=${childId}`)
     } catch (e) {
-      router.push('/teacher')
+      router.push(`/teacher?child=${childId}`)
     }
   }
 
@@ -210,17 +224,17 @@ export default function GamePage() {
           onClick={handleEndSession}
           aria-label="End learning session"
           style={{
-            background: 'rgba(239,68,68,0.15)', color: '#FCA5A5',
+            background: 'rgba(239,68,68,0.15)', color: '#DC2626',
             fontSize: 14, minHeight: 44, padding: '8px 20px',
-            border: '1.5px solid rgba(239,68,68,0.5)', borderRadius: 24,
-            fontWeight: 700, cursor: 'pointer',
+            border: '1.5px solid rgba(239,68,68,0.6)', borderRadius: 24,
+            fontWeight: 800, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,
             boxShadow: '0 4px 14px rgba(239,68,68,0.25)',
             transition: 'all 0.2s ease',
           }}
         >
           <span>🛑</span>
-          <span>End Session</span>
+          <span style={{ color: '#DC2626', fontWeight: 800 }}>End Session</span>
         </button>
       </div>
 
@@ -251,13 +265,16 @@ export default function GamePage() {
 
       {/* Word display card */}
       <>
-          <div style={{
-            width: '100%', maxWidth: 460,
-            background: pendingWord ? (pendingWord.evaluation?.is_correct ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.08)') : 'var(--panel)',
-            border: `2px solid ${pendingWord ? (pendingWord.evaluation?.is_correct ? 'var(--bloom)' : '#F59E0B') : 'var(--border2)'}`,
-            borderRadius: 18, padding: '2rem 1.5rem', textAlign: 'center', marginBottom: '1.25rem',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.3)', transition: 'all 0.3s ease',
-          }}>
+          <div
+            data-dark-card="true"
+            style={{
+              width: '100%', maxWidth: 460,
+              background: pendingWord ? (pendingWord.evaluation?.is_correct ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)') : '#1E293B',
+              border: `2px solid ${pendingWord ? (pendingWord.evaluation?.is_correct ? 'var(--bloom)' : '#F59E0B') : 'var(--border2)'}`,
+              borderRadius: 18, padding: '2rem 1.5rem', textAlign: 'center', marginBottom: '1.25rem',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.3)', transition: 'all 0.3s ease',
+            }}
+          >
             {/* Agent Highlight Badge */}
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
@@ -282,22 +299,16 @@ export default function GamePage() {
             {(profile.approach === 'audio_first' || profile.input_mode === 'voice') && (
               <button
                 onClick={() => {
-                  const rawHint = activeWord?.audio_hint || ''
-                  let textToSpeak = currentWord
-                  if (rawHint && !/^[a-z]-[a-z]-[a-z]$/i.test(rawHint)) {
-                    textToSpeak = rawHint
-                      .replace(/ī/g, 'eye')
-                      .replace(/\bn-i-t\b/gi, 'night')
-                      .replace(/ā/g, 'ay')
-                      .replace(/ē/g, 'ee')
-                      .replace(/ō/g, 'oh')
-                      .replace(/ū/g, 'oo')
-                      .replace(/[^\w\s-]/g, '')
-                  }
-                  const utterance = new SpeechSynthesisUtterance(textToSpeak)
+                  window.speechSynthesis.cancel()
+                  const wordToSpeak = (activeWord?.audio_hint || currentWord || '')
+                    .replace(/[-·]/g, '')
+                    .trim()
+                  const textToUse = wordToSpeak || currentWord
+                  const utterance = new SpeechSynthesisUtterance(textToUse)
                   utterance.lang = 'en-GB'
-                  utterance.rate = 0.7
-                  speechSynthesis.speak(utterance)
+                  utterance.rate = 0.8
+                  utterance.pitch = 1.0
+                  window.speechSynthesis.speak(utterance)
                 }}
                 aria-label="Listen to word sounds"
                 style={{
@@ -587,11 +598,12 @@ export default function GamePage() {
           <div
             role="status"
             aria-live="polite"
+            data-dark-card="true"
             style={{
-              fontSize: 12, color: 'var(--white)', fontWeight: 500,
+              fontSize: 12, color: '#F8FAFC', fontWeight: 500,
               display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
-              background: 'var(--surface)', padding: '10px 18px', borderRadius: 24,
-              border: '1.5px solid var(--border)',
+              background: '#0F172A', padding: '10px 18px', borderRadius: 24,
+              border: '1.5px solid rgba(255,255,255,0.15)',
               boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
             }}
           >

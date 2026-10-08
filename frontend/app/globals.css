@@ -1,3 +1,5 @@
+@import url('https://fonts.cdnfonts.com/css/opendyslexic');
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -71,8 +73,68 @@ body.opendyslexic * {
   line-height:    2.0;
 }
 
-/* Colour overlays — applied via body class for visual stress */
-body.overlay-yellow { background: #FEF3C7 !important; color: #1E293B !important; }
-body.overlay-blue   { background: #DBEAFE !important; color: #1E293B !important; }
-body.overlay-green  { background: #D1FAE5 !important; color: #1E293B !important; }
-body.overlay-pink   { background: #FCE7F3 !important; color: #1E293B !important; }
+/* ==========================================================================
+   COLOUR OVERLAYS - ACCESSIBILITY & CONTRAST (WCAG AAA)
+   ========================================================================== */
+
+body[class*="overlay-"] {
+  --bg:          #F8FAFC;
+  --surface:     #FFFFFF;
+  --panel:       #FFFFFF;
+  --border:      rgba(15, 23, 42, 0.18);
+  --border2:     rgba(15, 23, 42, 0.28);
+
+  --white:       #0F172A; /* In overlay mode, primary text is high-contrast dark charcoal */
+  --grey:        #334155; /* Secondary text is dark slate */
+  --grey-dark:   #475569;
+
+  --bloom-bg:    rgba(16, 185, 129, 0.2);
+  --accent-bg:   rgba(99, 102, 241, 0.2);
+  --warn-bg:     rgba(217, 119, 6, 0.2);
+
+  color: #0F172A !important;
+}
+
+body.overlay-yellow { background: #FEF3C7 !important; }
+body.overlay-blue   { background: #DBEAFE !important; }
+body.overlay-green  { background: #D1FAE5 !important; }
+body.overlay-pink   { background: #FCE7F3 !important; }
+
+/* Force high contrast dark text for all standalone text elements on overlays */
+body[class*="overlay-"] h1,
+body[class*="overlay-"] h2,
+body[class*="overlay-"] h3,
+body[class*="overlay-"] h4,
+body[class*="overlay-"] p,
+body[class*="overlay-"] label,
+body[class*="overlay-"] span:not([data-dark-card="true"] *):not(.badge-text) {
+  color: inherit;
+}
+
+/* Inputs and textareas in overlay mode */
+body[class*="overlay-"] input,
+body[class*="overlay-"] textarea {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: rgba(15, 23, 42, 0.3) !important;
+}
+
+body[class*="overlay-"] input::placeholder,
+body[class*="overlay-"] textarea::placeholder {
+  color: #64748B !important;
+}
+
+/* Dark card override: containers explicitly flagged as dark keep crisp light text */
+.dark-card,
+[data-dark-card="true"] {
+  background: #1E293B !important;
+  color: #F8FAFC !important;
+  --white: #F8FAFC !important;
+  --grey: #CBD5E1 !important;
+}
+
+.dark-card *,
+[data-dark-card="true"] * {
+  --white: #F8FAFC !important;
+  --grey: #CBD5E1 !important;
+}

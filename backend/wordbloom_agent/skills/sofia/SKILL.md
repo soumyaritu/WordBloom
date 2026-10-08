@@ -1,24 +1,24 @@
 ---
 name: sofia
-description: Shriya's learning profile and dyslexia settings
+description: Sony Mathew's learning profile and dyslexia settings
 ---
 
-# Shriya — Learning Profile
+# Sony Mathew — Learning Profile
 
 ## Identity
-- Full name: Shriya
+- Full name: Sony Mathew
 - Parent email: parent@example.com
 - Age: 7
 - School year: Year 3
 
 ## Dyslexia Profile
-- Type: unknown
+- Type: phonological
 - Co-occurring: none
 
 ## Access Settings
 - Input mode: voice
-- Display mode: standard
-- Colour overlay: pink
+- Display mode: opendyslexic
+- Colour overlay: none
 - Show timer: never
 - Score display: stars only
 
@@ -29,7 +29,7 @@ description: Shriya's learning profile and dyslexia settings
 - Encouragement style: warm
 
 ## Current Progress
-- Reading level: 1
+- Reading level: 2
 - Mastered words: cat, dog, run, play, help
 - Struggling with: through, knight, enough
 - Pattern difficulty: silent letters

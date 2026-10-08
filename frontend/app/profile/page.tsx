@@ -96,6 +96,18 @@ function ProfileForm() {
     }
   }, [childParam, isNew])
 
+  // Live preview of font & overlay choices on profile screen
+  useEffect(() => {
+    const classes: string[] = []
+    if (displayMode === 'opendyslexic') classes.push('opendyslexic')
+    if (colourOverlay && colourOverlay !== 'none') classes.push(`overlay-${colourOverlay}`)
+    document.body.className = classes.join(' ')
+
+    return () => {
+      document.body.className = ''
+    }
+  }, [displayMode, colourOverlay])
+
   const toggleCoOccurring = (condition: string) => {
     setCoOccurring(prev =>
       prev.includes(condition)
