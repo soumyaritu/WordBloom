@@ -12,20 +12,21 @@ description: Emma Clarke's learning profile and dyslexia settings
 - School year: Year 4
 
 ## Dyslexia Profile
-- Type: unknown
+- Type: phonological
 - Co-occurring: none
 
 ## Access Settings
 - Input mode: voice
-- Display mode: standard
-- Colour overlay: none
+- Display mode: opendyslexic
+- Colour overlay: blue
 - Show timer: never
 - Score display: stars only
 
 ## Session Settings
 - Session length: 5
+- Candy goal: 5
 - Break after: 5
-- Approach: audio_first
+- Approach: phonics
 - Encouragement style: warm
 
 ## Current Progress

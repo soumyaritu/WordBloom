@@ -14,6 +14,7 @@ import os
 import json
 import vertexai
 from google import genai
+from google.genai import types
 from google.adk.agents import Agent
 from dotenv import load_dotenv
 
@@ -32,129 +33,208 @@ client = genai.Client(
 
 
 # ─────────────────────────────────────────────
-# TOOL
+# STAGE-AWARE EMERGENCY FALLBACK (ONLY IF OFFLINE)
 # ─────────────────────────────────────────────
-WORD_DATABASE = {
-    "cat":        {"level": 1, "category": "CVC", "audio_hint": "cat", "visual_hint": "c·a·t"},
-    "dog":        {"level": 1, "category": "CVC", "audio_hint": "dog", "visual_hint": "d·o·g"},
-    "run":        {"level": 1, "category": "CVC", "audio_hint": "run", "visual_hint": "r·u·n"},
-    "big":        {"level": 1, "category": "CVC", "audio_hint": "big", "visual_hint": "b·i·g"},
-    "red":        {"level": 1, "category": "CVC", "audio_hint": "red", "visual_hint": "r·e·d"},
-    "plan":       {"level": 2, "category": "digraphs", "audio_hint": "plan", "visual_hint": "p·l·a·n"},
-    "ship":       {"level": 2, "category": "sh digraph", "audio_hint": "ship", "visual_hint": "sh·i·p"},
-    "jump":       {"level": 2, "category": "CCVC", "audio_hint": "jump", "visual_hint": "j·u·m·p"},
-    "know":       {"level": 3, "category": "silent letter", "audio_hint": "noh", "visual_hint": "kn·ow"},
-    "knight":     {"level": 3, "category": "silent letter", "audio_hint": "night", "visual_hint": "k·n·i·g·h·t"},
-    "through":    {"level": 3, "category": "silent letter", "audio_hint": "throo", "visual_hint": "t·h·r·o·u·g·h"},
-    "enough":     {"level": 3, "category": "gh pattern", "audio_hint": "enuff", "visual_hint": "e·n·o·u·g·h"},
-    "because":    {"level": 3, "category": "sight word", "audio_hint": "becoz", "visual_hint": "be·cause"},
-    "where":      {"level": 3, "category": "wh digraph", "audio_hint": "wear", "visual_hint": "w·h·e·r·e"},
-    "knee":       {"level": 3, "category": "silent letter", "audio_hint": "nee", "visual_hint": "kn·ee"},
-    "understand": {"level": 4, "category": "multisyllabic", "audio_hint": "understand", "visual_hint": "un·der·stand"},
-    "together":   {"level": 4, "category": "multisyllabic", "audio_hint": "together", "visual_hint": "to·geth·er"},
+STAGE_FALLBACKS = {
+    1: [
+        {"word": "sun",  "difficulty": "easy", "category": "CVC", "audio_hint": "sun",  "visual_hint": "s·u·n",  "sentence": "The warm sun is shining bright."},
+        {"word": "hop",  "difficulty": "easy", "category": "CVC", "audio_hint": "hop",  "visual_hint": "h·o·p",  "sentence": "Watch the little bunny hop."},
+        {"word": "bat",  "difficulty": "easy", "category": "CVC", "audio_hint": "bat",  "visual_hint": "b·a·t",  "sentence": "He swung the wooden bat."},
+        {"word": "cup",  "difficulty": "easy", "category": "CVC", "audio_hint": "cup",  "visual_hint": "c·u·p",  "sentence": "Drink water from the blue cup."},
+        {"word": "pin",  "difficulty": "easy", "category": "CVC", "audio_hint": "pin",  "visual_hint": "p·i·n",  "sentence": "Fasten the paper with a pin."},
+        {"word": "net",  "difficulty": "easy", "category": "CVC", "audio_hint": "net",  "visual_hint": "n·e·t",  "sentence": "The butterfly landed on the net."},
+        {"word": "fog",  "difficulty": "easy", "category": "CVC", "audio_hint": "fog",  "visual_hint": "f·o·g",  "sentence": "Thick white fog covered the hill."},
+        {"word": "map",  "difficulty": "easy", "category": "CVC", "audio_hint": "map",  "visual_hint": "m·a·p",  "sentence": "We followed the treasure map."},
+        {"word": "red",  "difficulty": "easy", "category": "CVC", "audio_hint": "red",  "visual_hint": "r·e·d",  "sentence": "The red apple fell from the tree."},
+        {"word": "big",  "difficulty": "easy", "category": "CVC", "audio_hint": "big",  "visual_hint": "b·i·g",  "sentence": "Look at that big friendly dog."},
+    ],
+    2: [
+        {"word": "frog", "difficulty": "medium", "category": "blends",      "audio_hint": "frog", "visual_hint": "f·r·o·g", "sentence": "The green frog jumped in the pond."},
+        {"word": "clap", "difficulty": "medium", "category": "blends",      "audio_hint": "clap", "visual_hint": "c·l·a·p", "sentence": "Clap your hands to the music."},
+        {"word": "drum", "difficulty": "medium", "category": "blends",      "audio_hint": "drum", "visual_hint": "d·r·u·m", "sentence": "Beat the rhythm on the drum."},
+        {"word": "ship", "difficulty": "medium", "category": "sh digraph",  "audio_hint": "ship", "visual_hint": "sh·i·p", "sentence": "The big ship sailed across the sea."},
+        {"word": "fish", "difficulty": "medium", "category": "sh digraph",  "audio_hint": "fish", "visual_hint": "f·i·s·h", "sentence": "A colourful fish swam past."},
+        {"word": "path", "difficulty": "medium", "category": "th digraph",  "audio_hint": "path", "visual_hint": "p·a·t·h", "sentence": "Walk along the forest path."},
+        {"word": "wind", "difficulty": "medium", "category": "blends",      "audio_hint": "wind", "visual_hint": "w·i·n·d", "sentence": "The cool wind blew the leaves."},
+        {"word": "jump", "difficulty": "medium", "category": "blends",      "audio_hint": "jump", "visual_hint": "j·u·m·p", "sentence": "Jump high into the air."},
+    ],
+    3: [
+        {"word": "wrist",  "difficulty": "medium", "category": "silent letter", "audio_hint": "rist",  "visual_hint": "w·r·i·s·t",   "sentence": "Wear a watch on your wrist."},
+        {"word": "knock",  "difficulty": "medium", "category": "silent letter", "audio_hint": "nok",   "visual_hint": "k·n·o·c·k",   "sentence": "Knock gently on the wooden door."},
+        {"word": "thumb",  "difficulty": "medium", "category": "silent letter", "audio_hint": "thum",  "visual_hint": "t·h·u·m·b",   "sentence": "Give a big thumbs up."},
+        {"word": "light",  "difficulty": "medium", "category": "silent gh",     "audio_hint": "lite",  "visual_hint": "l·i·g·h·t",   "sentence": "Turn on the reading light."},
+        {"word": "bread",  "difficulty": "medium", "category": "vowel team",    "audio_hint": "bred",  "visual_hint": "b·r·e·a·d",   "sentence": "Smell the fresh baked bread."},
+        {"word": "knight", "difficulty": "medium", "category": "silent letter", "audio_hint": "night", "visual_hint": "k·n·i·g·h·t", "sentence": "The brave knight rode to the castle."},
+        {"word": "train",  "difficulty": "medium", "category": "vowel team",    "audio_hint": "trayn", "visual_hint": "t·r·a·i·n",   "sentence": "The train arrived at the station."},
+        {"word": "float",  "difficulty": "medium", "category": "vowel team",    "audio_hint": "flote", "visual_hint": "f·l·o·a·t",   "sentence": "Paper boats float on water."},
+    ],
+    4: [
+        {"word": "sunshine",   "difficulty": "hard", "category": "compound",      "audio_hint": "sun-shine",   "visual_hint": "sun·shine",    "sentence": "Warm sunshine filled the room."},
+        {"word": "adventure",  "difficulty": "hard", "category": "multisyllabic", "audio_hint": "ad-ven-chur", "visual_hint": "ad·ven·ture",   "sentence": "Every book is a great adventure."},
+        {"word": "wonderful",  "difficulty": "hard", "category": "multisyllabic", "audio_hint": "wun-der-ful", "visual_hint": "won·der·ful",   "sentence": "You did a wonderful job today."},
+        {"word": "together",   "difficulty": "hard", "category": "multisyllabic", "audio_hint": "to-geth-er",  "visual_hint": "to·geth·er",    "sentence": "We can read this story together."},
+        {"word": "kindness",   "difficulty": "hard", "category": "multisyllabic", "audio_hint": "kynd-ness",   "visual_hint": "kind·ness",    "sentence": "Always treat your friends with kindness."},
+        {"word": "understand", "difficulty": "hard", "category": "multisyllabic", "audio_hint": "un-der-stand","visual_hint": "un·der·stand", "sentence": "Now I understand how the word works."},
+    ],
 }
+
 
 def _instant_select_word(
     reading_level: int,
-    struggling_words: list,
-    mastered_words: list,
-    words_done_this_session: list,
-    last_answer_correct: bool,
-    consecutive_wrong: int,
+    struggling_words: list = None,
+    mastered_words: list = None,
+    words_done_this_session: list = None,
+    last_answer_correct: bool = True,
+    consecutive_wrong: int = 0,
+    dyslexia_type: str = "unknown",
+    error_pattern: str = "",
 ) -> dict:
-    target_lvl = reading_level
+    """Fallback generator used only if Gemini is unreachable or offline."""
+    lvl = max(1, min(4, int(reading_level or 1)))
     if consecutive_wrong >= 2:
-        target_lvl = max(1, reading_level - 1)
+        lvl = max(1, lvl - 1)
 
-    done_set = set(words_done_this_session or [])
-    mastered_set = set(mastered_words or [])
+    done_set = {str(w).lower().strip() for w in (words_done_this_session or [])}
+    candidates = STAGE_FALLBACKS.get(lvl, STAGE_FALLBACKS[1])
 
-    candidates = []
-    if consecutive_wrong >= 1:
-        for w in struggling_words or []:
-            if w not in done_set:
-                candidates.append(w)
+    available = [item for item in candidates if item["word"].lower() not in done_set]
+    if not available:
+        # If all stage candidates done, try any stage not yet done
+        for other_lvl in [1, 2, 3, 4]:
+            alt = [item for item in STAGE_FALLBACKS[other_lvl] if item["word"].lower() not in done_set]
+            if alt:
+                available = alt
+                break
 
-    if not candidates:
-        for w, meta in WORD_DATABASE.items():
-            if w not in done_set and w not in mastered_set:
-                if meta["level"] == target_lvl:
-                    candidates.append(w)
-
-    if not candidates:
-        for w in WORD_DATABASE.keys():
-            if w not in done_set:
-                candidates.append(w)
-
-    chosen = candidates[0] if candidates else "know"
-    meta = WORD_DATABASE.get(chosen, {"level": target_lvl, "category": "practice", "audio_hint": chosen, "visual_hint": chosen})
-
-    if consecutive_wrong >= 2:
-        reason = f"After three consecutive incorrect answers, an easier word with a clear silent letter pattern (level {target_lvl}) was chosen to rebuild confidence, aligning with the audio_first approach and avoiding previously struggled words."
-    elif not last_answer_correct:
-        reason = f"Chosen to reinforce phonetic decoding with a clear audio hint at level {target_lvl}."
-    else:
-        reason = f"Selected for level {target_lvl} practice to reinforce fluent reading."
-
+    chosen_meta = available[0] if available else candidates[0]
+    word = chosen_meta["word"]
+    
     return {
-        "word": chosen,
-        "difficulty": "easy" if target_lvl < 3 else "medium",
-        "category": meta.get("category", "practice"),
-        "audio_hint": meta.get("audio_hint", chosen),
-        "visual_hint": meta.get("visual_hint", chosen),
-        "why_chosen": reason,
+        "word":        word,
+        "difficulty":  chosen_meta.get("difficulty", "easy" if lvl < 3 else "medium"),
+        "category":    chosen_meta.get("category", "practice"),
+        "audio_hint":  chosen_meta.get("audio_hint", word),
+        "visual_hint": chosen_meta.get("visual_hint", "·".join(list(word))),
+        "sentence":    chosen_meta.get("sentence", f"The {word} appeared on the screen."),
+        "why_chosen":  f"Selected for Stage {lvl} phonics practice matching child's profile.",
     }
 
 
 def select_next_word(
-    dyslexia_type: str,
-    reading_level: int,
-    approach: str,
-    struggling_words: list,
-    mastered_words: list,
-    words_done_this_session: list,
-    last_answer_correct: bool,
+    reading_level: int = 1,
+    dyslexia_type: str = "phonological",
+    error_pattern: str = "",
+    co_occurring: list = None,
+    approach: str = "phonics",
+    struggling_words: list = None,
+    mastered_words: list = None,
+    words_done_this_session: list = None,
+    last_answer_correct: bool = True,
     consecutive_correct: int = 0,
     consecutive_wrong: int = 0,
+    adaptation_action: str = "continue",
 ) -> dict:
     """
-    Selects the optimal next word for this child at this moment.
-    Uses instant local selector if LLM call exceeds 0.8 seconds.
+    Selects or generates the optimal next word dynamically using Gemini 2.5 Flash.
+    Fully personalized to:
+      1. reading_stage (1=CVC, 2=Digraphs/blends, 3=Silent letters, 4=Multisyllabic)
+      2. error_pattern (e.g. silent_letter, vowel_confusion, b_d_reversal)
+      3. dyslexia_type & co-occurring conditions (ADHD, Autism, etc.)
+      4. words_done_this_session (guarantees zero duplicates in the same session)
     """
+    lvl = max(1, min(4, int(reading_level or 1)))
+    done_list = [str(w).lower().strip() for w in (words_done_this_session or []) if str(w).strip()]
+    cond_list = [str(c).lower().strip() for c in (co_occurring or []) if str(c).strip() and str(c).lower() != "none"]
+
+    prompt = f"""You are the Word Selector Agent for WordBloom, an adaptive reading system for children.
+Generate the optimal next reading practice word for this student:
+
+STUDENT PROFILE:
+- Reading Stage: Stage {lvl}
+  (Stage 1 = simple 3-letter CVC short vowels e.g. sun, hop, bat, cup, net)
+  (Stage 2 = 4-5 letter consonant blends & digraphs e.g. frog, clap, drum, ship, fish, path, jump)
+  (Stage 3 = silent letters & complex vowel teams e.g. wrist, knock, thumb, light, bread, knight)
+  (Stage 4 = multisyllabic & compound words e.g. sunshine, adventure, wonderful, together, explore)
+- Dyslexia Profile: {dyslexia_type}
+- Co-occurring Conditions: {', '.join(cond_list) if cond_list else 'none'}
+- Mastered Words (do not select): {mastered_words or []}
+- Words Already Struggling With: {struggling_words or []}
+
+CURRENT SESSION STATE:
+- Words Already Done This Session (CRITICAL: NEVER REPEAT ANY OF THESE): {done_list}
+- Last Answer Was: {"Correct" if last_answer_correct else "Incorrect"}
+- Error Pattern Just Made: {error_pattern or 'none'}
+- Target Difficulty Action: {adaptation_action}
+- Consecutive Wrong: {consecutive_wrong}
+- Consecutive Correct: {consecutive_correct}
+
+ADAPTIVE RULES:
+1. Generate a real, age-appropriate English word strictly matching Stage {lvl}.
+2. If error_pattern is "silent_letter", choose a word focusing on silent letter patterns (e.g. thumb, wrist, knock, wrap).
+3. If error_pattern is "b_d_reversal" or dyslexia_type is "visual", prefer words without confusing mirror letters (b/d/p/q).
+4. If consecutive_wrong >= 2 or adaptation_action is "make_easier", select a simple, high-confidence word at Stage {max(1, lvl-1)}.
+5. If adaptation_action is "make_harder", select a rich word with an interesting phonics rule at Stage {min(4, lvl+1)}.
+6. audio_hint MUST be plain phonetic English (e.g. "thum", "nite", "rist" - NEVER use unicode diacritics or IPA symbols).
+7. visual_hint MUST be dot-separated letters or phonemes (e.g. "th·u·m·b", "f·r·o·g").
+8. Provide a cheerful, child-friendly sentence using the word.
+
+Return ONLY a valid JSON object matching this schema:
+{{
+    "word": "single_word",
+    "difficulty": "easy" | "medium" | "hard",
+    "category": "phonics category name",
+    "phonics_rule": "short rule description",
+    "audio_hint": "plain phonetic pronunciation",
+    "visual_hint": "dot·separated·word",
+    "sentence": "Warm child-friendly sentence with the word.",
+    "why_chosen": "1 sentence pedagogical rationale citing student stage and error pattern."
+}}"""
+
     try:
-        import concurrent.futures
-        def _call_gemini():
-            prompt = f"""
-            Select next word for child (level {reading_level}, type {dyslexia_type}).
-            Done: {words_done_this_session}, Mastered: {mastered_words}, Struggling: {struggling_words}
-            Last correct: {last_answer_correct}, Consecutive wrong: {consecutive_wrong}
-            Audio hint: plain phonetic English (NEVER use unicode diacritics like ī).
-            Visual hint: dot separated e.g. kn·ow
-
-            Return ONLY valid JSON:
-            {{
-                "word": "...",
-                "difficulty": "easy or medium or hard",
-                "category": "...",
-                "audio_hint": "...",
-                "visual_hint": "...",
-                "why_chosen": "..."
-            }}
-            """
-            response = client.models.generate_content(
-                model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
-                contents=prompt
-            )
-            return _parse_json(response.text)
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(_call_gemini)
-            return future.result(timeout=0.8)
-    except Exception:
-        return _instant_select_word(
-            reading_level, struggling_words, mastered_words,
-            words_done_this_session, last_answer_correct, consecutive_wrong
+        config = types.GenerateContentConfig(
+            response_mime_type="application/json",
+            max_output_tokens=160,
+            temperature=0.3,
+            thinking_config=types.ThinkingConfig(thinking_budget=0),
         )
+        response = client.models.generate_content(
+            model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+            contents=prompt,
+            config=config,
+        )
+        result = _parse_json(response.text)
+
+        if isinstance(result, dict) and result.get("word"):
+            raw_word = str(result["word"]).lower().strip().replace(" ", "")
+            # Ensure no punctuation or weird characters
+            clean_word = "".join([c for c in raw_word if c.isalpha()])
+            
+            # Check if Gemini accidentally repeated an already-done word
+            if clean_word and clean_word not in done_list:
+                result["word"] = clean_word
+                if not result.get("sentence"):
+                    result["sentence"] = f"The {clean_word} appeared on the screen."
+                if not result.get("visual_hint") or "·" not in str(result["visual_hint"]):
+                    result["visual_hint"] = "·".join(list(clean_word))
+                if not result.get("audio_hint"):
+                    result["audio_hint"] = clean_word
+                print(f"   ✨ Gemini dynamically generated: '{clean_word}' (Stage {lvl})")
+                return result
+
+    except Exception as e:
+        print(f"⚠️ Gemini word generation fallback triggered: {e}")
+
+    # Fallback if Gemini timed out or generated an invalid/repeated word
+    return _instant_select_word(
+        reading_level=lvl,
+        struggling_words=struggling_words,
+        mastered_words=mastered_words,
+        words_done_this_session=words_done_this_session,
+        last_answer_correct=last_answer_correct,
+        consecutive_wrong=consecutive_wrong,
+        dyslexia_type=dyslexia_type,
+        error_pattern=error_pattern,
+    )
 
 
 # ─────────────────────────────────────────────
@@ -165,21 +245,21 @@ word_selector_agent = Agent(
     model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
 
     description="""
-        Selects the optimal next word for this child based on their profile
-        and current session performance. Runs SECOND after ProfileAgent.
+        Selects or generates the optimal next word dynamically using Gemini
+        tailored to child profile, reading stage, and detected error patterns.
+        Runs SECOND after ProfileAgent.
     """,
 
     instruction="""
         You are the Word Selector Agent for WordBloom.
 
         Your ONLY job:
-        1. Receive the child's profile and session state
-        2. Call select_next_word() with all the relevant details
-        3. Return the word dict including hints and reason
+        1. Receive child profile, reading stage, and evaluator error patterns.
+        2. Call select_next_word() with full session state.
+        3. Return the personalized word dict with hints, sentence, and why_chosen.
 
         Never repeat a word already done this session.
-        Adapt difficulty based on consecutive correct/wrong answers.
-        Always explain WHY you chose this word.
+        Adapt dynamically to error patterns (e.g. silent letter, b/d reversals).
     """,
 
     tools=[select_next_word],
@@ -195,4 +275,4 @@ def _parse_json(text: str) -> dict:
     try:
         return json.loads(text)
     except json.JSONDecodeError:
-        return {"raw_response": text, "word": "cat", "difficulty": "easy"}
+        return {}

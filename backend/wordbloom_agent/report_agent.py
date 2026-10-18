@@ -41,10 +41,20 @@ def _instant_report(
     words_attempted: list,
     words_correct: list,
     accuracy: int,
+    dyslexia_type: str = "phonological",
 ) -> str:
     first_name = child_name.split()[0]
+    is_non_dyslexic = any(k in str(dyslexia_type).lower() for k in ["non_dyslexic", "non-dyslexic", "none", "general", "normal", "standard"])
+
     if not words_attempted:
         return f"{first_name} checked into WordBloom today. No full word exercises were completed in this check-in session."
+    elif is_non_dyslexic:
+        if accuracy >= 80:
+            return f"{first_name} demonstrated strong reading fluency today, completing {len(words_attempted)} word exercises with {accuracy}% accuracy at Stage {reading_level}."
+        elif accuracy >= 50:
+            return f"{first_name} worked through {len(words_attempted)} words today with {accuracy}% accuracy, maintaining steady engagement at Stage {reading_level}."
+        else:
+            return f"{first_name} practiced {len(words_attempted)} words today, reinforcing core Stage {reading_level} vocabulary."
     elif accuracy >= 80:
         return f"{first_name} demonstrated strong reading fluency today, completing {len(words_attempted)} word exercises with {accuracy}% accuracy. Showed high confidence decoding reading level {reading_level} patterns."
     elif accuracy >= 50:
@@ -79,7 +89,7 @@ def generate_session_report(
     to_revisit   = list(set(words_incorrect))
 
     # Instant zero-latency report generation (<0.001s)
-    report_text = _instant_report(child_name, reading_level, words_attempted, words_correct, accuracy)
+    report_text = _instant_report(child_name, reading_level, words_attempted, words_correct, accuracy, dyslexia_type)
 
     return {
         "child_name":           child_name,

@@ -7,6 +7,7 @@ description: James Bond's learning profile and dyslexia settings
 
 ## Identity
 - Full name: James Bond
+- Parent email: parent@example.com
 - Age: 8
 - School year: Year 3
 
@@ -16,14 +17,15 @@ description: James Bond's learning profile and dyslexia settings
 
 ## Access Settings
 - Input mode: tap
-- Display mode: opendyslexic
+- Display mode: standard
 - Colour overlay: yellow
 - Show timer: never
 - Score display: stars only
 
 ## Session Settings
-- Session length: 6
-- Break after: 6
+- Session length: 5
+- Candy goal: 5
+- Break after: 5
 - Approach: phonics
 - Encouragement style: warm
 

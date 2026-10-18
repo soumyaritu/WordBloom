@@ -19,6 +19,7 @@ __pycache__/
 *.pyo
 *.pyd
 .pytest_cache/
+*.tsbuildinfo
 
 # OS Files
 .DS_Store

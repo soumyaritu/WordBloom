@@ -1,11 +1,12 @@
+from difflib import SequenceMatcher
 """
 WordBloom — evaluator_agent.py
 ================================
-Evaluator Agent — assesses child answer quality.
+Evaluator Agent — assesses child answer quality with profile-aware candy scoring.
 
 Job:     Score the answer — not just right/wrong but HOW they answered
-Input:   Correct word + child answer + response time + attempt number
-Output:  Detailed evaluation driving adapter and encouragement agents
+Input:   Correct word + child answer + response time + attempt number + child profile
+Output:  Detailed evaluation driving adapter, encouragement, and reward systems
 
 Runs THIRD after WordSelectorAgent.
 """
@@ -32,18 +33,201 @@ client = genai.Client(
 
 
 # ─────────────────────────────────────────────
+# PROFILE-AWARE CANDY SCORING THRESHOLDS
+# ─────────────────────────────────────────────
+DYSLEXIA_BASE = {
+    "phonological":   0.75,
+    "surface":        0.65,
+    "visual_spatial": 0.70,
+    "double_deficit": 0.60,
+    "attentional":    0.72,
+    "unknown":        0.65,
+    "none":           1.00,
+    "non_dyslexic":   1.00,
+}
+
+INPUT_ADJUSTMENT = {
+    "voice": -0.12,   # speech-to-text adds noise beyond child's control
+    "tap":   -0.08,   # tile interface has physical constraints
+    "type":   0.00,   # baseline
+}
+
+STAGE_ADJUSTMENT = {
+    1: +0.05,   # CVC words — simple, expect closer answers
+    2:  0.00,   # blends — baseline
+    3: -0.05,   # silent letters — phonetic approximations expected
+    4: -0.08,   # multisyllabic — many valid phonetic variants
+}
+
+CONDITION_ADJUSTMENT = {
+    "ADHD":      -0.05,   # attention lapses cause inconsistent performance
+    "Autism":     0.00,   # predictable scoring — no threshold change
+    "Dyspraxia": -0.03,   # small extra leniency beyond tap mode
+}
+
+
+def _normalize_dyslexia_type(dyslexia_type: str) -> str:
+    if not dyslexia_type:
+        return "unknown"
+    dt = str(dyslexia_type).strip().lower().replace("/", "_").replace("-", "_").replace(" ", "_")
+    if dt in ("visual", "visual_spatial"):
+        return "visual_spatial"
+    elif dt in ("double", "double_deficit"):
+        return "double_deficit"
+    elif dt in ("not_sure", "not_sure_yet", "unknown"):
+        return "unknown"
+    elif dt in ("non_dyslexic", "non_dyslexia", "none", "general", "normal", "standard"):
+        return "non_dyslexic"
+    return dt
+
+
+def _normalize_condition(c: str) -> str:
+    c_lower = str(c).strip().lower()
+    if c_lower == "adhd":
+        return "ADHD"
+    elif c_lower == "autism":
+        return "Autism"
+    elif c_lower == "dyspraxia":
+        return "Dyspraxia"
+    return str(c).strip()
+
+
+def get_candy_threshold(dyslexia_type, input_mode, reading_stage, conditions):
+    """
+    Computes profile-aware candy reward threshold based on dyslexia type,
+    input method, reading stage, and co-occurring conditions.
+    """
+    norm_dt = _normalize_dyslexia_type(dyslexia_type)
+    base  = DYSLEXIA_BASE.get(norm_dt, DYSLEXIA_BASE.get(dyslexia_type, 0.90))
+
+    norm_input = str(input_mode or "type").strip().lower()
+    adj   = INPUT_ADJUSTMENT.get(norm_input, INPUT_ADJUSTMENT.get(input_mode, 0.00))
+
+    try:
+        r_stage = int(reading_stage)
+    except (ValueError, TypeError):
+        r_stage = 1
+    sadj  = STAGE_ADJUSTMENT.get(r_stage, 0.00)
+
+    if isinstance(conditions, str):
+        cond_list = [c.strip() for c in conditions.split(",") if c.strip() and c.strip().lower() != "none"]
+    elif isinstance(conditions, (list, tuple)):
+        cond_list = [c for c in conditions if str(c).strip().lower() not in ("", "none")]
+    else:
+        cond_list = []
+
+    cadj  = sum(CONDITION_ADJUSTMENT.get(_normalize_condition(c), CONDITION_ADJUSTMENT.get(c, 0.00)) for c in cond_list)
+    return round(max(0.50, base + adj + sadj + cadj), 2)
+
+
+DYSLEXIC_MIRRORS = str.maketrans("bdpq", "dbqp")
+
+SILENT_VARIANTS = {
+    "knight": ["nite", "night"],
+    "wrote": ["rote"],
+    "thumb": ["thum"],
+    "wrist": ["rist"],
+    "gnome": ["nome"],
+    "light": ["lite"],
+    "through": ["thru", "threw"],
+    "bread": ["bred"],
+    "comb": ["com"],
+    "lamb": ["lam"],
+    "climb": ["clime", "clim"],
+    "half": ["haf"],
+    "calf": ["caf"],
+    "sign": ["sine"],
+    "knock": ["nock"],
+    "know": ["no"],
+    "knee": ["nee"],
+    "wrap": ["rap"],
+}
+
+VOICE_HOMOPHONES = {
+    "sun": ["son"],
+    "son": ["sun"],
+    "right": ["write"],
+    "write": ["right"],
+    "see": ["sea"],
+    "sea": ["see"],
+    "for": ["four"],
+    "four": ["for"],
+    "one": ["won"],
+    "won": ["one"],
+    "to": ["two", "too"],
+    "two": ["to", "too"],
+    "too": ["to", "two"],
+    "be": ["bee"],
+    "bee": ["be"],
+}
+
+
+def is_correct_for_profile(correct_word, child_answer, dyslexia_type,
+                            input_mode, reading_stage, conditions, partial_score):
+    """
+    Determines whether child answer earns candy based on profile threshold.
+    For non-dyslexic learners, standard exact spelling is required.
+    For dyslexic learners, genuine dyslexia accommodations apply:
+      - Mirror letter swaps (b/d, p/q) e.g. dog -> bog
+      - Silent letter phonetic variants e.g. knight -> nite
+      - Adjacent letter transposition e.g. chair -> cahir
+      - Voice mode homophones e.g. sun -> son
+    Incorrect words (e.g. run for sun, cat for dog, bad for bed) are strictly False.
+    """
+    clean_target = str(correct_word or "").lower().strip(" .,!?:;'\"")
+    clean_answer = str(child_answer or "").lower().strip(" .,!?:;'\"")
+
+    if not clean_target or not clean_answer:
+        return False
+
+    if clean_target == clean_answer:
+        return True
+
+    norm_dt = _normalize_dyslexia_type(dyslexia_type)
+    if norm_dt == "non_dyslexic":
+        return False
+
+    # 1. Mirror letter swap (b/d, p/q) when length is identical
+    if len(clean_target) == len(clean_answer) and clean_answer.translate(DYSLEXIC_MIRRORS) == clean_target:
+        return True
+
+    # 2. Recognized silent letter phonetic variant
+    if clean_answer in SILENT_VARIANTS.get(clean_target, []):
+        return True
+
+    # 3. Adjacent letter transposition with identical character set
+    if len(clean_target) == len(clean_answer) and sorted(clean_target) == sorted(clean_answer):
+        diffs = sum(1 for x, y in zip(clean_target, clean_answer) if x != y)
+        if diffs <= 2:
+            return True
+
+    # 4. Voice mode speech homophones
+    if str(input_mode or "").lower() == "voice" and clean_answer in VOICE_HOMOPHONES.get(clean_target, []):
+        return True
+
+    # 5. High-fidelity near match for long multisyllabic words (Stage 4, 6+ letters) with single character typo
+    if len(clean_target) >= 6 and abs(len(clean_target) - len(clean_answer)) <= 1 and partial_score >= 0.88:
+        return True
+
+    return False
+
+
+# ─────────────────────────────────────────────
 # TOOL
 # ─────────────────────────────────────────────
 def evaluate_answer(
     correct_word: str,
     child_answer: str,
-    response_time_seconds: float,
-    input_mode: str,
+    response_time_seconds: float = 5.0,
+    input_mode: str = "type",
     attempt_number: int = 1,
     typical_response_time: float = 5.0,
+    dyslexia_type: str = "unknown",
+    reading_stage: int = 1,
+    conditions: list = None,
 ) -> dict:
     """
-    Evaluates child answer with nuance — partial credit matters.
+    Evaluates child answer with nuance — profile-aware candy scoring.
 
     Args:
         correct_word:           the word that was shown
@@ -52,14 +236,30 @@ def evaluate_answer(
         input_mode:             type / voice / tap
         attempt_number:         1 = first try, 2 = second try
         typical_response_time:  child's usual pace for comparison
+        dyslexia_type:          child's dyslexia type
+        reading_stage:          reading level stage (1-4)
+        conditions:             co-occurring conditions (ADHD, Autism, etc.)
 
     Returns:
-        Detailed evaluation dict
+        Detailed evaluation dict including profile candy scoring fields
     """
-    letters_correct = sum(
-        1 for a, b in zip(correct_word.lower(), child_answer.lower()) if a == b
-    )
-    is_correct = correct_word.lower().strip() == child_answer.lower().strip()
+    if conditions is None:
+        conditions = []
+
+    clean_target = str(correct_word or "").lower().strip(" .,!?:;'\"")
+    clean_answer = str(child_answer or "").lower().strip(" .,!?:;'\"")
+    exact_match = clean_target == clean_answer
+
+    from collections import Counter
+    target_counts = Counter(clean_target)
+    answer_counts = Counter(clean_answer)
+    shared_chars = sum(min(target_counts[c], answer_counts[c]) for c in target_counts)
+    zip_matches = sum(1 for a, b in zip(clean_target, clean_answer) if a == b)
+    letters_correct = max(zip_matches, shared_chars)
+
+    sim_ratio = SequenceMatcher(None, clean_target, clean_answer).ratio()
+    len_penalty = max(0, abs(len(clean_target) - len(clean_answer)) - 1) * 0.15
+    partial_score = 1.0 if exact_match else max(0.0, round(sim_ratio - len_penalty, 2))
 
     if response_time_seconds < typical_response_time * 0.7:
         confidence = "fast"
@@ -70,41 +270,67 @@ def evaluate_answer(
     else:
         confidence = "very_slow"
 
-    if is_correct:
-        return {
-            "is_correct": True,
-            "partial_score": 1.0,
-            "letters_correct": len(correct_word),
-            "letters_total": len(correct_word),
-            "confidence_signal": confidence,
-            "error_pattern": "correct",
-            "error_explanation": "Word read correctly!",
-            "needs_break": False,
-            "positive_observation": f"Read '{correct_word}' accurately!"
-        }
+    threshold_used = get_candy_threshold(dyslexia_type, input_mode, reading_stage, conditions)
+    is_correct = is_correct_for_profile(
+        correct_word=correct_word,
+        child_answer=child_answer,
+        dyslexia_type=dyslexia_type,
+        input_mode=input_mode,
+        reading_stage=reading_stage,
+        conditions=conditions,
+        partial_score=partial_score,
+    )
+    candy_earned = is_correct
 
-    # Instant high-speed evaluation for non-exact answers (0.001s)
-    partial_score = round(letters_correct / max(len(correct_word), 1), 2)
-    if partial_score >= 0.5:
-        pattern = "phonetic_attempt"
-        explanation = f"Good phonetic effort! Identified {letters_correct} of {len(correct_word)} letters."
-    elif any(c in correct_word.lower() for c in ['k', 'gh', 'w', 'b', 'l']):
-        pattern = "silent_letter"
-        explanation = f"Tricky silent letter pattern in '{correct_word}'."
+    is_non_dyslexic = _normalize_dyslexia_type(dyslexia_type) == "non_dyslexic"
+
+    if exact_match:
+        pattern = "correct"
+        explanation = "Word read correctly!"
+        positive_observation = f"Read '{correct_word}' accurately!"
+    elif is_correct and not is_non_dyslexic:
+        pattern = "profile_accepted"
+        explanation = f"Word accepted with profile accommodations (score {partial_score} >= threshold {threshold_used})."
+        positive_observation = f"You spotted {letters_correct} letters in that tricky word!"
     else:
-        pattern = "omission"
-        explanation = f"Attempted '{child_answer}' for '{correct_word}'."
+        if is_non_dyslexic:
+            pattern = "spelling_error"
+            explanation = f"Attempted '{child_answer}' for '{correct_word}'."
+            positive_observation = f"Good effort! Identified {letters_correct} of {len(correct_word)} letters accurately."
+        elif partial_score >= 0.5:
+            pattern = "phonetic_attempt"
+            explanation = f"Good phonetic effort! Identified {letters_correct} of {len(correct_word)} letters."
+            positive_observation = f"Stayed engaged and identified {letters_correct} letter{'s' if letters_correct != 1 else ''}!"
+        elif any(c in correct_word.lower() for c in ['k', 'gh', 'w', 'b', 'l']):
+            pattern = "silent_letter"
+            explanation = f"Tricky silent letter pattern in '{correct_word}'."
+            positive_observation = f"Stayed engaged and identified {letters_correct} letter{'s' if letters_correct != 1 else ''}!"
+        else:
+            pattern = "omission"
+            explanation = f"Attempted '{child_answer}' for '{correct_word}'."
+            positive_observation = f"Stayed engaged and identified {letters_correct} letter{'s' if letters_correct != 1 else ''}!"
+
+    needs_visual_hint = (not is_correct) and (attempt_number >= 2)
 
     return {
-        "is_correct": False,
-        "partial_score": partial_score,
-        "letters_correct": letters_correct,
-        "letters_total": len(correct_word),
-        "confidence_signal": confidence,
-        "error_pattern": pattern,
-        "error_explanation": explanation,
-        "needs_break": False,
-        "positive_observation": f"Stayed engaged and identified {letters_correct} letter{'s' if letters_correct != 1 else ''}!"
+        "correct":               is_correct,
+        "is_correct":            is_correct,
+        "needs_visual_hint":     needs_visual_hint,
+        "word":                  correct_word,
+        "candy_earned":          candy_earned,
+        "partial_score":         partial_score,
+        "threshold_used":        threshold_used,
+        "dyslexia_type":         dyslexia_type,
+        "input_mode":            input_mode,
+        "reading_stage":         reading_stage,
+        "conditions":            conditions,
+        "letters_correct":       letters_correct,
+        "letters_total":         len(correct_word),
+        "confidence_signal":     confidence,
+        "error_pattern":         pattern,
+        "error_explanation":     explanation,
+        "needs_break":           False,
+        "positive_observation":  positive_observation,
     }
 
 
@@ -116,8 +342,8 @@ evaluator_agent = Agent(
     model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
 
     description="""
-        Evaluates child answer quality with nuance — partial credit matters.
-        Identifies specific error patterns to inform the Adapter Agent.
+        Evaluates child answer quality with profile-aware candy scoring.
+        Identifies specific error patterns and applies dyslexia accommodations.
         Runs THIRD after WordSelectorAgent.
     """,
 
@@ -125,12 +351,12 @@ evaluator_agent = Agent(
         You are the Evaluator Agent for WordBloom.
 
         Your ONLY job:
-        1. Receive the word, child answer and response time
-        2. Call evaluate_answer() with all details
-        3. Return the full evaluation dict
+        1. Receive the word, child answer, response time, and learner profile
+        2. Call evaluate_answer() with all profile details
+        3. Return the full evaluation dict with candy_earned and profile fields
 
         CRITICAL: For dyslexic children, right/wrong is not enough.
-        Always identify what they DID correctly even in a wrong answer.
+        Always identify what they DID correctly even in an imperfect answer.
         Never use negative framing in error_explanation.
         positive_observation must always find something true and good.
     """,
@@ -141,16 +367,23 @@ evaluator_agent = Agent(
 
 def _parse_json(text: str) -> dict:
     text = text.strip()
-    if "```json" in text:
-        text = text.split("```json")[1].split("```")[0].strip()
-    elif "```" in text:
-        text = text.split("```")[1].split("```")[0].strip()
+    fence = chr(96) * 3
+    if f"{fence}json" in text:
+        text = text.split(f"{fence}json")[1].split(fence)[0].strip()
+    elif fence in text:
+        text = text.split(fence)[1].split(fence)[0].strip()
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         return {
             "is_correct": False,
+            "candy_earned": False,
             "partial_score": 0.5,
+            "threshold_used": 0.65,
+            "dyslexia_type": "unknown",
+            "input_mode": "type",
+            "reading_stage": 1,
+            "conditions": [],
             "letters_correct": 0,
             "letters_total": 0,
             "confidence_signal": "normal",

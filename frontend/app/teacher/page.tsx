@@ -1,9 +1,12 @@
 'use client'
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { approveReport, startSession, getProfile } from '../../lib/api'
+import TeacherBackground from '../../components/TeacherBackground'
 
 const DEFAULT_STUDENTS = [
+  { id: 'liam',  name: "Liam O'Connor", level: 2, type: 'Surface · DYSPRAXIA, ADHD' },
   { id: 'emma',  name: 'Emma Clarke',  level: 3, type: 'Phonological · ADHD' },
   { id: 'james', name: 'James Patel',  level: 2, type: 'Visual · Dyspraxia'  },
   { id: 'sofia', name: 'Sofia Mensah', level: 4, type: 'Surface'              },
@@ -26,7 +29,7 @@ function TeacherDashboardContent() {
   // Fetch children list on mount
   useEffect(() => {
     document.body.className = ''
-    fetch('http://localhost:8000/children')
+    fetch('/api/children')
       .then(res => res.json())
       .then(data => {
         if (data.children && data.children.length > 0) {
@@ -34,18 +37,21 @@ function TeacherDashboardContent() {
             const saved = localStorage.getItem(`wb_profile_${c.id}`)
             if (saved) {
               const parsed = JSON.parse(saved)
+              const typeLabel = parsed.dyslexiaType === 'non_dyslexic'
+                ? 'Non-dyslexic (General)'
+                : (parsed.dyslexiaType ? (parsed.dyslexiaType.charAt(0).toUpperCase() + parsed.dyslexiaType.slice(1)) : 'Phonological')
               return {
                 id: c.id,
                 name: parsed.fullName || c.name,
                 level: parsed.readingLevel || 3,
-                type: `${parsed.dyslexiaType || 'Phonological'} ${parsed.coOccurring?.length ? '· ' + parsed.coOccurring.join(', ').toUpperCase() : ''}`,
+                type: `${typeLabel} ${parsed.coOccurring?.length ? '· ' + parsed.coOccurring.join(', ').toUpperCase() : ''}`,
               }
             }
             return {
               id: c.id,
-              name: c.name + (c.id === 'emma' ? ' Clarke' : c.id === 'james' ? ' Patel' : c.id === 'sofia' ? ' Mensah' : ''),
-              level: c.id === 'emma' ? 3 : c.id === 'james' ? 2 : 4,
-              type: c.id === 'emma' ? 'Phonological · ADHD' : c.id === 'james' ? 'Visual · Dyspraxia' : 'Surface',
+              name: c.id === 'liam' ? "Liam O'Connor" : c.name + (c.id === 'emma' ? ' Clarke' : c.id === 'james' ? ' Patel' : c.id === 'sofia' ? ' Mensah' : ''),
+              level: c.id === 'liam' ? 2 : c.id === 'emma' ? 3 : c.id === 'james' ? 2 : 4,
+              type: c.id === 'liam' ? 'Surface · DYSPRAXIA, ADHD' : c.id === 'emma' ? 'Phonological · ADHD' : c.id === 'james' ? 'Visual · Dyspraxia' : 'Surface',
             }
           })
           setStudents(loaded)
@@ -61,6 +67,27 @@ function TeacherDashboardContent() {
     }
   }, [childParam])
 
+  // Clean and adapt report text to always match target student
+  const cleanReportText = (text: string, studentName: string): string => {
+    if (!text) return ''
+    const firstName = studentName.split(' ')[0]
+    return text
+      .replace(/\b(Emma Clarke|James Patel|Sofia Mensah|Liam O'Connor)\b/gi, studentName)
+      .replace(/\b(Emma|James|Sofia|Child)\b/gi, firstName)
+      .replace(/^[A-Za-z'.-]+(?=\s+(?:worked|demonstrated|showed|checked|completed|navigated|read))/i, firstName)
+  }
+
+  // Sanitize report to always match the active student
+  const sanitizeReport = (rep: any, targetStudent: any) => {
+    if (!rep) return rep
+    const stdName = targetStudent?.name || (activeChildId === 'liam' ? "Liam O'Connor" : (activeChildId.charAt(0).toUpperCase() + activeChildId.slice(1)))
+    const sanitized = { ...rep, child_name: stdName }
+    if (sanitized.report_text) {
+      sanitized.report_text = cleanReportText(sanitized.report_text, stdName)
+    }
+    return sanitized
+  }
+
   // Load report or profile state whenever activeChildId changes
   useEffect(() => {
     setReport(null)
@@ -68,30 +95,14 @@ function TeacherDashboardContent() {
     setApproved(false)
     setNotes('')
 
-    // 1. Try loading child-specific report from localStorage
-    const savedChildReport = localStorage.getItem(`wb_report_${activeChildId}`)
-    if (savedChildReport) {
-      try {
-        const parsed = JSON.parse(savedChildReport)
-        setReport(parsed)
-        return
-      } catch (e) {}
+    const targetStudent = students.find(s => s.id === activeChildId) || {
+      id: activeChildId,
+      name: activeChildId === 'liam' ? "Liam O'Connor" : (activeChildId.charAt(0).toUpperCase() + activeChildId.slice(1)),
+      level: 2,
+      type: 'Surface'
     }
 
-    // 2. Try generic report if child name matches
-    const genericReport = localStorage.getItem('wb_report')
-    if (genericReport) {
-      try {
-        const parsed = JSON.parse(genericReport)
-        const nameMatch = (parsed.child_name || '').toLowerCase()
-        if (nameMatch.includes(activeChildId)) {
-          setReport(parsed)
-          return
-        }
-      } catch (e) {}
-    }
-
-    // 3. If no report found for this child, load their profile summary
+    // Always load child profile to know dyslexia type
     const savedProfile = localStorage.getItem(`wb_profile_${activeChildId}`)
     if (savedProfile) {
       try {
@@ -103,18 +114,45 @@ function TeacherDashboardContent() {
           if (res.found && res.content) {
             const raw = res.content
             const matchName = raw.match(/- Full name:\s*(.+)/i)
-            const matchType = raw.match(/- Type:\s*(.+)/i)
-            const matchLevel = raw.match(/- Reading level:\s*(\d+)/i)
-            const matchCo = raw.match(/- Co-occurring:\s*(.+)/i)
+            const matchType = raw.match(/- (?:Dyslexia type|Type):\s*(.+)/i)
+            const matchLevel = raw.match(/- Reading (?:level|stage):\s*(\d+)/i)
+            const matchCo = raw.match(/- (?:Co-occurring|Conditions):\s*(.+)/i)
             setChildProfile({
               fullName: matchName ? matchName[1].trim() : activeChildId.toUpperCase(),
-              dyslexiaType: matchType ? matchType[1].trim() : 'phonological',
+              dyslexiaType: matchType ? matchType[1].trim().toLowerCase() : 'phonological',
               readingLevel: matchLevel ? parseInt(matchLevel[1]) : 3,
               coOccurring: matchCo ? matchCo[1].split(',').map((s: string) => s.trim()) : [],
             })
           }
         })
         .catch(() => {})
+    }
+
+    // 1. Try loading child-specific report from localStorage
+    const savedChildReport = localStorage.getItem(`wb_report_${activeChildId}`)
+    if (savedChildReport) {
+      try {
+        const parsed = JSON.parse(savedChildReport)
+        const sanitized = sanitizeReport(parsed, targetStudent)
+        localStorage.setItem(`wb_report_${activeChildId}`, JSON.stringify(sanitized))
+        setReport(sanitized)
+        return
+      } catch (e) {}
+    }
+
+    // 2. Try generic report if child name matches
+    const genericReport = localStorage.getItem('wb_report')
+    if (genericReport) {
+      try {
+        const parsed = JSON.parse(genericReport)
+        const nameMatch = (parsed.child_name || '').toLowerCase()
+        if (nameMatch.includes(activeChildId)) {
+          const sanitized = sanitizeReport(parsed, targetStudent)
+          localStorage.setItem(`wb_report_${activeChildId}`, JSON.stringify(sanitized))
+          setReport(sanitized)
+          return
+        }
+      } catch (e) {}
     }
   }, [activeChildId])
 
@@ -157,14 +195,48 @@ function TeacherDashboardContent() {
     type: 'Dyslexia Profile'
   }
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2rem 1.5rem', minHeight: '100vh', background: 'var(--bg)', color: 'var(--white)', fontFamily: 'var(--font)' }}>
+  const rawChildType = (childProfile?.dyslexiaType || activeStudent?.type || '').toLowerCase()
+  const isNonDyslexic = Boolean(
+    rawChildType.includes('non') ||
+    rawChildType === 'none' ||
+    rawChildType === 'general' ||
+    rawChildType === 'standard' ||
+    rawChildType === 'normal'
+  )
 
-      {/* Header */}
+  return (
+    <main
+      suppressHydrationWarning
+      style={{
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: '2rem 1.5rem',
+        minHeight: '100vh',
+        backgroundColor: '#06080F',
+        overflow: 'hidden',
+        color: 'var(--white)',
+        fontFamily: 'var(--font)',
+      }}
+    >
+      <TeacherBackground />
+
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        {/* Header */}
       <div style={{ width: '100%', maxWidth: 540, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--white)' }}>Teacher Dashboard</h1>
-          <p style={{ fontSize: 13, color: 'var(--grey)', marginTop: 2 }}>
+          <p suppressHydrationWarning style={{ fontSize: 13, color: 'var(--grey)', marginTop: 2 }}>
             {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
         </div>
@@ -254,23 +326,40 @@ function TeacherDashboardContent() {
         }}>
           {/* Report header */}
           <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{
-                width: 46, height: 46, borderRadius: '50%',
-                background: 'var(--bloom)', display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                fontSize: 18, fontWeight: 700, color: '#fff',
-              }}>
-                {report.child_name?.charAt(0) || activeStudent.name.charAt(0)}
-              </div>
-              <div>
-                <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--white)' }}>
-                  {report.child_name || activeStudent.name} · Session Report
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{
+                  width: 46, height: 46, borderRadius: '50%',
+                  background: 'var(--bloom)', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                  fontSize: 18, fontWeight: 700, color: '#fff',
+                }}>
+                  {activeStudent.name.charAt(0)}
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--grey)', marginTop: 2 }}>
-                  {report.session_date_display || 'Recent session'} · drafted by Report Agent
+                <div>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--white)' }}>
+                    {activeStudent.name} · Session Report
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--grey)', marginTop: 2 }}>
+                    {report.session_date_display || 'Recent session'} · drafted by Report Agent
+                  </div>
                 </div>
               </div>
+
+              {!isNonDyslexic && (
+                <Link
+                  href={`/teacher/children/${activeChildId}/mirror`}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    background: 'rgba(16,185,129,0.15)', border: '1.5px solid rgba(16,185,129,0.35)',
+                    color: '#34D399', borderRadius: 20, padding: '6px 14px',
+                    fontSize: 12, fontWeight: 700, textDecoration: 'none',
+                  }}
+                >
+                  <span>🔍</span>
+                  <span>Dyslexia Mirror</span>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -299,15 +388,39 @@ function TeacherDashboardContent() {
                 background: 'var(--warn-bg)', border: '1.5px solid rgba(251,191,36,0.3)',
                 borderRadius: 'var(--radius)', padding: '12px 14px',
               }}>
-                <div style={{ fontSize: 12, color: 'var(--warn)', marginBottom: 8, fontWeight: 700 }}>TO REVISIT ⚠️</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ fontSize: 12, color: 'var(--warn)', fontWeight: 700 }}>TO REVISIT ⚠️</span>
+                </div>
                 {report.words_to_revisit?.length > 0
-                  ? report.words_to_revisit.map((w: string) => (
-                    <span key={w} style={{
-                      display: 'inline-block', background: 'var(--warn)', color: '#0F172A',
-                      borderRadius: 14, padding: '4px 12px', fontSize: 13, fontWeight: 700,
-                      margin: '3px 4px 3px 0',
-                    }}>{w}</span>
-                  ))
+                  ? (
+                    <div>
+                      <div>
+                        {report.words_to_revisit.map((w: string) => (
+                          <span key={w} style={{
+                            display: 'inline-block', background: 'var(--warn)', color: '#0F172A',
+                            borderRadius: 14, padding: '4px 12px', fontSize: 13, fontWeight: 700,
+                            margin: '3px 4px 3px 0',
+                          }}>{w}</span>
+                        ))}
+                      </div>
+                      {!isNonDyslexic && (
+                        <div style={{ marginTop: 10 }}>
+                          <Link
+                            href={`/teacher/children/${activeChildId}/mirror`}
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 6,
+                              background: 'rgba(251,191,36,0.2)', border: '1.5px solid rgba(251,191,36,0.5)',
+                              color: '#FBBF24', borderRadius: 8, padding: '6px 12px',
+                              fontSize: 12, fontWeight: 800, textDecoration: 'none',
+                            }}
+                          >
+                            <span>🔍</span>
+                            <span>See What {activeStudent.name.split(' ')[0]} Sees</span>
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  )
                   : <span style={{ fontSize: 13, color: 'var(--grey)' }}>None</span>
                 }
               </div>
@@ -320,7 +433,7 @@ function TeacherDashboardContent() {
               border: '1.5px solid var(--border2)', borderRadius: 'var(--radius)',
               padding: '16px 18px', marginBottom: '1.25rem',
             }}>
-              {report.report_text || 'Report text loading...'}
+              {cleanReportText(report.report_text, activeStudent.name) || 'Report text loading...'}
             </div>
 
             {/* Approval gate warning */}
@@ -410,7 +523,7 @@ function TeacherDashboardContent() {
                 {childProfile?.fullName || activeStudent.name}
               </h3>
               <div style={{ fontSize: 14, color: 'var(--grey)', marginTop: 2 }}>
-                Stage {childProfile?.readingLevel || activeStudent.level} · {childProfile?.dyslexiaType ? childProfile.dyslexiaType.toUpperCase() : activeStudent.type}
+                Stage {childProfile?.readingLevel || activeStudent.level} · {childProfile?.dyslexiaType === 'non_dyslexic' ? 'NON-DYSLEXIC (GENERAL)' : (childProfile?.dyslexiaType ? childProfile.dyslexiaType.toUpperCase() : activeStudent.type)}
               </div>
             </div>
           </div>
@@ -478,7 +591,8 @@ function TeacherDashboardContent() {
           Monitoring <strong>{activeStudent.name}</strong> · <strong style={{ color: approved ? '#34D399' : '#FCD34D' }}>{approved ? 'Approved ✅' : (report ? 'awaiting your approval' : 'ready for session')}</strong>
         </span>
       </div>
-    </div>
+      </div>
+    </main>
   )
 }
 

@@ -142,15 +142,38 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
         profile = load_child_profile(child_name)
         print(f"   ✅ {profile.get('child_name')} — {profile.get('dyslexia_type')} dyslexia")
 
-        # Agent 2 — First word (Instant selector <0.001s)
-        print("📖 Word Selector Agent: selecting first word...")
-        first_word = _instant_select_word(
+        # Session behaviour adjustments for co-occurring conditions
+        conditions = profile.get("conditions") or profile.get("co_occurring", [])
+        cond_lower = [str(c).strip().lower() for c in conditions]
+        if "adhd" in cond_lower:
+            # ADHD: Lock session to 5 minutes, 5 candy goal, break every 5 words, specific praise
+            profile["session_length"] = 5
+            profile["candy_goal"] = 5
+            profile["break_after"] = 5
+            profile["encouragement_style"] = "specific"
+        else:
+            if not profile.get("candy_goal"):
+                profile["candy_goal"] = profile.get("session_length", 10)
+        if "autism" in cond_lower:
+            # Autism: specific and predictable praise style
+            profile["encouragement_style"] = "specific"
+
+        # Agent 2 — First word generated dynamically by Gemini AI
+        print("📖 Word Selector Agent: generating personalized first word with Gemini...")
+        first_word = await asyncio.to_thread(
+            select_next_word,
             reading_level           = profile.get("reading_level", 1),
+            dyslexia_type           = profile.get("dyslexia_type", "unknown"),
+            error_pattern           = "",
+            co_occurring            = conditions,
+            approach                = profile.get("approach", "phonics"),
             struggling_words        = profile.get("struggling_words", []),
             mastered_words          = profile.get("mastered_words", []),
             words_done_this_session = [],
             last_answer_correct     = True,
+            consecutive_correct     = 0,
             consecutive_wrong       = 0,
+            adaptation_action       = "continue",
         )
         print(f"   ✅ First word: {first_word.get('word')}")
 
@@ -183,15 +206,24 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
         session    = _sessions.get(session_id)
         if not session:
             # Auto-recover session if server reloaded or session expired
-            child_name = body.get("child_name", "emma")
-            profile = load_child_profile(child_name)
-            first_word = _instant_select_word(
+            raw_child = body.get("child_name") or "liam"
+            child_id = raw_child.lower().split()[0]
+            profile = load_child_profile(child_id)
+            if profile.get("error") and raw_child:
+                profile["child_name"] = raw_child
+            first_word = select_next_word(
                 reading_level           = profile.get("reading_level", 1),
+                dyslexia_type           = profile.get("dyslexia_type", "unknown"),
+                error_pattern           = "",
+                co_occurring            = profile.get("conditions") or profile.get("co_occurring", []),
+                approach                = profile.get("approach", "phonics"),
                 struggling_words        = profile.get("struggling_words", []),
                 mastered_words          = profile.get("mastered_words", []),
                 words_done_this_session = [],
                 last_answer_correct     = True,
+                consecutive_correct     = 0,
                 consecutive_wrong       = 0,
+                adaptation_action       = "continue",
             )
             session = {
                 "profile":            profile,
@@ -211,28 +243,52 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
                 _sessions[session_id] = session
 
         profile      = session.get("profile", {})
-        current_word = session.get("current_word", {})
+        target_param = body.get("current_word")
+        if target_param:
+            if isinstance(target_param, dict):
+                current_word = target_param
+            else:
+                current_word = {"word": str(target_param).lower().strip()}
+        else:
+            current_word = session.get("current_word", {})
 
         print(f"\n📝 Processing answer for session {str(session_id)[:8]}...")
 
-        # Agent 3 — Evaluate
-        print("🔍 Evaluator Agent: scoring answer...")
+        # Profile-aware extraction for EvaluatorAgent
+        dyslexia_type = profile.get("dyslexia_type", "unknown")
+        # If input_mode is passed from frontend request (child switched mid-session), use that over stored SKILL.md value
+        input_mode = body.get("input_mode") or profile.get("input_mode", "type")
+        reading_stage = profile.get("reading_stage") or profile.get("reading_level", 1)
+        conditions = profile.get("conditions") or profile.get("co_occurring", [])
+        cond_lower = [str(c).strip().lower() for c in conditions]
+
+        # Track attempts on the current word
+        word = current_word.get("word", "")
+        session.setdefault("word_attempts", {})
+        session["word_attempts"][word] = session["word_attempts"].get(word, 0) + 1
+        current_attempt = max(session["word_attempts"][word], session.get("consecutive_wrong", 0) + 1)
+
+        # Agent 3 — Evaluate (Profile-aware candy scoring)
+        print(f"🔍 Evaluator Agent: scoring answer with profile-aware candy scoring ({dyslexia_type}, {input_mode}, Stage {reading_stage}, attempt {current_attempt})...")
         evaluation = evaluate_answer(
-            correct_word           = current_word.get("word", ""),
+            correct_word           = word,
             child_answer           = body.get("child_answer", ""),
             response_time_seconds  = body.get("response_time_seconds", 5.0),
-            input_mode             = body.get("input_mode", profile.get("input_mode", "type")),
-            attempt_number         = body.get("attempt_number", 1),
+            input_mode             = input_mode,
+            attempt_number         = current_attempt,
             typical_response_time  = 5.0,
+            dyslexia_type          = dyslexia_type,
+            reading_stage          = reading_stage,
+            conditions             = conditions,
         )
 
         # Update session stats
-        word = current_word.get("word", "")
         session["words_attempted"].append(word)
         if evaluation.get("is_correct"):
             session["words_correct"].append(word)
             session["consecutive_correct"] += 1
             session["consecutive_wrong"]    = 0
+            session["word_attempts"][word]  = 0
         else:
             session["words_incorrect"].append(word)
             session["consecutive_wrong"]   += 1
@@ -242,12 +298,28 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
         if pattern and pattern != "correct":
             session["error_patterns"].append(pattern)
 
+        # Record attempt for latest session endpoint and Dyslexia Mirror
+        session.setdefault("words", []).append({
+            "target": word,
+            "child_answer": body.get("child_answer", ""),
+            "is_correct": bool(evaluation.get("is_correct", False)),
+            "sentence": current_word.get("sentence") or f"The {word} appeared on screen.",
+        })
+
         elapsed = (__import__("time").time() - session["start_time"]) / 60
 
         # Agent 4 — Adapt
         print("⚡ Adapter Agent: deciding next action...")
+        is_correct_ans = bool(evaluation.get("is_correct", False))
+        needs_visual_hint = not is_correct_ans and (bool(evaluation.get("needs_visual_hint")) or session["consecutive_wrong"] >= 2 or current_attempt >= 2)
+
+        session.setdefault("words_with_hints", set())
+        used_hint = (word in session["words_with_hints"]) or (current_attempt >= 2)
+        if needs_visual_hint:
+            session["words_with_hints"].add(word)
+
         adaptation = decide_adaptation(
-            is_correct           = evaluation.get("is_correct", False),
+            is_correct           = is_correct_ans,
             partial_score        = evaluation.get("partial_score", 0),
             confidence_signal    = evaluation.get("confidence_signal", "normal"),
             needs_break          = evaluation.get("needs_break", False),
@@ -261,6 +333,12 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             consecutive_correct  = session["consecutive_correct"],
             consecutive_wrong    = session["consecutive_wrong"],
             current_level        = profile.get("reading_level", 1),
+            candy_goal           = profile.get("candy_goal", 5 if "adhd" in cond_lower else 10),
+            words_correct        = len(session["words_correct"]),
+            needs_visual_hint    = needs_visual_hint,
+            word                 = word,
+            input_mode           = input_mode,
+            attempt_number       = current_attempt,
         )
 
         session["adapter_actions"].append(adaptation.get("action", "continue"))
@@ -271,7 +349,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
         print("💚 Encouragement Agent & 📖 Word Selector Agent: running in parallel...")
         encouragement_task = asyncio.to_thread(
             generate_encouragement,
-            is_correct           = evaluation.get("is_correct", False),
+            is_correct           = is_correct_ans,
             partial_score        = evaluation.get("partial_score", 0),
             letters_correct      = evaluation.get("letters_correct", 0),
             letters_total        = evaluation.get("letters_total", 1),
@@ -282,24 +360,40 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             words_done_today     = len(session["words_attempted"]),
             words_correct_today  = len(session["words_correct"]),
             session_streak       = session["consecutive_correct"],
+            input_mode           = input_mode,
+            used_hint            = used_hint,
         )
 
         next_word = None
         if not adaptation.get("session_over"):
-            next_word_task = asyncio.to_thread(
-                select_next_word,
-                dyslexia_type           = profile.get("dyslexia_type", "phonological"),
-                reading_level           = profile.get("reading_level", 1) + adaptation.get("level_change", 0),
-                approach                = profile.get("approach", "phonics"),
-                struggling_words        = profile.get("struggling_words", []),
-                mastered_words          = profile.get("mastered_words", []),
-                words_done_this_session = session["words_attempted"],
-                last_answer_correct     = evaluation.get("is_correct", False),
-                consecutive_correct     = session["consecutive_correct"],
-                consecutive_wrong       = session["consecutive_wrong"],
-            )
-            encouragement, next_word = await asyncio.gather(encouragement_task, next_word_task)
-            session["current_word"] = next_word
+            if not evaluation.get("is_correct") and session.get("cached_next_word"):
+                encouragement = await encouragement_task
+                next_word = session["cached_next_word"]
+            else:
+                next_word_task = asyncio.to_thread(
+                    select_next_word,
+                    reading_level           = max(1, min(4, profile.get("reading_level", 1) + adaptation.get("level_change", 0))),
+                    dyslexia_type           = profile.get("dyslexia_type", "phonological"),
+                    error_pattern           = evaluation.get("error_pattern", ""),
+                    co_occurring            = conditions,
+                    approach                = profile.get("approach", "phonics"),
+                    struggling_words        = profile.get("struggling_words", []),
+                    mastered_words          = profile.get("mastered_words", []),
+                    words_done_this_session = session["words_attempted"],
+                    last_answer_correct     = evaluation.get("is_correct", False),
+                    consecutive_correct     = session["consecutive_correct"],
+                    consecutive_wrong       = session["consecutive_wrong"],
+                    adaptation_action       = adaptation.get("action", "continue"),
+                )
+                encouragement, next_word = await asyncio.gather(encouragement_task, next_word_task)
+                session["cached_next_word"] = next_word
+
+            if evaluation.get("is_correct"):
+                session["current_word"] = next_word
+                session["cached_next_word"] = None
+            else:
+                # Student is retrying current_word with hint scaffolding; do not advance backend state
+                session["current_word"] = current_word
         else:
             encouragement = await encouragement_task
 
@@ -308,13 +402,20 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
         print(f"   ✅ Complete — action: {adaptation.get('action')}")
 
         return {
-            "evaluation":    evaluation,
-            "adaptation":    adaptation,
-            "encouragement": encouragement,
-            "next_word":     next_word,
+            "evaluation":         evaluation,
+            "adaptation":         adaptation,
+            "encouragement":      encouragement,
+            "next_word":          next_word,
+            "visual_hint_b64":    adaptation.get("visual_hint_b64"),
+            "audio_scaffold_b64": adaptation.get("audio_scaffold_b64"),
+            "phonics_chunks":     adaptation.get("phonics_chunks"),
+            "phonics_spoken":     adaptation.get("phonics_spoken"),
+            "meaning_icon":       adaptation.get("meaning_icon"),
+            "meaning_desc":       adaptation.get("meaning_desc"),
             "session_stats": {
                 "words_done":     len(session["words_attempted"]),
                 "words_correct":  len(session["words_correct"]),
+                "candy_goal":     adaptation.get("candy_goal", profile.get("candy_goal", 5)),
                 "accuracy":       round(len(session["words_correct"]) / max(len(session["words_attempted"]), 1) * 100),
                 "breaks_taken":   session["breaks_taken"],
                 "time_elapsed":   round(elapsed, 1),
@@ -328,11 +429,21 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
         session    = _sessions.get(session_id, {})
         profile    = session.get("profile", {})
 
+        req_child_name = body.get("child_name")
+        if req_child_name:
+            req_id = req_child_name.lower().split()[0]
+            loaded_profile = load_child_profile(req_id)
+            if not loaded_profile.get("error"):
+                profile = loaded_profile
+            else:
+                profile["child_name"] = req_child_name
+
         elapsed = (__import__("time").time() - session.get("start_time", __import__("time").time())) / 60
 
-        print(f"\n📋 Report Agent: generating session report...")
+        child_display_name = profile.get("child_name") or req_child_name or "Child"
+        print(f"\n📋 Report Agent: generating session report for {child_display_name}...")
         report = generate_session_report(
-            child_name            = profile.get("child_name", "Child"),
+            child_name            = child_display_name,
             dyslexia_type         = profile.get("dyslexia_type", "phonological"),
             reading_level         = profile.get("reading_level", 1),
             session_duration_mins = elapsed,
@@ -345,6 +456,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             breaks_taken          = session.get("breaks_taken", 0),
         )
 
+        report["words"] = session.get("words", [])
         print(f"   ✅ Report ready — awaiting teacher approval")
         return {"report": report, "success": True}
 

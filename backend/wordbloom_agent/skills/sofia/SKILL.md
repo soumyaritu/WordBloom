@@ -24,6 +24,7 @@ description: Sony Mathew's learning profile and dyslexia settings
 
 ## Session Settings
 - Session length: 5
+- Candy goal: 5
 - Break after: 5
 - Approach: audio_first
 - Encouragement style: warm
