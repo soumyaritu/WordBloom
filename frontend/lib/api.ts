@@ -3,11 +3,14 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"
 
-export async function startSession(childName: string) {
+export async function startSession(childName: string, excludeWords: string[] = []) {
   const res = await fetch(`${API_URL}/session/start`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ child_name: childName }),
+    body: JSON.stringify({
+      child_name: childName,
+      exclude_words: excludeWords,
+    }),
   })
   if (!res.ok) throw new Error("Failed to start session")
   return res.json()

@@ -47,6 +47,11 @@ STAGE_FALLBACKS = {
         {"word": "map",  "difficulty": "easy", "category": "CVC", "audio_hint": "map",  "visual_hint": "m·a·p",  "sentence": "We followed the treasure map."},
         {"word": "red",  "difficulty": "easy", "category": "CVC", "audio_hint": "red",  "visual_hint": "r·e·d",  "sentence": "The red apple fell from the tree."},
         {"word": "big",  "difficulty": "easy", "category": "CVC", "audio_hint": "big",  "visual_hint": "b·i·g",  "sentence": "Look at that big friendly dog."},
+        {"word": "fox",  "difficulty": "easy", "category": "CVC", "audio_hint": "foks", "visual_hint": "f·o·x",  "sentence": "The clever red fox dashed away."},
+        {"word": "pen",  "difficulty": "easy", "category": "CVC", "audio_hint": "pen",  "visual_hint": "p·e·n",  "sentence": "Write your name with a blue pen."},
+        {"word": "bug",  "difficulty": "easy", "category": "CVC", "audio_hint": "bug",  "visual_hint": "b·u·g",  "sentence": "A tiny green bug crawled on the leaf."},
+        {"word": "box",  "difficulty": "easy", "category": "CVC", "audio_hint": "boks", "visual_hint": "b·o·x",  "sentence": "Open the shiny gift box."},
+        {"word": "van",  "difficulty": "easy", "category": "CVC", "audio_hint": "van",  "visual_hint": "v·a·n",  "sentence": "The yellow delivery van drove down the road."},
     ],
     2: [
         {"word": "frog", "difficulty": "medium", "category": "blends",      "audio_hint": "frog", "visual_hint": "f·r·o·g", "sentence": "The green frog jumped in the pond."},
@@ -57,6 +62,13 @@ STAGE_FALLBACKS = {
         {"word": "path", "difficulty": "medium", "category": "th digraph",  "audio_hint": "path", "visual_hint": "p·a·t·h", "sentence": "Walk along the forest path."},
         {"word": "wind", "difficulty": "medium", "category": "blends",      "audio_hint": "wind", "visual_hint": "w·i·n·d", "sentence": "The cool wind blew the leaves."},
         {"word": "jump", "difficulty": "medium", "category": "blends",      "audio_hint": "jump", "visual_hint": "j·u·m·p", "sentence": "Jump high into the air."},
+        {"word": "nest", "difficulty": "medium", "category": "blends",      "audio_hint": "nest", "visual_hint": "n·e·s·t", "sentence": "A tiny bird built a snug nest."},
+        {"word": "star", "difficulty": "medium", "category": "blends",      "audio_hint": "star", "visual_hint": "s·t·a·r", "sentence": "Look up at the bright twinkling star."},
+        {"word": "crab", "difficulty": "medium", "category": "blends",      "audio_hint": "krab", "visual_hint": "c·r·a·b", "sentence": "The little sand crab scurried away."},
+        {"word": "flag", "difficulty": "medium", "category": "blends",      "audio_hint": "flag", "visual_hint": "f·l·a·g", "sentence": "The colourful flag waved in the breeze."},
+        {"word": "bell", "difficulty": "medium", "category": "ll digraph",  "audio_hint": "bel",  "visual_hint": "b·e·l·l", "sentence": "Ring the golden school bell."},
+        {"word": "chin", "difficulty": "medium", "category": "ch digraph",  "audio_hint": "chin", "visual_hint": "ch·i·n", "sentence": "Rest your chin on your hand."},
+        {"word": "plum", "difficulty": "medium", "category": "blends",      "audio_hint": "plum", "visual_hint": "p·l·u·m", "sentence": "Pick a sweet purple plum from the tree."},
     ],
     3: [
         {"word": "wrist",  "difficulty": "medium", "category": "silent letter", "audio_hint": "rist",  "visual_hint": "w·r·i·s·t",   "sentence": "Wear a watch on your wrist."},
@@ -67,6 +79,10 @@ STAGE_FALLBACKS = {
         {"word": "knight", "difficulty": "medium", "category": "silent letter", "audio_hint": "night", "visual_hint": "k·n·i·g·h·t", "sentence": "The brave knight rode to the castle."},
         {"word": "train",  "difficulty": "medium", "category": "vowel team",    "audio_hint": "trayn", "visual_hint": "t·r·a·i·n",   "sentence": "The train arrived at the station."},
         {"word": "float",  "difficulty": "medium", "category": "vowel team",    "audio_hint": "flote", "visual_hint": "f·l·o·a·t",   "sentence": "Paper boats float on water."},
+        {"word": "sword",  "difficulty": "medium", "category": "silent letter", "audio_hint": "sord",  "visual_hint": "s·w·o·r·d",   "sentence": "The story had a shining toy sword."},
+        {"word": "climb",  "difficulty": "medium", "category": "silent letter", "audio_hint": "klym",  "visual_hint": "c·l·i·m·b",   "sentence": "Climb up the big playground slide."},
+        {"word": "beach",  "difficulty": "medium", "category": "vowel team",    "audio_hint": "beech", "visual_hint": "b·e·a·c·h",   "sentence": "We built sandcastles on the sunny beach."},
+        {"word": "gnome",  "difficulty": "medium", "category": "silent letter", "audio_hint": "nome",  "visual_hint": "g·n·o·m·e",   "sentence": "A friendly garden gnome stood by the flowers."},
     ],
     4: [
         {"word": "sunshine",   "difficulty": "hard", "category": "compound",      "audio_hint": "sun-shine",   "visual_hint": "sun·shine",    "sentence": "Warm sunshine filled the room."},
@@ -75,6 +91,10 @@ STAGE_FALLBACKS = {
         {"word": "together",   "difficulty": "hard", "category": "multisyllabic", "audio_hint": "to-geth-er",  "visual_hint": "to·geth·er",    "sentence": "We can read this story together."},
         {"word": "kindness",   "difficulty": "hard", "category": "multisyllabic", "audio_hint": "kynd-ness",   "visual_hint": "kind·ness",    "sentence": "Always treat your friends with kindness."},
         {"word": "understand", "difficulty": "hard", "category": "multisyllabic", "audio_hint": "un-der-stand","visual_hint": "un·der·stand", "sentence": "Now I understand how the word works."},
+        {"word": "butterfly",  "difficulty": "hard", "category": "compound",      "audio_hint": "but-er-fly",  "visual_hint": "but·ter·fly",  "sentence": "A gentle butterfly fluttered past."},
+        {"word": "rainbow",    "difficulty": "hard", "category": "compound",      "audio_hint": "rayn-boh",    "visual_hint": "rain·bow",     "sentence": "A double rainbow arched across the sky."},
+        {"word": "discover",   "difficulty": "hard", "category": "multisyllabic", "audio_hint": "dis-kuv-er",  "visual_hint": "dis·cov·er",   "sentence": "Discover exciting facts in every chapter."},
+        {"word": "celebrate",  "difficulty": "hard", "category": "multisyllabic", "audio_hint": "sel-e-brayt", "visual_hint": "cel·e·brate",  "sentence": "Let us celebrate your great reading progress!"},
     ],
 }
 
@@ -90,11 +110,12 @@ def _instant_select_word(
     error_pattern: str = "",
 ) -> dict:
     """Fallback generator used only if Gemini is unreachable or offline."""
+    import random
     lvl = max(1, min(4, int(reading_level or 1)))
     if consecutive_wrong >= 2:
         lvl = max(1, lvl - 1)
 
-    done_set = {str(w).lower().strip() for w in (words_done_this_session or [])}
+    done_set = {str(w).lower().strip() for w in (words_done_this_session or []) if str(w).strip()}
     candidates = STAGE_FALLBACKS.get(lvl, STAGE_FALLBACKS[1])
 
     available = [item for item in candidates if item["word"].lower() not in done_set]
@@ -106,7 +127,7 @@ def _instant_select_word(
                 available = alt
                 break
 
-    chosen_meta = available[0] if available else candidates[0]
+    chosen_meta = random.choice(available) if available else candidates[0]
     word = chosen_meta["word"]
     
     return {
@@ -194,7 +215,7 @@ Return ONLY a valid JSON object matching this schema:
         config = types.GenerateContentConfig(
             response_mime_type="application/json",
             max_output_tokens=160,
-            temperature=0.3,
+            temperature=0.7,
             thinking_config=types.ThinkingConfig(thinking_budget=0),
         )
         response = client.models.generate_content(

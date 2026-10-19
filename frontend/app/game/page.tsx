@@ -389,9 +389,16 @@ function GameContent() {
   // Advances session to the next word cleanly (child-paced, zero timer pressure)
   const advanceToNextWord = (nextWordObj: any, nextStats: any) => {
     if (!nextWordObj) return
+    const currentWordStr = activeWord?.word || session?.current_word?.word
+    const prevWordsDone: string[] = session?.words_done || []
+    const updatedWordsDone = currentWordStr && !prevWordsDone.includes(currentWordStr)
+      ? [...prevWordsDone, currentWordStr]
+      : prevWordsDone
+
     const updated = {
       ...session,
       current_word: nextWordObj,
+      words_done:   updatedWordsDone,
       stats:        nextStats || session?.stats,
     }
     localStorage.setItem('wb_session', JSON.stringify(updated))
@@ -596,14 +603,38 @@ function GameContent() {
       const urlParams = new URLSearchParams(window.location.search)
       const childParam = urlParams.get('child')
       const childFullName = session?.profile?.child_name || "Emma Clarke"
-      const childId = childParam || session?.profile?.id || childFullName.toLowerCase().split(' ')[0]
-      const data = await startSession(childId)
+      const childId = childParam || session?.profile?.child_id || session?.profile?.id || childFullName.toLowerCase().split(' ')[0]
+
+      // Gather all words completed or attempted in the current session so the new session is guaranteed fresh
+      const recentWords: string[] = []
+      if (session?.words_done && Array.isArray(session.words_done)) {
+        recentWords.push(...session.words_done)
+      }
+      if (activeWord?.word) {
+        recentWords.push(activeWord.word)
+      }
+      if (session?.current_word?.word) {
+        recentWords.push(session.current_word.word)
+      }
+      try {
+        const stored = JSON.parse(localStorage.getItem(`wb_session_words_${childId}`) || '[]')
+        if (Array.isArray(stored)) {
+          stored.forEach((item: any) => {
+            const w = item.target || item.word
+            if (w) recentWords.push(w)
+          })
+        }
+      } catch (e) {}
+
+      const uniqueExcludeWords = Array.from(new Set(recentWords.map(w => String(w).toLowerCase().trim()))).filter(Boolean)
+
+      const data = await startSession(childId, uniqueExcludeWords)
       
       const newSession = {
         session_id:   data.session_id,
-        profile:      data.profile,
+        profile:      { ...data.profile, child_id: childId },
         current_word: data.first_word,
-        words_done:   [],
+        words_done:   uniqueExcludeWords,
         words_correct: [],
         start_time:   Date.now(),
         stats: { words_done: 0, words_correct: 0, accuracy: 0 },
@@ -613,6 +644,11 @@ function GameContent() {
       setActiveWord(data.first_word)
       setFeedback(null)
       setPendingWord(null)
+      setVisualHintB64(null)
+      setAudioScaffoldB64(null)
+      setPhonicsChunks(null)
+      setPhonicsSpoken(null)
+      setMeaningIcon(null)
       setAnswer('')
       setTappedLetters([])
       setGoalAchieved(false)
@@ -903,7 +939,7 @@ function GameContent() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >
-              {restarting ? '🔄 Loading new words...' : '🌟 Read Again! (New Words)'}
+              {restarting ? '🔄 Loading fresh words...' : '🌟 Try New Words! 🍬'}
             </button>
 
             <button

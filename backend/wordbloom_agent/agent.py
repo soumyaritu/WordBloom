@@ -131,10 +131,14 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
     # ── START ─────────────────────────────────
     if action == "start":
         child_name = body.get("child_name", "emma")
+        raw_exclude = body.get("exclude_words", []) or body.get("words_done", [])
+        exclude_words = [str(w).lower().strip() for w in raw_exclude if str(w).strip()]
         session_id = str(uuid.uuid4())
 
         print(f"\n{'='*50}")
         print(f"🌱 WordBloom session starting for: {child_name}")
+        if exclude_words:
+            print(f"   🚫 Excluding previously practiced words: {exclude_words}")
         print(f"{'='*50}")
 
         # Agent 1 — Profile
@@ -170,7 +174,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             approach                = profile.get("approach", "phonics"),
             struggling_words        = profile.get("struggling_words", []),
             mastered_words          = profile.get("mastered_words", []),
-            words_done_this_session = [],
+            words_done_this_session = exclude_words,
             last_answer_correct     = True,
             consecutive_correct     = 0,
             consecutive_wrong       = 0,
@@ -181,7 +185,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
         # Store session
         _sessions[session_id] = {
             "profile":            profile,
-            "words_attempted":    [],
+            "words_attempted":    list(exclude_words),
             "words_correct":      [],
             "words_incorrect":    [],
             "adapter_actions":    [],
@@ -192,6 +196,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             "consecutive_wrong":   0,
             "current_word":       first_word,
             "start_time":         __import__("time").time(),
+            "word_attempts":      {},
         }
 
         return {
