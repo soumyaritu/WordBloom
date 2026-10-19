@@ -1,6 +1,6 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useRef, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { submitAnswer, endSession, startSession } from '../../lib/api'
 
 // WCAG AAA High-Contrast Pastel Palette for Dark Mode (#080C14 / #1E293B)
@@ -69,8 +69,10 @@ function formatCategoryBadge(category?: string, readingLevel?: number): string {
   return `${cat} Words`
 }
 
-export default function GamePage() {
-  const router  = useRouter()
+function GameContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const childParam = (searchParams.get('child') || '').toLowerCase().trim()
   const [session,       setSession]       = useState<any>(null)
   const [activeWord,    setActiveWord]    = useState<any>(null)
   const [pendingWord,   setPendingWord]   = useState<any>(null)
@@ -228,31 +230,61 @@ export default function GamePage() {
   }
 
   useEffect(() => {
-    const raw = localStorage.getItem('wb_session')
-    if (!raw) { router.push('/'); return }
-    const s = JSON.parse(raw)
-    setSession(s)
-    setActiveWord(s.current_word)
-    setInputMode(s.profile?.input_mode || 'type')
-    setFeedback(null)
-    setPendingWord(null)
-    setCandiesWon(s.stats?.words_correct || 0)
+    let isCancelled = false
 
-    // Apply font & overlay preferences from profile
-    const prof = s.profile || {}
-    const dispMode = (prof.display_mode || prof.displayMode || '').toLowerCase()
-    const colOverlay = (prof.colour_overlay || prof.colourOverlay || prof.color_overlay || '').toLowerCase()
+    const initSession = async () => {
+      const raw = localStorage.getItem('wb_session')
+      let s = raw ? JSON.parse(raw) : null
+      const targetChildId = childParam || 'emma'
+      const sessionChild = (s?.profile?.child_name || '').toLowerCase()
 
-    const classes: string[] = []
-    if (dispMode === 'opendyslexic') classes.push('opendyslexic')
-    if (dispMode === 'spotlight') classes.push('spotlight-mode')
-    if (colOverlay && colOverlay !== 'none') classes.push(`overlay-${colOverlay}`)
-    document.body.className = classes.join(' ')
+      // If no session, or URL specifies childParam and stored session is for another child:
+      if (!s || (childParam && !sessionChild.includes(targetChildId))) {
+        try {
+          const data = await startSession(targetChildId)
+          s = {
+            session_id:   data.session_id,
+            profile:      data.profile,
+            current_word: data.first_word,
+            words_done:   [],
+            words_correct: [],
+            start_time:   Date.now(),
+            stats: { words_done: 0, words_correct: 0, accuracy: 0 },
+          }
+          localStorage.setItem('wb_session', JSON.stringify(s))
+        } catch (err) {
+          console.error('Failed to start session for', targetChildId, err)
+          if (!s) { router.push('/'); return }
+        }
+      }
+
+      if (isCancelled) return
+      setSession(s)
+      setActiveWord(s.current_word)
+      setInputMode(s.profile?.input_mode || 'voice')
+      setFeedback(null)
+      setPendingWord(null)
+      setCandiesWon(s.stats?.words_correct || 0)
+
+      // Apply font & overlay preferences from profile
+      const prof = s.profile || {}
+      const dispMode = (prof.display_mode || prof.displayMode || '').toLowerCase()
+      const colOverlay = (prof.colour_overlay || prof.colourOverlay || prof.color_overlay || '').toLowerCase()
+
+      const classes: string[] = []
+      if (dispMode === 'opendyslexic') classes.push('opendyslexic')
+      if (dispMode === 'spotlight') classes.push('spotlight-mode')
+      if (colOverlay && colOverlay !== 'none') classes.push(`overlay-${colOverlay}`)
+      document.body.className = classes.join(' ')
+    }
+
+    initSession()
 
     return () => {
+      isCancelled = true
       document.body.className = ''
     }
-  }, [])
+  }, [childParam])
 
   const currentWord = activeWord?.word || session?.current_word?.word || ''
   const profile     = session?.profile || {}
@@ -262,6 +294,24 @@ export default function GamePage() {
   const isSpotlight   = (profile.display_mode || profile.displayMode || '').toLowerCase() === 'spotlight'
   // Dynamic layout alignment based on word length — comfortable breathing room for kids
   const cardMaxWidth  = currentWord.length <= 4 ? 440 : currentWord.length <= 7 ? 500 : 580
+  const isCorrectAnswerPending = Boolean(pendingWord?.next_word && pendingWord?.evaluation?.is_correct)
+
+  const handleSpeakWord = () => {
+    try {
+      window.speechSynthesis.cancel()
+      const wordToSpeak = (activeWord?.audio_hint || currentWord || '')
+        .replace(/[-·]/g, '')
+        .trim()
+      const textToUse = cleanSpokenText(wordToSpeak || currentWord)
+      const utterance = new SpeechSynthesisUtterance(textToUse)
+      utterance.lang = 'en-GB'
+      utterance.rate = 0.8
+      utterance.pitch = 1.0
+      window.speechSynthesis.speak(utterance)
+    } catch (e) {
+      console.error('Speech synthesis error:', e)
+    }
+  }
 
   // Advances session to the next word cleanly (child-paced, zero timer pressure)
   const advanceToNextWord = (nextWordObj: any, nextStats: any) => {
@@ -312,7 +362,7 @@ export default function GamePage() {
     startTime.current = Date.now()
 
     try {
-      const childFullName = session?.profile?.child_name || "Liam O'Connor"
+      const childFullName = session?.profile?.child_name || "Emma Clarke"
       const currentWordTarget = activeWord?.word || session?.current_word?.word || ''
       const result = await submitAnswer(
         session.session_id,
@@ -347,11 +397,13 @@ export default function GamePage() {
         if (pSpoken) setPhonicsSpoken(pSpoken)
         if (mIcon) setMeaningIcon(mIcon)
 
-        // Automatically play the Google TTS audio scaffold
-        if (aScaffold) {
-          playAudioScaffold(aScaffold, pSpoken || pChunks)
-        } else if (pSpoken || pChunks) {
-          playSpeechFallback(pSpoken || pChunks)
+        // Automatically play the Google TTS audio scaffold ONLY for voice mode
+        if (inputMode === 'voice') {
+          if (aScaffold) {
+            playAudioScaffold(aScaffold, pSpoken || pChunks)
+          } else if (pSpoken || pChunks) {
+            playSpeechFallback(pSpoken || pChunks)
+          }
         }
       }
 
@@ -489,7 +541,7 @@ export default function GamePage() {
 
   const handleEndSession = async () => {
     setLoading(true)
-    const childFullName = session?.profile?.child_name || "Liam O'Connor"
+    const childFullName = session?.profile?.child_name || "Emma Clarke"
     const childId = childFullName.toLowerCase().split(' ')[0]
     try {
       const result = await endSession(session.session_id, childFullName)
@@ -715,44 +767,45 @@ export default function GamePage() {
               </div>
             )}
 
-            {/* Stage & Category Badge */}
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'rgba(129,140,248,0.14)', border: '1.5px solid rgba(129,140,248,0.45)',
-              borderRadius: 24, padding: '7px 18px', marginBottom: '1.5rem', maxWidth: '100%',
-              boxShadow: '0 4px 14px rgba(129,140,248,0.18)',
-            }}>
-              <span style={{ fontSize: 13.5, color: '#F3F4F6', fontWeight: 700 }}>
-                🎯 Stage {profile.reading_level || 1} · {formatCategoryBadge(activeWord?.category, profile.reading_level)}
-              </span>
-            </div>
+            {/* Stage & Category Badge + Hear the Word (with words for voice mode) */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                background: 'rgba(129,140,248,0.14)', border: '1.5px solid rgba(129,140,248,0.45)',
+                borderRadius: 24, padding: '7px 18px', maxWidth: '100%',
+                boxShadow: '0 4px 14px rgba(129,140,248,0.18)',
+              }}>
+                <span style={{ fontSize: 13.5, color: '#F3F4F6', fontWeight: 700 }}>
+                  🎯 Stage {profile.reading_level || 1} · {formatCategoryBadge(activeWord?.category, profile.reading_level)}
+                </span>
+              </div>
 
-            {/* Audio hint button (Shown ONLY for children with explicit audio_first accommodation and NOT when visual hint is active) */}
-            {profile.approach === 'audio_first' && !visualHintB64 && (
-              <button
-                onClick={() => {
-                  window.speechSynthesis.cancel()
-                  const wordToSpeak = (activeWord?.audio_hint || currentWord || '')
-                    .replace(/[-·]/g, '')
-                    .trim()
-                  const textToUse = cleanSpokenText(wordToSpeak || currentWord)
-                  const utterance = new SpeechSynthesisUtterance(textToUse)
-                  utterance.lang = 'en-GB'
-                  utterance.rate = 0.8
-                  utterance.pitch = 1.0
-                  window.speechSynthesis.speak(utterance)
-                }}
-                aria-label="Listen to word sounds"
-                style={{
-                  background: 'var(--accent-bg)', border: '1.5px solid var(--accent)',
-                  borderRadius: 24, minHeight: 48, padding: '10px 20px', fontSize: 14,
-                  color: 'var(--accent-light)', marginBottom: '1.5rem', fontWeight: 600,
-                  display: 'inline-flex', alignItems: 'center', gap: 8,
-                }}
-              >
-                🔊 Hear the word first
-              </button>
-            )}
+              {inputMode === 'voice' && (
+                <button
+                  type="button"
+                  onClick={handleSpeakWord}
+                  aria-label="Hear the word spoken aloud"
+                  style={{
+                    background: 'rgba(129,140,248,0.18)',
+                    border: '1.5px solid var(--accent)',
+                    borderRadius: 24,
+                    padding: '7px 18px',
+                    fontSize: 13.5,
+                    fontWeight: 700,
+                    color: '#EEF2FF',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    boxShadow: '0 2px 10px rgba(129,140,248,0.25)',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <span>🔊</span>
+                  <span>Hear the Word</span>
+                </button>
+              )}
+            </div>
 
             {/* Letter display — unified, single-line word container dynamically aligned together in box */}
             {(() => {
@@ -852,32 +905,27 @@ export default function GamePage() {
               )
             })()}
 
-            {/* Visual hint text — shown only for dyslexia accommodations */}
-            {activeWord?.visual_hint && !isNonDyslexic && activeWord.visual_hint !== currentWord && (
-              <div style={{ fontSize: 16, color: '#E2E8F0', marginTop: '0.75rem', fontWeight: 600, letterSpacing: 3 }}>
-                {activeWord.visual_hint}
-              </div>
-            )}
-
-            {/* Generated Visual Hint Image Card (Shown when child misses word twice or needs scaffold) */}
+            {/* Generated Visual Hint Card (Shown only when child struggles/retries) */}
             {visualHintB64 && (
               <div style={{ marginTop: '1.25rem', width: '100%', maxWidth: 440 }}>
-                {audioScaffoldB64 && (
+                {/* Generated Audio scaffold button ONLY for voice mode — simple speaker icon to hear it again */}
+                {inputMode === 'voice' && audioScaffoldB64 && (
                   <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
                     <button
                       type="button"
                       onClick={() => playAudioScaffold(audioScaffoldB64, phonicsSpoken || phonicsChunks)}
-                      aria-label="Hear phonics sounds and word again"
+                      aria-label="Hear sounds again"
+                      title="Hear sounds again"
                       style={{
                         background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)',
-                        color: '#FFFFFF', border: 'none', borderRadius: 24,
-                        padding: '7px 18px', fontSize: 13, fontWeight: 700,
-                        cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8,
-                        boxShadow: '0 2px 12px rgba(59,130,246,0.35)',
+                        color: '#FFFFFF', border: 'none', borderRadius: '50%',
+                        width: 40, height: 40, fontSize: 18,
+                        cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 3px 12px rgba(59,130,246,0.35)',
+                        transition: 'transform 0.15s ease',
                       }}
                     >
                       <span>🔊</span>
-                      <span>Hear Sounds &amp; Word Together</span>
                     </button>
                   </div>
                 )}
@@ -925,16 +973,24 @@ export default function GamePage() {
                     fontWeight: 800, fontSize: 15,
                     color: (feedback.evaluation?.candy_earned || feedback.evaluation?.is_correct) ? 'var(--bloom-text)' : '#FDE68A'
                   }}>
-                    {(feedback.evaluation?.candy_earned || feedback.evaluation?.is_correct) ? '🌟 You nailed it!' : visualHintB64 ? '🔍 Use the clue above!' : '🌱 Keep going!'}
+                    {(feedback.evaluation?.candy_earned || feedback.evaluation?.is_correct)
+                      ? '🌟 You nailed it!'
+                      : visualHintB64
+                      ? '🔍 Clue ready!'
+                      : '🌱 Nice try!'}
                   </span>
                 </div>
                 <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--white)', marginTop: 2 }}>
                   {(feedback.evaluation?.candy_earned || feedback.evaluation?.is_correct)
                     ? feedback.encouragement.message
                     : visualHintB64
-                    ? phonicsChunks
-                      ? `Listen to the sounds "${phonicsChunks}" and see the ${meaningIcon || '💡'} clue above. You've got this — blend the sounds and try again! 🚀`
-                      : `Take a look at the sound blocks and letter shapes above to help you sound it out. Give it another try! 🚀`
+                    ? (inputMode === 'voice')
+                      ? (phonicsChunks
+                          ? `Listen to the sounds "${phonicsChunks}" and see the clue above. Blend the sounds and let's say it together! 🚀`
+                          : `Take a look at the sound blocks and letter shapes above to help you sound it out. Give it another try! 🚀`)
+                      : (inputMode === 'tap')
+                      ? `Take a peek at the letter blocks above. Tap each tile in order to build '${currentWord}'! 🧩`
+                      : `Take another look at the letter pattern above. Type each letter to spell '${currentWord}'! ⌨️`
                     : feedback.encouragement.message}
                 </div>
               </div>
@@ -945,7 +1001,11 @@ export default function GamePage() {
                     const raw = (feedback.evaluation?.candy_earned || feedback.evaluation?.is_correct)
                       ? (feedback.encouragement.spoken_message || feedback.encouragement.message || '')
                       : visualHintB64
-                      ? (phonicsChunks ? `Listen to the sounds ${phonicsChunks.replace(/\.\.\./g, ' ')} and try saying the word again!` : `Take a look at the sound blocks above to help you sound it out. Give it another try!`)
+                      ? (inputMode === 'voice'
+                          ? (phonicsChunks ? `Listen to the sounds ${phonicsChunks.replace(/\.\.\./g, ' ')} and try saying the word again!` : `Take a look at the sound blocks above to help you sound it out. Give it another try!`)
+                          : (inputMode === 'tap'
+                              ? `Look at the letter tiles above. Tap each letter block in order to build the word.`
+                              : `Look at the visual letter pattern above. Type each letter on your keyboard.`))
                       : (feedback.encouragement.spoken_message || feedback.encouragement.message || '')
                     const spoken = cleanSpokenText(raw)
                     if (!spoken) return
@@ -999,7 +1059,10 @@ export default function GamePage() {
             </div>
           )}
 
-          {/* Input mode selector */}
+          {/* Input controls — shown ONLY when child is actively answering (hidden when answered correctly and Next Word is ready) */}
+          {!isCorrectAnswerPending && (
+            <>
+              {/* Input mode selector */}
           <div className="spotlight-interactive-element" style={{ width: '100%', maxWidth: cardMaxWidth, marginBottom: '1.5rem' }}>
             <div style={{ fontSize: 15, color: 'var(--white)', marginBottom: 12, fontWeight: 700 }}>
               How would you like to answer?
@@ -1121,7 +1184,9 @@ export default function GamePage() {
                 </button>
               </div>
 
-              <p style={{ marginTop: 14, fontSize: 15, color: isListening ? '#F87171' : 'var(--white)', fontWeight: 700 }}>
+
+
+              <p style={{ marginTop: 12, fontSize: 15, color: isListening ? '#F87171' : 'var(--white)', fontWeight: 700 }}>
                 {loading
                   ? 'Evaluating spoken word...'
                   : isListening
@@ -1373,6 +1438,8 @@ export default function GamePage() {
               </div>
             )
           })()}
+            </>
+          )}
 
           {/* Skip option if child wants to move to the next word instead of retrying */}
           {pendingWord?.next_word && !pendingWord?.evaluation?.is_correct && (
@@ -1419,5 +1486,17 @@ export default function GamePage() {
           </div>
         </>
     </div>
+  )
+}
+
+export default function GamePage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10B981', background: '#06080F', fontSize: 18, fontWeight: 700 }}>
+        🌱 Loading WordBloom...
+      </div>
+    }>
+      <GameContent />
+    </Suspense>
   )
 }

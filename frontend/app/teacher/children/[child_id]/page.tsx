@@ -190,7 +190,7 @@ export default function ChildDetailPage({
           }}>
             <div style={{ maxWidth: 540 }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#10B981', color: '#06080F', padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', marginBottom: 10 }}>
-                Diagnostic Tool
+                Teacher Insight Tool
               </div>
               <h2 style={{ fontSize: 20, fontWeight: 800, color: '#F9FAFB', margin: 0 }}>
                 See What {firstName} Sees in the Dyslexia Mirror

@@ -18,7 +18,7 @@ description: James Bond's learning profile and dyslexia settings
 ## Access Settings
 - Input mode: tap
 - Display mode: standard
-- Colour overlay: yellow
+- Colour overlay: none
 - Show timer: never
 - Score display: stars only
 

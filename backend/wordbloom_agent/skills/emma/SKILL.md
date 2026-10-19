@@ -18,7 +18,7 @@ description: Emma Clarke's learning profile and dyslexia settings
 ## Access Settings
 - Input mode: voice
 - Display mode: opendyslexic
-- Colour overlay: blue
+- Colour overlay: none
 - Show timer: never
 - Score display: stars only
 
@@ -26,7 +26,7 @@ description: Emma Clarke's learning profile and dyslexia settings
 - Session length: 5
 - Candy goal: 5
 - Break after: 5
-- Approach: phonics
+- Approach: audio_first
 - Encouragement style: warm
 
 ## Current Progress

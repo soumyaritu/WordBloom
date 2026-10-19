@@ -185,7 +185,7 @@ export default function TeacherDashboardPage() {
                 Welcome back, {teacherName} 👋
               </h1>
               <p style={{ color: '#FDF4FF', fontSize: '0.9rem', fontWeight: 600 }}>
-                WordBloom Educator & Diagnostic Control Center
+                WordBloom Educator &amp; Learning Insights Center
               </p>
             </div>
           </div>
@@ -480,46 +480,7 @@ export default function TeacherDashboardPage() {
               </div>
             ))}
 
-            {/* "+ Add a child" card button below the child list */}
-            <Link
-              href="/profile?child=new"
-              className="wb-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 12,
-                padding: '1.25rem',
-                borderRadius: 20,
-                background: 'linear-gradient(135deg, #fdf4ff 0%, #faf5ff 100%)',
-                border: '2.5px dashed #c084fc',
-                color: '#6d28d9',
-                fontSize: '1.05rem',
-                fontWeight: 900,
-                textDecoration: 'none',
-                boxShadow: '0 4px 16px rgba(124, 58, 237, 0.08)',
-                cursor: 'pointer',
-                marginTop: '0.5rem',
-              }}
-            >
-              <span
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '50%',
-                  background: '#10B981',
-                  color: '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.2rem',
-                  fontWeight: 900,
-                }}
-              >
-                +
-              </span>
-              <span>Add New Child to Classroom</span>
-            </Link>
+
           </div>
         </section>
       </div>

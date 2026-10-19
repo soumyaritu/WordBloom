@@ -6,8 +6,8 @@ import { approveReport, startSession, getProfile } from '../../lib/api'
 import TeacherBackground from '../../components/TeacherBackground'
 
 const DEFAULT_STUDENTS = [
-  { id: 'liam',  name: "Liam O'Connor", level: 2, type: 'Surface · DYSPRAXIA, ADHD' },
   { id: 'emma',  name: 'Emma Clarke',  level: 3, type: 'Phonological · ADHD' },
+  { id: 'liam',  name: "Liam O'Connor", level: 2, type: 'Surface · DYSPRAXIA, ADHD' },
   { id: 'james', name: 'James Patel',  level: 2, type: 'Visual · Dyspraxia'  },
   { id: 'sofia', name: 'Sofia Mensah', level: 4, type: 'Surface'              },
 ]
@@ -233,29 +233,83 @@ function TeacherDashboardContent() {
         }}
       >
         {/* Header */}
-      <div style={{ width: '100%', maxWidth: 540, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--white)' }}>Teacher Dashboard</h1>
-          <p suppressHydrationWarning style={{ fontSize: 13, color: 'var(--grey)', marginTop: 2 }}>
-            {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </p>
-        </div>
-        <button
-          onClick={() => router.push('/')}
-          aria-label="Return to home page"
+        <div
           style={{
-            background: 'var(--accent-bg)', color: '#EEF2FF',
-            border: '1.5px solid var(--accent)', borderRadius: 24,
-            padding: '8px 18px', fontSize: 14, fontWeight: 700,
-            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-            minHeight: 42, boxShadow: '0 4px 14px rgba(129,140,248,0.3)',
-            transition: 'all 0.2s ease',
+            width: '100%',
+            maxWidth: 540,
+            display: 'grid',
+            gridTemplateColumns: '88px 1fr 88px',
+            alignItems: 'center',
+            marginBottom: '1.25rem',
+            gap: 8,
           }}
         >
-          <span>🏠</span>
-          <span>Home</span>
-        </button>
-      </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+            <button
+              onClick={() => {
+                if (document.cookie.includes('wb_teacher_session')) {
+                  router.push('/teacher/dashboard')
+                } else {
+                  router.push('/')
+                }
+              }}
+              aria-label="Back to teacher dashboard"
+              style={{
+                background: 'var(--panel)',
+                border: '1px solid var(--border)',
+                color: 'var(--white)',
+                padding: '8px 16px',
+                borderRadius: 20,
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                minHeight: 40,
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <span>←</span>
+              <span>Back</span>
+            </button>
+          </div>
+
+          <div style={{ textAlign: 'center' }}>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--white)', margin: 0, lineHeight: 1.2 }}>
+              Session Reports
+            </h1>
+            <p suppressHydrationWarning style={{ fontSize: 13, color: 'var(--grey)', marginTop: 4 }}>
+              {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              onClick={() => router.push('/')}
+              aria-label="Return to home page"
+              style={{
+                background: 'var(--accent-bg)',
+                color: '#EEF2FF',
+                border: '1.5px solid var(--accent)',
+                borderRadius: 24,
+                padding: '8px 16px',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                minHeight: 40,
+                boxShadow: '0 4px 14px rgba(129,140,248,0.3)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <span>🏠</span>
+              <span>Home</span>
+            </button>
+          </div>
+        </div>
 
       {/* Student selector tabs */}
       <div style={{ width: '100%', maxWidth: 540, marginBottom: '1.5rem' }}>

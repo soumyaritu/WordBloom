@@ -152,7 +152,7 @@ export default function TeacherLoginPage() {
                 fontWeight: 600,
               }}
             >
-              WordBloom Educator & Diagnostic Portal
+              WordBloom Educator &amp; Learning Insights Portal
             </p>
           </div>
 

@@ -250,25 +250,35 @@ def draw_cartoon_anchor(draw, cx: int, cy: int, word: str):
 def generate_visual_hint(
     word: str,
     dyslexia_type: str = "surface",
+    input_mode: str = "type",
     is_voice: bool = False,
     meaning_icon: str = "✈️",
     meaning_desc: str = "",
 ) -> str:
     """
     Generates a high-contrast visual hint card as a base64 PNG.
-    When is_voice is True, creates a Visual Meaning Anchor with cartoon illustration,
-    letter sound boxes, and phonics chunk guide.
+    Strictly differentiated:
+      - Voice: Voice phonics anchor with illustration and sound-out guidance.
+      - Tap: Visual letter tile boxes with touch order guidance.
+      - Type: Visual letter spelling guide with keyboard pattern.
     """
     word = str(word or "word").strip().lower()
     width, height = 500, 240
     img = Image.new("RGB", (width, height), color=(15, 23, 42))
     draw = ImageDraw.Draw(img)
 
-    # Outer border
+    mode = str(input_mode or "type").lower()
+    if is_voice:
+        mode = "voice"
+    voice_mode = (mode == "voice")
+    tap_mode = (mode == "tap")
+
+    # Outer border: Blue for Voice, Purple for Tap, Emerald for Type
+    border_color = (59, 130, 246) if voice_mode else ((168, 85, 247) if tap_mode else (16, 185, 129))
     draw.rounded_rectangle(
         [4, 4, width - 4, height - 4],
         radius=16,
-        outline=(59, 130, 246) if is_voice else (16, 185, 129),
+        outline=border_color,
         width=2,
     )
 
@@ -294,19 +304,27 @@ def generate_visual_hint(
         font_small = ImageFont.load_default()
         font_badge = ImageFont.load_default()
 
-    # Header Badge
-    badge_label = "VISUAL MEANING ANCHOR" if is_voice else "VISUAL HINT"
-    badge_width = 210 if is_voice else 165
-    draw.rounded_rectangle([18, 12, badge_width, 36], radius=12, fill=(30, 41, 59), outline=(59, 130, 246), width=1)
-    draw.ellipse([26, 19, 36, 29], fill=(16, 185, 129) if is_voice else (245, 158, 11))
-    draw.text((42, 16), badge_label, fill=(96, 165, 250), font=font_badge)
+    # Header Badge — child-friendly and uncluttered
+    if voice_mode:
+        badge_label = "Sound Clue 👂"
+        badge_width = 140
+        badge_accent = (59, 130, 246)
+    elif tap_mode:
+        badge_label = "Letter Tiles 🧩"
+        badge_width = 140
+        badge_accent = (168, 85, 247)
+    else:
+        badge_label = "Word Clue 💡"
+        badge_width = 130
+        badge_accent = (16, 185, 129)
 
-    dt_label = "Targeting: Voice phonics & meaning support" if is_voice else f"Targeting: {str(dyslexia_type or 'surface').capitalize()} support"
-    draw.text((badge_width + 12, 17), dt_label, fill=(148, 163, 184), font=font_badge)
+    draw.rounded_rectangle([18, 12, badge_width, 36], radius=12, fill=(30, 41, 59), outline=badge_accent, width=1)
+    draw.ellipse([26, 19, 36, 29], fill=badge_accent)
+    draw.text((42, 16), badge_label, fill=badge_accent, font=font_badge)
 
-    # Cartoon illustration box on the left when is_voice
+    # Cartoon illustration box on the left when voice_mode
     start_x = 18
-    if is_voice:
+    if voice_mode:
         draw.rounded_rectangle([20, 50, 110, 140], radius=14, fill=(30, 58, 138), outline=(59, 130, 246), width=2)
         draw_cartoon_anchor(draw, 65, 95, word)
         start_x = 125
@@ -348,18 +366,29 @@ def generate_visual_hint(
         ty = y_pos + (box_h - th) // 2 - 4
         draw.text((tx, ty), ch, fill=(248, 250, 252), font=font_large)
 
-    # Meaning line if is_voice and meaning_desc provided
-    if is_voice and meaning_desc:
+    # Meaning line if voice_mode and meaning_desc provided
+    if voice_mode and meaning_desc:
         desc_text = f'Meaning: "{meaning_desc[:38]}..."' if len(meaning_desc) > 40 else f'Meaning: "{meaning_desc}"'
         draw.text((125, 130), desc_text, fill=(226, 232, 240), font=font_small)
 
-    # Bottom guidance text
-    chunk_text = " ... ".join(list(word))
-    footer = f'Phonics sound-out:  "{chunk_text}"'
+    # Bottom guidance text — friendly and concise
+    if voice_mode:
+        chunk_text = " ... ".join(list(word))
+        footer = f'Listen & sound out:  "{chunk_text}"'
+        f_color = (96, 165, 250)
+    elif tap_mode:
+        chunk_text = "  ]   [  ".join(list(word))
+        footer = f'Letter tiles:  [  {chunk_text}  ]'
+        f_color = (192, 132, 252)
+    else:
+        chunk_text = " · ".join(list(word))
+        footer = f'Spelling:  {chunk_text}'
+        f_color = (52, 211, 153)
+
     bbox_f = draw.textbbox((0, 0), footer, font=font_small)
     fx = (width - (bbox_f[2] - bbox_f[0])) // 2
-    draw.rounded_rectangle([18, 185, width - 18, 225], radius=10, fill=(30, 41, 59), outline=(59, 130, 246), width=1)
-    draw.text((fx, 196), footer, fill=(96, 165, 250), font=font_small)
+    draw.rounded_rectangle([18, 185, width - 18, 225], radius=10, fill=(30, 41, 59), outline=f_color, width=1)
+    draw.text((fx, 196), footer, fill=f_color, font=font_small)
 
     buf = io.BytesIO()
     img.save(buf, format="PNG")
@@ -529,22 +558,23 @@ def decide_adaptation(
     meaning_icon = None
     meaning_desc = None
 
-    is_voice = str(input_mode or "").lower() == "voice"
+    mode = str(input_mode or "type").lower()
+    is_voice = mode == "voice"
     needs_scaffold = not is_correct and (needs_visual_hint or consecutive_wrong >= 2 or attempt_number >= 2)
 
     if needs_scaffold:
         target_word = word or "word"
         meaning_icon, meaning_desc = get_word_meaning(target_word)
-        use_voice_anchor = is_voice or attempt_number >= 2
         visual_hint_b64 = generate_visual_hint(
             target_word,
             dyslexia_type,
-            is_voice=use_voice_anchor,
+            input_mode=mode,
+            is_voice=is_voice,
             meaning_icon=meaning_icon,
             meaning_desc=meaning_desc,
         )
-        # Google Text-to-Speech audio scaffold of authentic phoneme sounds and blending
-        if is_voice or attempt_number >= 2:
+        # Audio scaffold ONLY for voice mode — type and tap strictly use visual hints
+        if is_voice:
             audio_scaffold_b64, phonics_chunks, phonics_spoken = generate_tts_audio_scaffold(target_word)
 
     return {

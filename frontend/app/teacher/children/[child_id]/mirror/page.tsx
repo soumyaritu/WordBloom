@@ -606,7 +606,7 @@ export default function DyslexiaMirrorPage({
               padding: '4px 12px', fontSize: 12, fontWeight: 700,
               display: 'flex', alignItems: 'center', gap: 6,
             }}>
-              <span>🔍</span> Teacher Diagnostic Tool
+              <span>🔍</span> Teacher Insight Tool
             </span>
           </div>
         </div>
@@ -670,7 +670,7 @@ export default function DyslexiaMirrorPage({
               {firstName} is configured in Standard Reading Mode
             </h2>
             <p style={{ color: '#9CA3AF', fontSize: 15, maxWidth: 500, margin: '0 auto 2rem', lineHeight: 1.6 }}>
-              The Dyslexia Mirror is a specialized diagnostic tool for perceptual dyslexia differences (letter flipping, sound vibrations, or visual word drift). Because {firstName}&apos;s profile is <strong>Non-dyslexic (Standard Mode)</strong>, standard typography and natural pacing are used without perceptual dyslexia accommodations.
+              The Dyslexia Mirror is a specialized insight tool for perceptual dyslexia differences (letter flipping, sound vibrations, or visual word drift). Because {firstName}&apos;s profile is <strong>Non-dyslexic (Standard Mode)</strong>, standard typography and natural pacing are used without perceptual dyslexia accommodations.
             </p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
               <button

@@ -153,29 +153,42 @@ def _instant_encouragement(
         msg_type = "near_miss"
         if mode == "voice":
             messages = [
-                f"Great listening! 👂 You caught {letters_correct} sounds in '{word}'!",
-                f"Super close! Your ears spotted {letters_correct} tricky sounds in '{word}'! 🔍",
+                f"So close! 👂 You caught {letters_correct} sounds in '{word}' — one more try! 🌟",
+                f"Nearly there! 🎤 Listen closely and let's say '{word}' together! 🚀",
             ]
         elif mode == "tap":
             messages = [
-                f"Great tapping! 🔲 You found {letters_correct} of the right tiles for '{word}'!",
-                f"Super tile hunter! You almost completed the whole word '{word}'! 🧩",
+                f"So close! 🧩 You got {letters_correct} of the right tiles for '{word}' — almost there! 🌟",
+                f"Nearly there! 🔲 Look at the letter blocks and tap '{word}' in order! 🚀",
             ]
         else:
             messages = [
-                f"Great typing! ⌨️ You hit {letters_correct} of the right letters for '{word}'!",
-                f"Super close! Your fingers found {letters_correct} keys in '{word}'! 🚀",
+                f"So close! ⌨️ You got {letters_correct} letters in '{word}' — nearly there! 🌟",
+                f"Almost got it! 🚀 Check the letters and let's type '{word}' again! 💡",
             ]
         msg = random.choice(messages)
 
     else:
         msg_type = "reframe"
         if mode == "voice":
-            msg = f"Great listening! 👂 You tried '{word}' — listening to tricky words takes practice! 🌟"
+            messages = [
+                f"Good try! 🎤 Take a breath, sound it out slowly, and let's say '{word}' together! 🌟",
+                f"Tricky sounds! 👂 Break the sounds down and give '{word}' another go! 🚀",
+                f"Nice effort! 🌟 Listening to tricky words takes practice — you can do it!",
+            ]
         elif mode == "tap":
-            msg = f"Nice tile hunting! 🔲 You spotted letter blocks for '{word}' — keep going! 🌟"
+            messages = [
+                f"Good try! 🧩 Take a peek at the letter blocks and tap '{word}' in order! 🌟",
+                f"Nice effort! 🔲 Look at each tile and build '{word}' one step at a time! 🚀",
+                f"Almost there! 💡 Check the letter blocks and give '{word}' another tap!",
+            ]
         else:
-            msg = f"Good keyboard effort! ⌨️ You explored the keys for '{word}' — you've got this! 🌟"
+            messages = [
+                f"Good try! ⌨️ Take another look at the letters and let's type '{word}' again! 🌟",
+                f"Tricky word! 🚀 Check the spelling for '{word}' and give it another shot — you've got this!",
+                f"You're getting warmer! 💡 Take your time, look closely, and let's type '{word}' again!",
+            ]
+        msg = random.choice(messages)
 
     return {
         "message_type": msg_type,

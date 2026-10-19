@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { saveProfile, getProfile } from '../../lib/api'
+import TeacherBackground from '../../components/TeacherBackground'
 
 function ProfileForm() {
   const router = useRouter()
@@ -16,23 +17,23 @@ function ProfileForm() {
   const [age, setAge] = useState<string | number>(isNew ? '' : 9)
   const [schoolYear, setSchoolYear] = useState<string>(isNew ? '' : 'Year 4')
 
-  // Dyslexia Type
-  const [dyslexiaType, setDyslexiaType] = useState('phonological')
+  // Dyslexia Type — unselected by default for new child
+  const [dyslexiaType, setDyslexiaType] = useState(isNew ? '' : 'phonological')
 
   // Co-occurring conditions
   const [coOccurring, setCoOccurring] = useState<string[]>(isNew ? [] : ['adhd'])
 
-  // Reading Level
-  const [readingLevel, setReadingLevel] = useState<number>(3)
+  // Reading Level — unselected by default for new child
+  const [readingLevel, setReadingLevel] = useState<number | null>(isNew ? null : 3)
 
-  // Input Mode
-  const [inputMode, setInputMode] = useState('voice')
+  // Input Mode — unselected by default for new child
+  const [inputMode, setInputMode] = useState(isNew ? '' : 'voice')
 
-  // Display Mode
-  const [displayMode, setDisplayMode] = useState('opendyslexic')
+  // Display Mode — unselected by default for new child
+  const [displayMode, setDisplayMode] = useState(isNew ? '' : 'opendyslexic')
 
-  // Colour Overlay
-  const [colourOverlay, setColourOverlay] = useState('yellow')
+  // Colour Overlay — unselected by default for new child
+  const [colourOverlay, setColourOverlay] = useState(isNew ? '' : 'yellow')
 
   // Session Settings
   const [sessionLength, setSessionLength] = useState<number>(5)
@@ -141,12 +142,39 @@ function ProfileForm() {
   }
 
   const handleSave = async () => {
+    if (isNew) {
+      if (!fullName.trim()) {
+        alert("Please enter the child's full name.")
+        return
+      }
+      if (!dyslexiaType) {
+        alert('Please select a dyslexia type (or "Not sure yet").')
+        return
+      }
+      if (readingLevel === null) {
+        alert('Please select a reading level stage.')
+        return
+      }
+      if (!inputMode) {
+        alert('Please select how the child will answer (input mode).')
+        return
+      }
+      if (!displayMode) {
+        alert('Please select a display mode.')
+        return
+      }
+      if (!colourOverlay) {
+        alert('Please select a colour overlay (or "None").')
+        return
+      }
+    }
+
     setSaving(true)
     const activeId = isNew
       ? (fullName.split(' ')[0] || 'child').toLowerCase().replace(/[^a-z0-9]/g, '')
       : childParam.toLowerCase()
 
-    const approach = dyslexiaType === 'non_dyslexic' ? 'standard' : (inputMode === 'voice' ? 'audio_first' : 'phonics')
+    const approach = inputMode === 'voice' ? 'audio_first' : (dyslexiaType === 'non_dyslexic' ? 'standard' : 'phonics')
     const encouragementStyle = (hasADHD || hasAutism) ? 'specific' : 'warm'
 
     // Construct SKILL.md format
@@ -182,7 +210,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 - Encouragement style: ${encouragementStyle}
 
 ## Current Progress
-- Reading level: ${readingLevel}
+- Reading level: ${readingLevel ?? 1}
 - Mastered words: cat, dog, run, play, help
 - Struggling with: through, knight, enough
 - Pattern difficulty: silent letters
@@ -198,7 +226,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
         schoolYear,
         dyslexiaType,
         coOccurring,
-        readingLevel,
+        readingLevel: readingLevel ?? 1,
         inputMode,
         displayMode,
         colourOverlay,
@@ -219,7 +247,30 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
   }
 
   return (
-    <div suppressHydrationWarning style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2.5rem 1.5rem', minHeight: '100vh', maxWidth: 640, margin: '0 auto' }}>
+    <main
+      style={{
+        position: 'relative',
+        minHeight: '100vh',
+        width: '100%',
+        backgroundColor: '#06080F',
+        overflow: 'hidden',
+      }}
+    >
+      <TeacherBackground />
+      <div
+        suppressHydrationWarning
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '2.5rem 1.5rem',
+          minHeight: '100vh',
+          maxWidth: 640,
+          margin: '0 auto',
+        }}
+      >
 
       {/* Header */}
       <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
@@ -656,7 +707,8 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
         </button>
 
       </div>
-    </div>
+      </div>
+    </main>
   )
 }
 
