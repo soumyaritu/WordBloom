@@ -96,6 +96,7 @@ function GameContent() {
   const [interimSpoken,   setInterimSpoken]   = useState<string>('')
   const [micStatusMsg,    setMicStatusMsg]    = useState<string>('')
   const [soundEnabled,    setSoundEnabled]    = useState<boolean>(true)
+  const [justEarnedIndex, setJustEarnedIndex] = useState<number | null>(null)
   const typeInputRef = useRef<HTMLInputElement>(null)
   const recognitionRef = useRef<any>(null)
   const silenceTimerRef = useRef<any>(null)
@@ -494,6 +495,13 @@ function GameContent() {
         setCandiesWon(prev => prev + 1)
       }
 
+      // Trigger Candy Pop & Sparkle Micro-Animation on newly earned candy
+      if (isCorrect) {
+        const newlyEarned = Math.min(totalWords - 1, Math.max(0, (result.session_stats?.words_correct ?? (correctCount + 1)) - 1))
+        setJustEarnedIndex(newlyEarned)
+        setTimeout(() => setJustEarnedIndex(null), 1400)
+      }
+
       if (result.session_stats) {
         setSession((prev: any) => ({
           ...prev,
@@ -722,29 +730,62 @@ function GameContent() {
           role="status"
           aria-label={`${correctCount} of ${totalWords} candies earned`}
         >
-          {Array.from({ length: totalWords }, (_, i) => (
-            <span
-              key={i}
-              onClick={() => { if (soundEnabled) playCandyTapSound(i) }}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && soundEnabled) playCandyTapSound(i) }}
-              aria-label={i < correctCount ? `Candy ${i + 1} earned! Tap to hear soft marimba chime` : `Candy slot ${i + 1}`}
-              style={{
-                fontSize: totalWords > 10 ? 16 : 22,
-                opacity: i < correctCount ? 1 : 0.45,
-                filter: i < correctCount ? 'drop-shadow(0 2px 8px rgba(244,114,182,0.8))' : 'grayscale(1)',
-                transform: i < correctCount ? 'scale(1.15)' : 'scale(0.9)',
-                transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                display: 'inline-block',
-                cursor: 'pointer',
-                touchAction: 'manipulation',
-                lineHeight: 1,
-              }}
-            >
-              {i < correctCount ? '🍬' : '⚪'}
-            </span>
-          ))}
+          {Array.from({ length: totalWords }, (_, i) => {
+            const isEarned = i < correctCount
+            const isPopping = i === justEarnedIndex
+            return (
+              <span
+                key={i}
+                onClick={() => {
+                  setJustEarnedIndex(i)
+                  setTimeout(() => setJustEarnedIndex(null), 1200)
+                  if (soundEnabled) playCandyTapSound(i)
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if ((e.key === 'Enter' || e.key === ' ') && soundEnabled) {
+                    setJustEarnedIndex(i)
+                    setTimeout(() => setJustEarnedIndex(null), 1200)
+                    playCandyTapSound(i)
+                  }
+                }}
+                aria-label={isEarned ? `Candy ${i + 1} earned! Tap to hear soft marimba chime` : `Candy slot ${i + 1}`}
+                style={{
+                  position: 'relative',
+                  fontSize: totalWords > 10 ? 16 : 22,
+                  opacity: isEarned ? 1 : 0.45,
+                  filter: isEarned ? 'drop-shadow(0 2px 8px rgba(244,114,182,0.8))' : 'grayscale(1)',
+                  transform: isPopping ? 'scale(1.42) rotate(12deg)' : isEarned ? 'scale(1.15)' : 'scale(0.9)',
+                  transition: isPopping ? 'all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  touchAction: 'manipulation',
+                  lineHeight: 1,
+                  animation: isPopping ? 'candyPopPulse 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none',
+                }}
+              >
+                {isEarned ? '🍬' : '⚪'}
+                {isPopping && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: -16,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      fontSize: 16,
+                      pointerEvents: 'none',
+                      animation: 'sparkleFloat 1.2s ease-out forwards',
+                    }}
+                  >
+                    ✨
+                  </span>
+                )}
+              </span>
+            )
+          })}
           <span style={{ fontSize: 13, fontWeight: 800, color: '#F472B6', marginLeft: 6, whiteSpace: 'nowrap' }}>
             {correctCount}/{totalWords}
           </span>
