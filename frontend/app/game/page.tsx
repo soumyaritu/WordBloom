@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { submitAnswer, endSession, startSession } from '../../lib/api'
+import { playCandyRewardSound, playCandyTapSound, playGoalCelebrationSound } from '../../lib/sounds'
 
 // WCAG AAA High-Contrast Pastel Palette for Dark Mode (#080C14 / #1E293B)
 const LETTER_COLOURS = [
@@ -94,6 +95,8 @@ function GameContent() {
   const [isListening,     setIsListening]     = useState<boolean>(false)
   const [interimSpoken,   setInterimSpoken]   = useState<string>('')
   const [micStatusMsg,    setMicStatusMsg]    = useState<string>('')
+  const [soundEnabled,    setSoundEnabled]    = useState<boolean>(true)
+  const typeInputRef = useRef<HTMLInputElement>(null)
   const recognitionRef = useRef<any>(null)
   const silenceTimerRef = useRef<any>(null)
   const startTime = useRef(Date.now())
@@ -292,9 +295,66 @@ function GameContent() {
   const rawDyslexia = (profile.dyslexia_type || profile.dyslexiaType || '').toLowerCase()
   const isNonDyslexic = rawDyslexia === 'non_dyslexic' || rawDyslexia === 'none' || rawDyslexia === 'general'
   const isSpotlight   = (profile.display_mode || profile.displayMode || '').toLowerCase() === 'spotlight'
-  // Dynamic layout alignment based on word length — comfortable breathing room for kids
-  const cardMaxWidth  = currentWord.length <= 4 ? 440 : currentWord.length <= 7 ? 500 : 580
+  const rawConditions = profile.co_occurring || profile.coOccurring || profile.conditions || []
+  const conditionsList: string[] = Array.isArray(rawConditions)
+    ? rawConditions.map((c: any) => String(c).toLowerCase().trim())
+    : String(rawConditions).toLowerCase().split(',').map(s => s.trim())
+  const hasAutism = conditionsList.some((c: string) => c.includes('autism'))
+
+  // Sound preference initialization: defaults to muted for autism profiles to prevent sensory overload
+  useEffect(() => {
+    const saved = localStorage.getItem('wb_sound_enabled')
+    if (saved !== null) {
+      setSoundEnabled(saved === 'true')
+    } else if (hasAutism) {
+      setSoundEnabled(false)
+    } else {
+      setSoundEnabled(true)
+    }
+  }, [hasAutism])
+
+  const toggleSound = () => {
+    setSoundEnabled(prev => {
+      const next = !prev
+      localStorage.setItem('wb_sound_enabled', String(next))
+      if (next) {
+        playCandyTapSound(0)
+      }
+      return next
+    })
+  }
+  // Dynamic layout alignment based on word length & input mode — comfortable breathing room for kids
+  const cardMaxWidth = inputMode === 'tap'
+    ? Math.max(520, Math.min(640, currentWord.length * 56 + 80))
+    : (currentWord.length <= 4 ? 440 : currentWord.length <= 7 ? 500 : 580)
   const isCorrectAnswerPending = Boolean(pendingWord?.next_word && pendingWord?.evaluation?.is_correct)
+
+  // Auto-focus & maintain locked keyboard focus on Type Mode input for children with dyspraxia / motor differences
+  useEffect(() => {
+    if (inputMode === 'type' && !isCorrectAnswerPending && !showBreak && !goalAchieved && !loading) {
+      const timer = setTimeout(() => {
+        typeInputRef.current?.focus()
+      }, 50)
+      return () => clearTimeout(timer)
+    }
+  }, [inputMode, activeWord, isCorrectAnswerPending, showBreak, goalAchieved, loading])
+
+  // Global keydown focus recovery: if typing while in Type Mode, keep focus routed to the input box
+  useEffect(() => {
+    if (inputMode !== 'type' || isCorrectAnswerPending || showBreak || goalAchieved || loading) return
+
+    const handleWindowKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept shortcut keys with modifier keys (Cmd, Ctrl, Alt)
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+      // If typing printable characters or backspace and not already in input, restore focus seamlessly
+      if (document.activeElement !== typeInputRef.current && (e.key.length === 1 || e.key === 'Backspace')) {
+        typeInputRef.current?.focus()
+      }
+    }
+
+    window.addEventListener('keydown', handleWindowKeyDown)
+    return () => window.removeEventListener('keydown', handleWindowKeyDown)
+  }, [inputMode, isCorrectAnswerPending, showBreak, goalAchieved, loading])
 
   const handleSpeakWord = () => {
     try {
@@ -456,6 +516,9 @@ function GameContent() {
 
       if (isGoalReached) {
         setGoalAchieved(true)
+        if (soundEnabled) {
+          playGoalCelebrationSound()
+        }
         setLoading(false)
         const childId = childFullName.toLowerCase().split(' ')[0]
         
@@ -482,6 +545,11 @@ function GameContent() {
         }
         // Keep student on celebration screen — do NOT redirect to teacher report!
         return
+      }
+
+      // Play delightful soft marimba reward chime for earning a candy
+      if (isCorrect && soundEnabled) {
+        playCandyRewardSound()
       }
 
       // Show break if needed
@@ -567,8 +635,9 @@ function GameContent() {
   }
 
   if (!session) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--grey)' }}>
-      Loading session...
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#10B981', gap: 12, fontSize: 18, fontWeight: 700 }}>
+      <span style={{ fontSize: 40, animation: 'pulse 1.5s infinite ease-in-out' }}>🌸</span>
+      <span>Getting your garden ready... 🌸</span>
     </div>
   )
 
@@ -582,20 +651,60 @@ function GameContent() {
       {/* Top bar */}
       <div
         className={`${isSpotlight ? 'spotlight-dimmed-peripheral spotlight-interactive-element' : ''}`}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: cardMaxWidth, marginBottom: '1.5rem', transition: 'all 0.3s ease' }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          width: '100%',
+          maxWidth: Math.max(cardMaxWidth, 640),
+          marginBottom: '1.5rem',
+          transition: 'all 0.3s ease',
+          gap: 12,
+        }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <div style={{
             width: 38, height: 38, borderRadius: '50%',
             background: 'var(--bloom)', display: 'flex',
             alignItems: 'center', justifyContent: 'center',
             fontSize: 15, fontWeight: 700, color: '#fff',
+            flexShrink: 0,
           }}>
             {profile.child_name?.charAt(0) || 'E'}
           </div>
-          <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--white)' }}>
+          <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--white)', whiteSpace: 'nowrap' }}>
             {profile.child_name?.split(' ')[0] || 'Emma'}
           </span>
+
+          {/* Sound Toggle Button with Autism Sensory comfort default */}
+          <button
+            type="button"
+            onClick={toggleSound}
+            aria-label={soundEnabled ? "Sound effects on — tap to mute" : "Sound effects muted — tap to enable"}
+            title={hasAutism ? (soundEnabled ? "Sound enabled (Autism comfort toggle)" : "Muted for sensory comfort (Autism flag detected) — tap to enable sound") : (soundEnabled ? "Mute sounds" : "Unmute sounds")}
+            style={{
+              background: soundEnabled ? 'rgba(16, 185, 129, 0.12)' : 'rgba(148, 163, 184, 0.15)',
+              border: `1.5px solid ${soundEnabled ? 'rgba(16, 185, 129, 0.4)' : 'rgba(148, 163, 184, 0.35)'}`,
+              color: soundEnabled ? 'var(--bloom)' : '#94A3B8',
+              borderRadius: 20,
+              padding: '4px 10px',
+              fontSize: 12,
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              touchAction: 'manipulation',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            <span>{soundEnabled ? '🔊' : '🔇'}</span>
+            <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              {hasAutism ? 'Sensory' : (soundEnabled ? 'Sound' : 'Muted')}
+            </span>
+          </button>
         </div>
 
         {/* Candies Reward Counter */}
@@ -605,7 +714,10 @@ function GameContent() {
             background: 'rgba(244,114,182,0.18)', border: '1.5px solid rgba(244,114,182,0.5)',
             padding: '6px 14px', borderRadius: 24,
             boxShadow: '0 4px 14px rgba(244,114,182,0.25)',
-            maxWidth: 240, flexWrap: 'wrap', justifyContent: 'center',
+            flexWrap: 'nowrap',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            justifyContent: 'center',
           }}
           role="status"
           aria-label={`${correctCount} of ${totalWords} candies earned`}
@@ -613,6 +725,11 @@ function GameContent() {
           {Array.from({ length: totalWords }, (_, i) => (
             <span
               key={i}
+              onClick={() => { if (soundEnabled) playCandyTapSound(i) }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && soundEnabled) playCandyTapSound(i) }}
+              aria-label={i < correctCount ? `Candy ${i + 1} earned! Tap to hear soft marimba chime` : `Candy slot ${i + 1}`}
               style={{
                 fontSize: totalWords > 10 ? 16 : 22,
                 opacity: i < correctCount ? 1 : 0.45,
@@ -620,12 +737,15 @@ function GameContent() {
                 transform: i < correctCount ? 'scale(1.15)' : 'scale(0.9)',
                 transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 display: 'inline-block',
+                cursor: 'pointer',
+                touchAction: 'manipulation',
+                lineHeight: 1,
               }}
             >
               {i < correctCount ? '🍬' : '⚪'}
             </span>
           ))}
-          <span style={{ fontSize: 12, fontWeight: 800, color: '#F472B6', marginLeft: 4 }}>
+          <span style={{ fontSize: 13, fontWeight: 800, color: '#F472B6', marginLeft: 6, whiteSpace: 'nowrap' }}>
             {correctCount}/{totalWords}
           </span>
         </div>
@@ -641,6 +761,8 @@ function GameContent() {
             display: 'flex', alignItems: 'center', gap: 6,
             boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
             transition: 'all 0.2s ease',
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
           }}
         >
           <span style={{ fontSize: 16 }}>🚪</span>
@@ -695,7 +817,23 @@ function GameContent() {
           </p>
           <div style={{ display: 'flex', gap: 10, fontSize: 34, marginBottom: 28, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 360 }}>
             {Array.from({ length: totalWords }, (_, i) => (
-              <span key={i} style={{ filter: 'drop-shadow(0 2px 8px rgba(244,114,182,0.85))' }}>🍬</span>
+              <span
+                key={i}
+                role="button"
+                tabIndex={0}
+                onClick={() => { if (soundEnabled) playCandyTapSound(i) }}
+                onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && soundEnabled) playCandyTapSound(i) }}
+                aria-label={`Celebration candy ${i + 1}`}
+                style={{
+                  filter: 'drop-shadow(0 2px 8px rgba(244,114,182,0.85))',
+                  cursor: 'pointer',
+                  transition: 'transform 0.15s ease',
+                  touchAction: 'manipulation',
+                  display: 'inline-block',
+                }}
+              >
+                🍬
+              </span>
             ))}
           </div>
 
@@ -1103,12 +1241,25 @@ function GameContent() {
           {inputMode === 'type' && (
             <div className="spotlight-interactive-element" style={{ display: 'flex', gap: 12, width: '100%', maxWidth: cardMaxWidth, marginBottom: '1.5rem' }}>
               <input
+                ref={typeInputRef}
                 value={answer}
                 onChange={e => setAnswer(e.target.value)}
                 onKeyDown={e => {
                   if (e.key === 'Enter') {
                     e.preventDefault()
                     handleSubmit()
+                  }
+                }}
+                onBlur={e => {
+                  // If focus moved away due to an accidental click outside (e.g. card padding, empty space),
+                  // keep focus locked unless clicking a button or navigation link
+                  const related = e.relatedTarget as HTMLElement | null
+                  if (!related || (!related.closest('button') && !related.closest('a') && !related.closest('input'))) {
+                    requestAnimationFrame(() => {
+                      if (inputMode === 'type' && !isCorrectAnswerPending && !showBreak && !goalAchieved && !loading) {
+                        typeInputRef.current?.focus()
+                      }
+                    })
                   }
                 }}
                 placeholder="Type the word here..."
@@ -1269,15 +1420,15 @@ function GameContent() {
             ]
 
             const slotCount = targetChars.length || 1
-            const slotWidth = slotCount <= 4 ? 48 : slotCount <= 6 ? 40 : slotCount <= 8 ? 34 : 28
-            const slotHeight = slotCount <= 4 ? 56 : slotCount <= 6 ? 48 : slotCount <= 8 ? 42 : 36
-            const slotFontSize = slotCount <= 4 ? 26 : slotCount <= 6 ? 22 : slotCount <= 8 ? 18 : 15
-            const slotGap = slotCount <= 5 ? 8 : slotCount <= 7 ? 6 : 4
+            const slotWidth = slotCount <= 4 ? 60 : slotCount <= 6 ? 52 : slotCount <= 8 ? 44 : 38
+            const slotHeight = slotCount <= 4 ? 68 : slotCount <= 6 ? 60 : slotCount <= 8 ? 52 : 46
+            const slotFontSize = slotCount <= 4 ? 30 : slotCount <= 6 ? 26 : slotCount <= 8 ? 22 : 18
+            const slotGap = slotCount <= 5 ? 12 : slotCount <= 7 ? 8 : 6
 
             return (
-              <div className="spotlight-interactive-element" style={{ width: '100%', maxWidth: Math.max(460, Math.min(540, slotCount * 42 + 60)), marginBottom: '1.25rem' }}>
+              <div className="spotlight-interactive-element" style={{ width: '100%', maxWidth: Math.max(520, Math.min(640, slotCount * 56 + 80)), marginBottom: '1.25rem' }}>
                 {/* Visual Letter Slots: clearly shows word length and fills as child taps */}
-                <div style={{ display: 'flex', gap: slotGap, justifyContent: 'center', alignItems: 'center', marginBottom: 16, flexWrap: 'nowrap', width: '100%', overflowX: 'auto', padding: '4px 2px' }}>
+                <div style={{ display: 'flex', gap: slotGap, justifyContent: 'center', alignItems: 'center', marginBottom: 18, flexWrap: 'nowrap', width: '100%', overflowX: 'auto', padding: '6px 2px' }}>
                   {targetChars.map((_, idx) => {
                     const char = tappedLetters[idx] || ''
                     return (
@@ -1291,13 +1442,14 @@ function GameContent() {
                         }}
                         aria-label={char ? `Slot ${idx + 1}: ${char}, tap to remove` : `Slot ${idx + 1} empty`}
                         style={{
-                          width: slotWidth, height: slotHeight, borderRadius: 12, flexShrink: 0,
+                          width: slotWidth, height: slotHeight, borderRadius: 14, flexShrink: 0,
                           border: `2.5px ${char ? 'solid var(--bloom)' : 'dashed var(--border2)'}`,
                           background: char ? 'rgba(16, 185, 129, 0.18)' : 'rgba(15, 23, 42, 0.45)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: slotFontSize, fontWeight: 800, color: char ? 'var(--bloom-text)' : 'var(--grey)',
-                          boxShadow: char ? '0 2px 8px rgba(16,185,129,0.35)' : 'none',
+                          boxShadow: char ? '0 2px 10px rgba(16,185,129,0.35)' : 'none',
                           cursor: char ? 'pointer' : 'default',
+                          touchAction: 'manipulation',
                           transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                         }}
                       >
@@ -1309,7 +1461,7 @@ function GameContent() {
 
                 {/* Letter Tiles Bank (Curated Scramble or Full Keyboard) */}
                 {!showFullKeyboard ? (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12, justifyContent: 'center' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16, justifyContent: 'center' }}>
                     {curatedLetters.map(l => (
                       <button
                         key={l}
@@ -1321,11 +1473,11 @@ function GameContent() {
                         }}
                         aria-label={`Letter tile ${l}`}
                         style={{
-                          width: 52, height: 52, borderRadius: 12,
-                          background: 'var(--panel)', border: '2px solid var(--border2)',
-                          color: 'var(--white)', fontSize: 22, fontWeight: 800,
-                          cursor: 'pointer', boxShadow: '0 3px 8px rgba(0,0,0,0.2)',
-                          transition: 'all 0.15s ease',
+                          width: 64, height: 64, minWidth: 64, borderRadius: 16,
+                          background: 'var(--panel)', border: '2.5px solid var(--border2)',
+                          color: 'var(--white)', fontSize: 28, fontWeight: 900,
+                          cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                          transition: 'all 0.15s ease', touchAction: 'manipulation',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}
                       >
@@ -1337,19 +1489,20 @@ function GameContent() {
                       onClick={() => setTappedLetters(prev => prev.slice(0, -1))}
                       aria-label="Delete last letter"
                       style={{
-                        width: 52, height: 52, borderRadius: 12,
-                        background: 'rgba(239,68,68,0.18)', border: '2px solid rgba(239,68,68,0.45)',
-                        color: '#FCA5A5', fontSize: 20, fontWeight: 800,
+                        width: 64, height: 64, minWidth: 64, borderRadius: 16,
+                        background: 'rgba(239,68,68,0.18)', border: '2.5px solid rgba(239,68,68,0.45)',
+                        color: '#FCA5A5', fontSize: 24, fontWeight: 800,
                         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        touchAction: 'manipulation', boxShadow: '0 4px 12px rgba(239,68,68,0.15)',
                       }}
                     >
                       ⌫
                     </button>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16, alignItems: 'center' }}>
                     {QWERTY_ROWS.map((row, rIdx) => (
-                      <div key={rIdx} style={{ display: 'flex', gap: 5, justifyContent: 'center' }}>
+                      <div key={rIdx} style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
                         {row.map(l => (
                           <button
                             key={l}
@@ -1361,10 +1514,11 @@ function GameContent() {
                             }}
                             aria-label={`Key ${l}`}
                             style={{
-                              width: 38, height: 46, borderRadius: 8,
+                              minWidth: 42, width: 44, height: 52, borderRadius: 10,
                               background: 'var(--panel)', border: '1.5px solid var(--border2)',
-                              color: 'var(--white)', fontSize: 17, fontWeight: 700,
-                              cursor: 'pointer',
+                              color: 'var(--white)', fontSize: 20, fontWeight: 700,
+                              cursor: 'pointer', touchAction: 'manipulation',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}
                           >
                             {l}
@@ -1376,10 +1530,11 @@ function GameContent() {
                             onClick={() => setTappedLetters(prev => prev.slice(0, -1))}
                             aria-label="Backspace"
                             style={{
-                              width: 44, height: 46, borderRadius: 8,
+                              minWidth: 50, height: 52, borderRadius: 10,
                               background: 'rgba(239,68,68,0.2)', border: '1.5px solid rgba(239,68,68,0.4)',
-                              color: '#FCA5A5', fontSize: 17, fontWeight: 800,
-                              cursor: 'pointer',
+                              color: '#FCA5A5', fontSize: 20, fontWeight: 800,
+                              cursor: 'pointer', touchAction: 'manipulation',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}
                           >
                             ⌫
@@ -1391,14 +1546,14 @@ function GameContent() {
                 )}
 
                 {/* Keyboard mode toggle & Clear button */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, padding: '0 4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, padding: '0 4px' }}>
                   <button
                     type="button"
                     onClick={() => setShowFullKeyboard(prev => !prev)}
                     style={{
-                      background: 'transparent', border: 'none', color: 'var(--accent)',
-                      fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                      background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.25)', color: 'var(--accent)',
+                      fontSize: 13, fontWeight: 700, cursor: 'pointer', borderRadius: 8, padding: '6px 14px',
+                      display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 38, touchAction: 'manipulation',
                     }}
                   >
                     <span>{showFullKeyboard ? '🔲 Focus on letter bank' : '⌨️ Full A–Z keyboard'}</span>
@@ -1409,8 +1564,9 @@ function GameContent() {
                       type="button"
                       onClick={() => setTappedLetters([])}
                       style={{
-                        background: 'transparent', border: 'none', color: '#94A3B8',
-                        fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                        background: 'rgba(148, 163, 184, 0.1)', border: '1px solid rgba(148, 163, 184, 0.2)', color: '#CBD5E1',
+                        fontSize: 13, fontWeight: 700, cursor: 'pointer', borderRadius: 8, padding: '6px 14px', minHeight: 38,
+                        touchAction: 'manipulation',
                       }}
                     >
                       Clear all ✕
@@ -1424,13 +1580,13 @@ function GameContent() {
                   disabled={loading || tappedLetters.length === 0}
                   aria-label="Check tapped word answer"
                   style={{
-                    width: '100%', minHeight: 52, padding: '14px 32px', background: 'var(--bloom)',
+                    width: '100%', minHeight: 56, padding: '16px 32px', background: 'var(--bloom)',
                     color: '#fff', borderRadius: 50,
-                    fontSize: 16, fontWeight: 800,
+                    fontSize: 18, fontWeight: 800,
                     cursor: loading || tappedLetters.length === 0 ? 'default' : 'pointer',
                     opacity: loading || tappedLetters.length === 0 ? 0.6 : 1,
                     boxShadow: '0 4px 16px rgba(16,185,129,0.35)',
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.2s ease', touchAction: 'manipulation',
                   }}
                 >
                   {loading ? '✨ Checking word...' : 'Check Word'}

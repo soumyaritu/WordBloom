@@ -213,7 +213,7 @@ export default function ChildWelcomePage({
               marginBottom: '2.5rem',
             }}
           >
-            {starting ? 'Opening Quest... 🌸' : '🍬 Start Reading!'}
+            {starting ? 'Getting your garden ready... 🌸' : '🍬 Start Reading!'}
           </button>
 
           {/* Row of 5 candy emojis at the bottom */}

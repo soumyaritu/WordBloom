@@ -13,7 +13,7 @@ description: Emma Clarke's learning profile and dyslexia settings
 
 ## Dyslexia Profile
 - Type: phonological
-- Co-occurring: none
+- Co-occurring: autism
 
 ## Access Settings
 - Input mode: voice
@@ -27,7 +27,7 @@ description: Emma Clarke's learning profile and dyslexia settings
 - Candy goal: 5
 - Break after: 5
 - Approach: audio_first
-- Encouragement style: warm
+- Encouragement style: specific
 
 ## Current Progress
 - Reading level: 1
