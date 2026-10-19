@@ -635,7 +635,7 @@ function TeacherDashboardContent() {
       }}>
         <span style={{
           background: '#F472B6', color: '#0F172A',
-          fontSize: 11, fontWeight: 800, padding: '4px 12px', borderRadius: 12,
+          fontSize: 13, fontWeight: 800, padding: '4px 12px', borderRadius: 12,
           letterSpacing: 0.5, textTransform: 'uppercase',
           boxShadow: '0 2px 6px rgba(244,114,182,0.4)',
         }}>

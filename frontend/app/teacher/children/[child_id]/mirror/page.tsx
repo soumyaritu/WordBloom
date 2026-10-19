@@ -704,7 +704,7 @@ export default function DyslexiaMirrorPage({
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
             }}>
           <div>
-            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, color: '#6B7280', fontWeight: 600, marginBottom: 8 }}>
+            <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: '#9CA3AF', fontWeight: 700, marginBottom: 8 }}>
               Simulate Dyslexia Profile:
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -739,7 +739,7 @@ export default function DyslexiaMirrorPage({
 
           {/* Animation Toggle */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, color: '#6B7280', fontWeight: 600 }}>
+            <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: '#9CA3AF', fontWeight: 700 }}>
               Perceptual Motion:
             </div>
             <button
@@ -756,7 +756,7 @@ export default function DyslexiaMirrorPage({
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: animationOn ? '#10B981' : '#6B7280' }} />
               {animationOn ? 'Animation: ON' : 'Animation: OFF'}
             </button>
-            <span style={{ fontSize: 11, color: '#6B7280' }}>
+            <span style={{ fontSize: 12, color: '#9CA3AF' }}>
               Turn off animation if it causes discomfort
             </span>
           </div>
@@ -765,11 +765,11 @@ export default function DyslexiaMirrorPage({
         {/* Wrong Answer Words Selector */}
         <div style={{ marginBottom: '1.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
-            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, color: '#6B7280', fontWeight: 600 }}>
+            <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: '#9CA3AF', fontWeight: 700 }}>
               Recent Session Wrong Answers ({wrongWords.length}):
             </div>
             {loading && (
-              <span style={{ fontSize: 11, color: '#10B981', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 12.5, color: '#10B981', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <span>🔄</span> Syncing latest session data...
               </span>
             )}
@@ -893,7 +893,7 @@ export default function DyslexiaMirrorPage({
                 padding: '14px 16px',
                 marginBottom: '1.25rem',
               }}>
-                <div style={{ fontSize: 11, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6, fontWeight: 600 }}>
+                <div style={{ fontSize: 12.5, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6, fontWeight: 700 }}>
                   Sentence Perception in Context:
                 </div>
                 <div style={{ fontSize: 15, lineHeight: 1.6, color: '#E5E7EB' }}>
@@ -1011,7 +1011,7 @@ export default function DyslexiaMirrorPage({
                 marginBottom: '1.25rem',
                 fontFamily: 'OpenDyslexic, sans-serif',
               }}>
-                <div style={{ fontSize: 11, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6, fontWeight: 600, fontFamily: 'system-ui, sans-serif' }}>
+                <div style={{ fontSize: 12.5, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6, fontWeight: 700, fontFamily: 'system-ui, sans-serif' }}>
                   Scaffolded Sentence Context:
                 </div>
                 <div style={{ fontSize: 15, lineHeight: 1.8, color: '#E5E7EB' }}>

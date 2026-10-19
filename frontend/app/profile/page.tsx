@@ -302,7 +302,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
         {/* Section 1: Identity */}
         <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--grey)', fontWeight: 700, marginBottom: '1rem' }}>
+          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: '1rem' }}>
             SECTION 1: IDENTITY
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -370,7 +370,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
         {/* Section 2: Dyslexia type (pick one) */}
         <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--grey)', fontWeight: 700, marginBottom: '1rem' }}>
+          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: '1rem' }}>
             SECTION 2: DYSLEXIA TYPE (PICK ONE)
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -430,7 +430,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
         {/* Section 3: Co-occurring conditions (pick multiple) */}
         <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--grey)', fontWeight: 700, marginBottom: '1rem' }}>
+          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: '1rem' }}>
             SECTION 3: CO-OCCURRING CONDITIONS (PICK MULTIPLE)
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: '1rem' }}>
@@ -477,7 +477,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
         {/* Section 4: Reading level (pick one) */}
         <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--grey)', fontWeight: 700, marginBottom: '1rem' }}>
+          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: '1rem' }}>
             SECTION 4: READING LEVEL (PICK ONE)
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
@@ -499,7 +499,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                 <div style={{ fontSize: 13, fontWeight: 700, color: readingLevel === item.lvl ? 'var(--bloom-text)' : 'var(--white)' }}>
                   {item.name}
                 </div>
-                <div style={{ fontSize: 10, color: 'var(--grey)', marginTop: 4, lineHeight: 1.2 }}>
+                <div style={{ fontSize: 12, color: 'var(--grey)', marginTop: 4, lineHeight: 1.25 }}>
                   {item.desc}
                 </div>
               </button>
@@ -509,7 +509,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
         {/* Section 5: How they answer (pick one) */}
         <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--grey)', fontWeight: 700, marginBottom: '1rem' }}>
+          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: '1rem' }}>
             SECTION 5: HOW THEY ANSWER (PICK ONE)
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
@@ -531,7 +531,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                 <div style={{ fontSize: 13, fontWeight: 700, color: inputMode === mode.id ? 'var(--bloom-text)' : 'var(--white)' }}>
                   {mode.name}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--grey)', marginTop: 2 }}>{mode.desc}</div>
+                <div style={{ fontSize: 12, color: 'var(--grey)', marginTop: 2 }}>{mode.desc}</div>
               </div>
             ))}
           </div>
@@ -539,7 +539,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
         {/* Section 6: Display mode (pick one) */}
         <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--grey)', fontWeight: 700, marginBottom: '1rem' }}>
+          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: '1rem' }}>
             SECTION 6: DISPLAY MODE (PICK ONE)
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -562,7 +562,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                   <div style={{ fontSize: 14, fontWeight: 700, color: displayMode === disp.id ? 'var(--bloom-text)' : 'var(--white)' }}>
                     {disp.name}
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--grey)', marginTop: 2 }}>{disp.desc}</div>
+                  <div style={{ fontSize: 13, color: 'var(--grey)', marginTop: 2 }}>{disp.desc}</div>
                 </div>
                 {displayMode === disp.id && <span style={{ color: 'var(--bloom-text)', fontWeight: 'bold' }}>✓</span>}
               </div>
@@ -572,7 +572,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
         {/* Section 7: Colour overlay (pick one) */}
         <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--grey)', fontWeight: 700, marginBottom: 6 }}>
+          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: 6 }}>
             SECTION 7: COLOUR OVERLAY
           </div>
           <div style={{ fontSize: 12, color: 'var(--grey)', marginBottom: '1rem' }}>Child picks what feels right</div>
@@ -628,7 +628,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
         {/* Section 8: Session settings */}
         <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--grey)', fontWeight: 700, marginBottom: '1rem' }}>
+          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: '1rem' }}>
             SECTION 8: SESSION SETTINGS
           </div>
 
@@ -645,7 +645,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                 onChange={e => setCandyGoal(parseInt(e.target.value))}
                 style={{ width: '100%', opacity: hasADHD ? 0.5 : 1 }}
               />
-              <div style={{ fontSize: 11, color: 'var(--grey)', marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: 'var(--grey)', marginTop: 4 }}>
                 Session concludes with celebration once the child earns {candyGoal} candies — zero timer pressure!
               </div>
             </div>
@@ -662,7 +662,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                 onChange={e => setBreakAfter(parseInt(e.target.value))}
                 style={{ width: '100%', opacity: hasADHD ? 0.5 : 1 }}
               />
-              <div style={{ fontSize: 11, color: 'var(--grey)', marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: 'var(--grey)', marginTop: 4 }}>
                 Offers a gentle 30-second stretch & eye rest break after every {breakAfter} words.
               </div>
             </div>
@@ -679,7 +679,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                 onChange={e => setSessionLength(parseInt(e.target.value))}
                 style={{ width: '100%', opacity: hasADHD ? 0.5 : 1 }}
               />
-              <div style={{ fontSize: 11, color: 'var(--grey)', marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: 'var(--grey)', marginTop: 4 }}>
                 Safety ceiling so session closes gracefully if left unattended.
               </div>
             </div>

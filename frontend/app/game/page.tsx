@@ -709,7 +709,7 @@ function GameContent() {
             }}
           >
             <span>{soundEnabled ? '🔊' : '🔇'}</span>
-            <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
               {hasAutism ? 'Sensory' : (soundEnabled ? 'Sound' : 'Muted')}
             </span>
           </button>

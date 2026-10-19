@@ -133,7 +133,7 @@ export default function ChildDetailPage({
                 </span>
                 <span style={{
                   background: 'rgba(16,185,129,0.15)', color: '#34D399',
-                  padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 700,
+                  padding: '3px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700,
                   textTransform: 'uppercase', letterSpacing: 0.5,
                 }}>
                   {isNonDyslexic ? 'Non-dyslexic (General)' : (profile?.dyslexia_type || 'Dyslexia')}
@@ -189,7 +189,7 @@ export default function ChildDetailPage({
             boxShadow: '0 10px 30px rgba(16,185,129,0.15)',
           }}>
             <div style={{ maxWidth: 540 }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#10B981', color: '#06080F', padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', marginBottom: 10 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#10B981', color: '#06080F', padding: '4px 12px', borderRadius: 12, fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', marginBottom: 10 }}>
                 Teacher Insight Tool
               </div>
               <h2 style={{ fontSize: 20, fontWeight: 800, color: '#F9FAFB', margin: 0 }}>
@@ -225,7 +225,7 @@ export default function ChildDetailPage({
             boxShadow: '0 10px 30px rgba(16,185,129,0.15)',
           }}>
             <div style={{ maxWidth: 540 }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#10B981', color: '#06080F', padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', marginBottom: 10 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#10B981', color: '#06080F', padding: '4px 12px', borderRadius: 12, fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', marginBottom: 10 }}>
                 Standard Reader
               </div>
               <h2 style={{ fontSize: 20, fontWeight: 800, color: '#F9FAFB', margin: 0 }}>
