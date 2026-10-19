@@ -18,7 +18,7 @@ const NAME_MAP: Record<string, string> = {
   emma: 'Emma',
   liam: 'Liam',
   james: 'James',
-  sofia: 'Sofia',
+  sofia: 'Sony',
   alex: 'Alex',
 }
 
@@ -59,7 +59,7 @@ export default function ChildWelcomePage({
       // Save session in localStorage for existing game engine
       localStorage.setItem('wb_session', JSON.stringify({
         session_id:   data.session_id,
-        profile:      data.profile,
+        profile:      { ...data.profile, child_id: childId },
         current_word: data.first_word,
         words_done:   [],
         words_correct: [],

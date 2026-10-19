@@ -58,6 +58,7 @@ def load_child_profile(child_name: str) -> dict:
         return [w.strip() for w in raw_val.split(",") if w.strip()]
 
     profile = {
+        "child_id":           child_name.lower().strip(),
         "child_name":         extract(r"- Full name:\s*(.+)"),
         "parent_email":       extract(r"- Parent email:\s*(.+)", "parent@example.com"),
         "age":                int(extract(r"- Age:\s*(\d+)", "9")),

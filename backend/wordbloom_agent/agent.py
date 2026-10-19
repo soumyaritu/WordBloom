@@ -140,6 +140,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
         # Agent 1 — Profile
         print("👤 Profile Agent: loading skill file...")
         profile = load_child_profile(child_name)
+        profile["child_id"] = child_name.lower().strip()
         print(f"   ✅ {profile.get('child_name')} — {profile.get('dyslexia_type')} dyslexia")
 
         # Session behaviour adjustments for co-occurring conditions

@@ -239,16 +239,28 @@ function GameContent() {
     const initSession = async () => {
       const raw = localStorage.getItem('wb_session')
       let s = raw ? JSON.parse(raw) : null
-      const targetChildId = childParam || 'emma'
+      const targetChildId = childParam || s?.profile?.child_id || 'emma'
       const sessionChild = (s?.profile?.child_name || '').toLowerCase()
+      const sessionChildId = (s?.profile?.child_id || '').toLowerCase()
+
+      // Check if session in localStorage is already for the requested child
+      const isMatchingChild = Boolean(
+        s && (
+          !childParam ||
+          sessionChildId === targetChildId ||
+          sessionChild.includes(targetChildId) ||
+          (targetChildId === 'sofia' && sessionChild.includes('sony')) ||
+          (targetChildId === 'sony'  && sessionChild.includes('sony'))
+        )
+      )
 
       // If no session, or URL specifies childParam and stored session is for another child:
-      if (!s || (childParam && !sessionChild.includes(targetChildId))) {
+      if (!s || !isMatchingChild) {
         try {
           const data = await startSession(targetChildId)
           s = {
             session_id:   data.session_id,
-            profile:      data.profile,
+            profile:      { ...data.profile, child_id: targetChildId },
             current_word: data.first_word,
             words_done:   [],
             words_correct: [],

@@ -174,14 +174,14 @@ function TeacherDashboardContent() {
       const data = await startSession(studentId)
       localStorage.setItem('wb_session', JSON.stringify({
         session_id:   data.session_id,
-        profile:      data.profile,
+        profile:      { ...data.profile, child_id: studentId },
         current_word: data.first_word,
         words_done:   [],
         words_correct: [],
         start_time:   Date.now(),
         stats: { words_done: 0, words_correct: 0, accuracy: 0 }
       }))
-      router.push('/game')
+      router.push(`/game?child=${studentId}`)
     } catch (e) {
       alert('Could not start session. Please ensure python main.py backend is running.')
       setSessionStarting(false)

@@ -58,10 +58,10 @@ const DEFAULT_CHILDREN: ChildProfileData[] = [
   },
   {
     id: 'sofia',
-    name: 'Sofia Mensah',
+    name: 'Sony Mathew',
     avatar: '🌟',
-    dyslexia_type: 'Surface',
-    reading_stage: 4,
+    dyslexia_type: 'Phonological',
+    reading_stage: 2,
     input_mode: 'voice',
     conditions: [],
     last_session: 'Oct 15',
