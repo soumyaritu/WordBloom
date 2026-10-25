@@ -95,7 +95,7 @@ export default function ChildWelcomePage({
           position: 'relative',
           zIndex: 1,
           width: '100%',
-          maxWidth: 680,
+          maxWidth: 860,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

@@ -255,7 +255,7 @@ export default function TeacherDashboardPage() {
           position: 'relative',
           zIndex: 1,
           width: '100%',
-          maxWidth: 960,
+          maxWidth: 1040,
           display: 'flex',
           flexDirection: 'column',
         }}

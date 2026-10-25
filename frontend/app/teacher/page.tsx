@@ -414,7 +414,7 @@ function TeacherDashboardContent() {
         <div
           style={{
             width: '100%',
-            maxWidth: 540,
+            maxWidth: 1040,
             display: 'grid',
             gridTemplateColumns: '88px 1fr 88px',
             alignItems: 'center',
@@ -490,7 +490,7 @@ function TeacherDashboardContent() {
         </div>
 
       {/* Student selector tabs */}
-      <div style={{ width: '100%', maxWidth: 540, marginBottom: '1.5rem' }}>
+      <div style={{ width: '100%', maxWidth: 1040, marginBottom: '1.5rem' }}>
         <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--grey)', fontWeight: 700, marginBottom: 8 }}>
           Select Student:
         </div>
@@ -531,7 +531,7 @@ function TeacherDashboardContent() {
 
       {/* Stats overview (if report exists) */}
       {report && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, width: '100%', maxWidth: 540, marginBottom: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, width: '100%', maxWidth: 1040, marginBottom: '1.5rem' }}>
           {[
             { label: 'Words tried',  value: report.words_attempted },
             { label: 'Accuracy',     value: `${report.accuracy_percent}%` },
@@ -551,7 +551,7 @@ function TeacherDashboardContent() {
       {/* Session report + approval gate */}
       {report ? (
         <div style={{
-          width: '100%', maxWidth: 540,
+          width: '100%', maxWidth: 1040,
           background: 'var(--panel)', border: '1.5px solid var(--border2)',
           borderRadius: 18, overflow: 'hidden', marginBottom: '1.5rem',
           boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
@@ -792,7 +792,7 @@ function TeacherDashboardContent() {
       ) : (
         /* No session report yet — Display Student Profile Summary */
         <div style={{
-          width: '100%', maxWidth: 540,
+          width: '100%', maxWidth: 1040,
           background: 'var(--panel)', border: '1.5px solid var(--border2)',
           borderRadius: 18, padding: '2rem 1.75rem', textAlign: 'left',
           color: 'var(--white)', boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
@@ -861,7 +861,7 @@ function TeacherDashboardContent() {
 
       {/* Agent activity badge */}
       <div style={{
-        width: '100%', maxWidth: 540,
+        width: '100%', maxWidth: 1040,
         background: 'var(--panel)', border: '1.5px solid var(--border2)',
         borderRadius: 24, padding: '14px 20px',
         fontSize: 14, fontWeight: 600, color: 'var(--white)',

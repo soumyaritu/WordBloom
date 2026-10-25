@@ -108,17 +108,13 @@ function ProfileForm() {
     }
   }, [childParam, isNew])
 
-  // Live preview of font & overlay choices on profile screen
+  // Ensure teacher administration screen maintains clean dark styling
   useEffect(() => {
-    const classes: string[] = []
-    if (displayMode === 'opendyslexic') classes.push('opendyslexic')
-    if (colourOverlay && colourOverlay !== 'none') classes.push(`overlay-${colourOverlay}`)
-    document.body.className = classes.join(' ')
-
+    document.body.className = ''
     return () => {
       document.body.className = ''
     }
-  }, [displayMode, colourOverlay])
+  }, [])
 
   const toggleCoOccurring = (condition: string) => {
     setCoOccurring(prev =>
@@ -268,6 +264,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
         width: '100%',
         backgroundColor: '#06080F',
         overflow: 'hidden',
+        color: '#F9FAFB',
       }}
     >
       <TeacherBackground />
@@ -279,456 +276,546 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '2.5rem 1.5rem',
+          padding: '2.5rem 1.5rem 4rem',
           minHeight: '100vh',
-          maxWidth: 640,
+          maxWidth: 1040,
           margin: '0 auto',
         }}
       >
+        {/* Header */}
+        <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', gap: 12 }}>
+          <button
+            onClick={() => {
+              if (document.cookie.includes('wb_teacher_session')) {
+                router.push('/teacher/dashboard')
+              } else {
+                router.push('/')
+              }
+            }}
+            aria-label="Back to dashboard or home"
+            style={{
+              background: '#111827',
+              border: '1.5px solid #1F2937',
+              color: '#F9FAFB',
+              padding: '10px 20px',
+              borderRadius: 30,
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            }}
+          >
+            <span>←</span>
+            <span>Back</span>
+          </button>
 
-      {/* Header */}
-      <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
-        <button
-          onClick={() => {
-            if (document.cookie.includes('wb_teacher_session')) {
-              router.push('/teacher/dashboard')
-            } else {
-              router.push('/')
-            }
-          }}
-          aria-label="Back to dashboard or home"
-          style={{
-            background: 'var(--panel)', border: '1px solid var(--border)',
-            color: 'var(--white)', padding: '8px 16px', borderRadius: 20,
-            fontSize: 14, fontWeight: 600, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 6,
-          }}
-        >
-          ← Back
-        </button>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--white)' }}>
-          {isNew ? 'New Child Profile' : `Edit ${fullName.split(' ')[0] || 'Profile'}`}
-        </h1>
-        <div style={{ width: 70 }} />
-      </div>
-
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-
-        {/* Section 1: Identity */}
-        <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: '1rem' }}>
-            SECTION 1: IDENTITY
+          <div style={{ textAlign: 'center' }}>
+            <h1 style={{ fontSize: 24, fontWeight: 900, color: '#F9FAFB', margin: 0, letterSpacing: '-0.01em' }}>
+              {isNew ? 'New Child Profile' : `Edit ${fullName.split(' ')[0] || 'Child'}'s Profile`}
+            </h1>
+            <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4, margin: 0 }}>
+              WordBloom Adaptive Neurodiverse Learning Settings
+            </p>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--white)', marginBottom: 6 }}>Full Name</label>
-              <input
-                type="text"
-                value={fullName}
-                onChange={e => setFullName(e.target.value)}
-                placeholder="e.g. Emma Clarke"
-                style={{
-                  width: '100%', padding: '12px 14px', background: 'var(--surface)',
-                  border: '1px solid var(--border2)', borderRadius: 10,
-                  color: 'var(--white)', fontSize: 15,
-                }}
-              />
+
+          <button
+            onClick={handleSave}
+            disabled={saving || !fullName.trim()}
+            style={{
+              background: 'linear-gradient(135deg, #10B981, #059669)',
+              border: 'none',
+              color: '#FFFFFF',
+              padding: '10px 22px',
+              borderRadius: 30,
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: saving ? 'wait' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              boxShadow: '0 4px 14px rgba(16,185,129,0.3)',
+              opacity: saving || !fullName.trim() ? 0.6 : 1,
+            }}
+          >
+            <span>💾</span>
+            <span>{saving ? 'Saving...' : 'Save'}</span>
+          </button>
+        </div>
+
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+
+          {/* Section 1: Identity */}
+          <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
+              SECTION 1: IDENTITY
             </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--white)', marginBottom: 6 }}>Parent's Email Address (For Progress Reports)</label>
-              <input
-                type="email"
-                value={parentEmail}
-                onChange={e => setParentEmail(e.target.value)}
-                placeholder="e.g. parent@example.com"
-                style={{
-                  width: '100%', padding: '12px 14px', background: 'var(--surface)',
-                  border: '1px solid var(--border2)', borderRadius: 10,
-                  color: 'var(--white)', fontSize: 15,
-                }}
-              />
-            </div>
-            <div style={{ display: 'flex', gap: 14 }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--white)', marginBottom: 6 }}>Age</label>
-                <input
-                  type="number"
-                  value={age}
-                  onChange={e => setAge(e.target.value)}
-                  placeholder="e.g. 9"
-                  style={{
-                    width: '100%', padding: '12px 14px', background: 'var(--surface)',
-                    border: '1px solid var(--border2)', borderRadius: 10,
-                    color: 'var(--white)', fontSize: 15,
-                  }}
-                />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--white)', marginBottom: 6 }}>School Year</label>
-                <input
-                  type="text"
-                  value={schoolYear}
-                  onChange={e => setSchoolYear(e.target.value)}
-                  placeholder="e.g. Year 4"
-                  style={{
-                    width: '100%', padding: '12px 14px', background: 'var(--surface)',
-                    border: '1px solid var(--border2)', borderRadius: 10,
-                    color: 'var(--white)', fontSize: 15,
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Section 2: Bloom Profile */}
-        <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-            <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800 }}>
-              SECTION 2: BLOOM PROFILE 🌸
-            </div>
-            <span style={{ fontSize: 11, color: 'var(--bloom-text)', fontWeight: 700, background: 'rgba(16, 185, 129, 0.12)', padding: '2px 8px', borderRadius: 20 }}>
-              Pick One
-            </span>
-          </div>
-          <p style={{ fontSize: 12, color: 'var(--grey)', marginBottom: '1rem', lineHeight: 1.4 }}>
-            Every child blooms in their own way — select their primary reading and learning profile:
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            {[
-              { id: 'non_dyslexic', name: 'Non-dyslexic (General)', desc: 'Standard reader — normal font, pacing & display without accommodations' },
-              { id: 'phonological', name: 'Phonological', desc: 'Difficulty connecting letters to sounds' },
-              { id: 'surface',      name: 'Surface',      desc: 'Difficulty recognising whole words' },
-              { id: 'visual',       name: 'Visual/spatial', desc: 'Letters appear to move or flip' },
-              { id: 'double',       name: 'Double deficit', desc: 'Speed and sound processing both affected' },
-              { id: 'attentional',  name: 'Attentional', desc: 'Letters swap between words' },
-              { id: 'unknown',      name: 'Not sure yet', desc: 'Agent will assess during session' },
-            ].map(type => (
-              <div
-                key={type.id}
-                onClick={() => handleSelectDyslexiaType(type.id)}
-                style={{
-                  padding: '12px 14px', borderRadius: 12, cursor: 'pointer',
-                  border: `${dyslexiaType === type.id ? '2px' : '1px'} solid ${dyslexiaType === type.id ? 'var(--bloom)' : 'var(--border)'}`,
-                  background: dyslexiaType === type.id ? 'var(--bloom-bg)' : 'var(--surface)',
-                  transition: 'all 0.2s ease',
-                  gridColumn: type.id === 'non_dyslexic' ? '1 / -1' : undefined,
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: dyslexiaType === type.id ? 'var(--bloom-text)' : 'var(--white)' }}>
-                    {type.id === 'non_dyslexic' ? '🌱 ' + type.name : type.name}
-                  </div>
-                  {dyslexiaType === type.id && (
-                    <span style={{ color: 'var(--bloom-text)', fontWeight: 800 }}>✓</span>
-                  )}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--grey)', marginTop: 4, lineHeight: 1.3 }}>
-                  {type.desc}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Non-dyslexic Banner */}
-          {dyslexiaType === 'non_dyslexic' && (
-            <div style={{
-              marginTop: 14,
-              background: 'rgba(16,185,129,0.12)', border: '1.5px solid rgba(16,185,129,0.4)',
-              borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#34D399',
-              lineHeight: 1.5, fontWeight: 500, display: 'flex', alignItems: 'flex-start', gap: 10,
-            }}>
-              <span style={{ fontSize: 20 }}>🌱</span>
-              <div>
-                <strong style={{ color: '#fff', fontSize: 14 }}>Standard / Non-dyslexic Reading Mode Active</strong>
-                <div style={{ color: '#A7F3D0', marginTop: 3 }}>
-                  WordBloom operates in standard mode: crisp typography, exact spelling assessment, natural pacing, and no colour overlays.
-                </div>
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* Section 3: Co-occurring conditions (pick multiple) */}
-        <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: '1rem' }}>
-            SECTION 3: CO-OCCURRING CONDITIONS (PICK MULTIPLE)
-          </div>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: '1rem' }}>
-            {['adhd', 'dyspraxia', 'autism'].map(cond => {
-              const active = coOccurring.includes(cond)
-              return (
-                <button
-                  key={cond}
-                  onClick={() => toggleCoOccurring(cond)}
-                  style={{
-                    padding: '8px 18px', borderRadius: 20, fontSize: 13, fontWeight: 700,
-                    border: `${active ? '2px' : '1px'} solid ${active ? 'var(--bloom)' : 'var(--border2)'}`,
-                    background: active ? 'var(--bloom-bg)' : 'var(--surface)',
-                    color: active ? 'var(--bloom-text)' : 'var(--white)', cursor: 'pointer',
-                  }}
-                >
-                  {cond.toUpperCase()} {active ? '✓' : '+'}
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Conditional Alerts */}
-          {hasADHD && (
-            <div style={{
-              background: 'rgba(245,158,11,0.12)', border: '1.5px solid rgba(245,158,11,0.4)',
-              borderRadius: 12, padding: '12px 14px', fontSize: 13, color: '#FBBF24',
-              lineHeight: 1.4, fontWeight: 500, marginBottom: hasAutism ? 10 : 0
-            }}>
-              ⚠️ ADHD detected — session auto-set to 5 min, break every 5 words, encouragement style set to specific (factual not vague)
-            </div>
-          )}
-
-          {hasAutism && (
-            <div style={{
-              background: 'rgba(129,140,248,0.12)', border: '1.5px solid rgba(129,140,248,0.4)',
-              borderRadius: 12, padding: '12px 14px', fontSize: 13, color: '#C7D2FE',
-              lineHeight: 1.4, fontWeight: 500
-            }}>
-              💡 Autism flag — encouragement will use specific facts only. No sudden difficulty changes.
-            </div>
-          )}
-        </section>
-
-        {/* Section 4: Reading level (pick one) */}
-        <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: '1rem' }}>
-            SECTION 4: READING LEVEL (PICK ONE)
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-            {[
-              { lvl: 1, name: 'Stage 1', desc: 'Simple CVC words' },
-              { lvl: 2, name: 'Stage 2', desc: 'Digraphs & blends' },
-              { lvl: 3, name: 'Stage 3', desc: 'Silent letters' },
-              { lvl: 4, name: 'Stage 4', desc: 'Multisyllabic' },
-            ].map(item => (
-              <button
-                key={item.lvl}
-                onClick={() => setReadingLevel(item.lvl)}
-                style={{
-                  padding: '10px 6px', borderRadius: 12, cursor: 'pointer', textAlign: 'center',
-                  border: `${readingLevel === item.lvl ? '2px' : '1px'} solid ${readingLevel === item.lvl ? 'var(--bloom)' : 'var(--border)'}`,
-                  background: readingLevel === item.lvl ? 'var(--bloom-bg)' : 'var(--surface)',
-                }}
-              >
-                <div style={{ fontSize: 13, fontWeight: 700, color: readingLevel === item.lvl ? 'var(--bloom-text)' : 'var(--white)' }}>
-                  {item.name}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--grey)', marginTop: 4, lineHeight: 1.25 }}>
-                  {item.desc}
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Section 5: How they answer (pick one) */}
-        <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: '1rem' }}>
-            SECTION 5: HOW THEY ANSWER (PICK ONE)
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-            {[
-              { id: 'type',  icon: '⌨️', name: 'Type it', desc: 'Keyboard input' },
-              { id: 'voice', icon: '🎤', name: 'Say it', desc: 'Voice / speech input' },
-              { id: 'tap',   icon: '🔲', name: 'Tap letters', desc: 'Letter tile selection' },
-            ].map(mode => (
-              <div
-                key={mode.id}
-                onClick={() => setInputMode(mode.id)}
-                style={{
-                  padding: '14px 10px', borderRadius: 12, cursor: 'pointer', textAlign: 'center',
-                  border: `${inputMode === mode.id ? '2px' : '1px'} solid ${inputMode === mode.id ? 'var(--bloom)' : 'var(--border)'}`,
-                  background: inputMode === mode.id ? 'var(--bloom-bg)' : 'var(--surface)',
-                }}
-              >
-                <div style={{ fontSize: 24, marginBottom: 4 }}>{mode.icon}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: inputMode === mode.id ? 'var(--bloom-text)' : 'var(--white)' }}>
-                  {mode.name}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--grey)', marginTop: 2 }}>{mode.desc}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Section 6: Display mode (pick one) */}
-        <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: '1rem' }}>
-            SECTION 6: DISPLAY MODE (PICK ONE)
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[
-              { id: 'standard',     name: 'Standard', desc: 'Default font and spacing' },
-              { id: 'opendyslexic', name: 'OpenDyslexic', desc: 'Weighted letters reduce flipping' },
-              { id: 'spotlight',    name: 'Spotlight', desc: 'One word at a time, rest masked' },
-            ].map(disp => (
-              <div
-                key={disp.id}
-                onClick={() => setDisplayMode(disp.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '12px 16px', borderRadius: 12, cursor: 'pointer',
-                  border: `${displayMode === disp.id ? '2px' : '1px'} solid ${displayMode === disp.id ? 'var(--bloom)' : 'var(--border)'}`,
-                  background: displayMode === disp.id ? 'var(--bloom-bg)' : 'var(--surface)',
-                }}
-              >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: displayMode === disp.id ? 'var(--bloom-text)' : 'var(--white)' }}>
-                    {disp.name}
-                  </div>
-                  <div style={{ fontSize: 13, color: 'var(--grey)', marginTop: 2 }}>{disp.desc}</div>
-                </div>
-                {displayMode === disp.id && <span style={{ color: 'var(--bloom-text)', fontWeight: 'bold' }}>✓</span>}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Section 7: Colour overlay (pick one) */}
-        <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: 6 }}>
-            SECTION 7: COLOUR OVERLAY
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--grey)', marginBottom: '1rem' }}>Child picks what feels right</div>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-            {[
-              { id: 'none',   label: 'None',   color: 'var(--surface)', border: 'var(--border2)' },
-              { id: 'yellow', label: 'Yellow', color: '#FEF3C7', border: '#FBBF24' },
-              { id: 'blue',   label: 'Blue',   color: '#DBEAFE', border: '#60A5FA' },
-              { id: 'green',  label: 'Green',  color: '#D1FAE5', border: '#34D399' },
-              { id: 'pink',   label: 'Pink',   color: '#FCE7F3', border: '#F472B6' },
-            ].map(item => {
-              const isSelected = colourOverlay === item.id
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => setColourOverlay(item.id)}
-                  style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer',
-                    padding: '8px 12px', borderRadius: 14,
-                    background: isSelected ? 'var(--surface)' : 'transparent',
-                    border: isSelected ? '1.5px solid var(--bloom)' : '1.5px solid transparent',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <div
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>Full Name</label>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={e => setFullName(e.target.value)}
+                    placeholder="e.g. Emma Clarke"
                     style={{
-                      width: 42, height: 42, borderRadius: '50%',
-                      background: item.color,
-                      border: `2.5px solid ${isSelected ? 'var(--bloom)' : item.border}`,
-                      boxShadow: isSelected ? '0 0 12px rgba(16,185,129,0.5)' : '0 2px 6px rgba(0,0,0,0.15)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 16,
-                      color: item.id === 'none' ? 'var(--white)' : '#0F172A',
-                      fontWeight: 'bold',
-                      transition: 'transform 0.15s ease',
-                      transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+                      width: '100%', padding: '12px 16px', background: '#0F172A',
+                      border: '1.5px solid #1F2937', borderRadius: 12,
+                      color: '#F9FAFB', fontSize: 15, outline: 'none',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>Parent's Email Address (For Progress Reports)</label>
+                  <input
+                    type="email"
+                    value={parentEmail}
+                    onChange={e => setParentEmail(e.target.value)}
+                    placeholder="e.g. parent@example.com"
+                    style={{
+                      width: '100%', padding: '12px 16px', background: '#0F172A',
+                      border: '1.5px solid #1F2937', borderRadius: 12,
+                      color: '#F9FAFB', fontSize: 15, outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>Age</label>
+                  <input
+                    type="number"
+                    value={age}
+                    onChange={e => setAge(e.target.value)}
+                    placeholder="e.g. 9"
+                    style={{
+                      width: '100%', padding: '12px 16px', background: '#0F172A',
+                      border: '1.5px solid #1F2937', borderRadius: 12,
+                      color: '#F9FAFB', fontSize: 15, outline: 'none',
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>School Year</label>
+                  <input
+                    type="text"
+                    value={schoolYear}
+                    onChange={e => setSchoolYear(e.target.value)}
+                    placeholder="e.g. Year 4"
+                    style={{
+                      width: '100%', padding: '12px 16px', background: '#0F172A',
+                      border: '1.5px solid #1F2937', borderRadius: 12,
+                      color: '#F9FAFB', fontSize: 15, outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Section 2: Bloom Profile */}
+          <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800 }}>
+                SECTION 2: BLOOM PROFILE 🌸
+              </div>
+              <span style={{ fontSize: 12, color: '#10B981', fontWeight: 800, background: 'rgba(16, 185, 129, 0.15)', padding: '3px 10px', borderRadius: 20, border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                Pick One
+              </span>
+            </div>
+            <p style={{ fontSize: 13, color: '#9CA3AF', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+              Every child blooms in their own way — select their primary reading and learning profile:
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
+              {[
+                { id: 'non_dyslexic', name: 'Non-dyslexic (General)', desc: 'Standard reader — normal font, pacing & display without accommodations' },
+                { id: 'phonological', name: 'Phonological', desc: 'Difficulty connecting letters to sounds' },
+                { id: 'surface',      name: 'Surface',      desc: 'Difficulty recognising whole words' },
+                { id: 'visual',       name: 'Visual/spatial', desc: 'Letters appear to move or flip' },
+                { id: 'double',       name: 'Double deficit', desc: 'Speed and sound processing both affected' },
+                { id: 'attentional',  name: 'Attentional', desc: 'Letters swap between words' },
+                { id: 'unknown',      name: 'Not sure yet', desc: 'Agent will assess during session' },
+              ].map(type => {
+                const isSelected = dyslexiaType === type.id
+                return (
+                  <div
+                    key={type.id}
+                    onClick={() => handleSelectDyslexiaType(type.id)}
+                    style={{
+                      padding: '14px 16px', borderRadius: 14, cursor: 'pointer',
+                      border: isSelected ? '2px solid #10B981' : '1.5px solid #1F2937',
+                      background: isSelected ? 'rgba(16, 185, 129, 0.1)' : '#0F172A',
+                      transition: 'all 0.2s ease',
+                      gridColumn: type.id === 'non_dyslexic' ? '1 / -1' : undefined,
                     }}
                   >
-                    {isSelected ? '✓' : ''}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: isSelected ? '#34D399' : '#F9FAFB' }}>
+                        {type.id === 'non_dyslexic' ? '🌱 ' + type.name : type.name}
+                      </div>
+                      {isSelected && (
+                        <span style={{ color: '#10B981', fontWeight: 900, fontSize: 16 }}>✓</span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 12.5, color: '#9CA3AF', marginTop: 5, lineHeight: 1.4 }}>
+                      {type.desc}
+                    </div>
                   </div>
-                  <span style={{
-                    fontSize: 12,
-                    color: isSelected ? 'var(--bloom-text)' : 'var(--white)',
-                    fontWeight: isSelected ? 700 : 500
-                  }}>
-                    {item.label}
-                  </span>
+                )
+              })}
+            </div>
+
+            {/* Non-dyslexic Banner */}
+            {dyslexiaType === 'non_dyslexic' && (
+              <div style={{
+                marginTop: 16,
+                background: 'rgba(16,185,129,0.12)', border: '1.5px solid rgba(16,185,129,0.4)',
+                borderRadius: 14, padding: '14px 18px', fontSize: 13.5, color: '#34D399',
+                lineHeight: 1.5, fontWeight: 600, display: 'flex', alignItems: 'flex-start', gap: 12,
+              }}>
+                <span style={{ fontSize: 24 }}>🌱</span>
+                <div>
+                  <strong style={{ color: '#FFFFFF', fontSize: 14.5 }}>Standard / Non-dyslexic Reading Mode Active</strong>
+                  <div style={{ color: '#A7F3D0', marginTop: 3 }}>
+                    WordBloom operates in standard mode: crisp typography, exact spelling assessment, natural pacing, and no colour overlays.
+                  </div>
                 </div>
-              )
-            })}
-          </div>
-        </section>
-
-        {/* Section 8: Session settings */}
-        <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: '1rem' }}>
-            SECTION 8: SESSION SETTINGS
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            {/* Bloom Goal */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 600, color: 'var(--white)', marginBottom: 6 }}>
-                <span>🎯 Goal: {candyGoal} blooms 🌸</span>
-                {hasADHD && <span style={{ color: '#FBBF24' }}>(ADHD auto-set to 5)</span>}
               </div>
-              <input
-                type="range" min={3} max={15} value={candyGoal}
-                disabled={hasADHD}
-                onChange={e => setCandyGoal(parseInt(e.target.value))}
-                style={{ width: '100%', opacity: hasADHD ? 0.5 : 1 }}
-              />
-              <div style={{ fontSize: 12, color: 'var(--grey)', marginTop: 4 }}>
-                Session concludes with celebration once the child blooms {candyGoal} flowers — zero timer pressure!
+            )}
+          </section>
+
+          {/* Section 3: Co-occurring conditions (pick multiple) */}
+          <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
+              SECTION 3: CO-OCCURRING CONDITIONS (PICK MULTIPLE)
+            </div>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+              {['adhd', 'dyspraxia', 'autism'].map(cond => {
+                const active = coOccurring.includes(cond)
+                return (
+                  <button
+                    key={cond}
+                    onClick={() => toggleCoOccurring(cond)}
+                    style={{
+                      padding: '10px 22px', borderRadius: 30, fontSize: 13.5, fontWeight: 700,
+                      border: active ? '2px solid #10B981' : '1.5px solid #1F2937',
+                      background: active ? 'rgba(16, 185, 129, 0.12)' : '#0F172A',
+                      color: active ? '#34D399' : '#F9FAFB', cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {cond.toUpperCase()} {active ? '✓' : '+'}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Conditional Alerts */}
+            {hasADHD && (
+              <div style={{
+                background: 'rgba(245,158,11,0.12)', border: '1.5px solid rgba(245,158,11,0.4)',
+                borderRadius: 14, padding: '14px 18px', fontSize: 13.5, color: '#FBBF24',
+                lineHeight: 1.5, fontWeight: 600, marginBottom: hasAutism ? 12 : 0
+              }}>
+                ⚠️ <strong>ADHD detected</strong> — session auto-set to 5 min, break every 5 words, encouragement style set to specific (factual not vague)
+              </div>
+            )}
+
+            {hasAutism && (
+              <div style={{
+                background: 'rgba(129,140,248,0.12)', border: '1.5px solid rgba(129,140,248,0.4)',
+                borderRadius: 14, padding: '14px 18px', fontSize: 13.5, color: '#C7D2FE',
+                lineHeight: 1.5, fontWeight: 600
+              }}>
+                💡 <strong>Autism flag</strong> — encouragement will use specific facts only. No sudden difficulty changes.
+              </div>
+            )}
+          </section>
+
+          {/* Section 4: Reading level (pick one) */}
+          <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
+              SECTION 4: READING LEVEL (PICK ONE)
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+              {[
+                { lvl: 1, name: 'Stage 1', desc: 'Simple CVC words' },
+                { lvl: 2, name: 'Stage 2', desc: 'Digraphs & blends' },
+                { lvl: 3, name: 'Stage 3', desc: 'Silent letters' },
+                { lvl: 4, name: 'Stage 4', desc: 'Multisyllabic' },
+              ].map(item => {
+                const isSelected = readingLevel === item.lvl
+                return (
+                  <button
+                    key={item.lvl}
+                    onClick={() => setReadingLevel(item.lvl)}
+                    style={{
+                      padding: '16px 14px', borderRadius: 14, cursor: 'pointer', textAlign: 'center',
+                      border: isSelected ? '2px solid #10B981' : '1.5px solid #1F2937',
+                      background: isSelected ? 'rgba(16, 185, 129, 0.1)' : '#0F172A',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div style={{ fontSize: 15, fontWeight: 800, color: isSelected ? '#34D399' : '#F9FAFB' }}>
+                      {item.name}
+                    </div>
+                    <div style={{ fontSize: 12.5, color: '#9CA3AF', marginTop: 4, lineHeight: 1.3 }}>
+                      {item.desc}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+
+          {/* Section 5: How they answer (pick one) */}
+          <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
+              SECTION 5: HOW THEY ANSWER (PICK ONE)
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
+              {[
+                { id: 'type',  icon: '⌨️', name: 'Type it', desc: 'Keyboard input' },
+                { id: 'voice', icon: '🎤', name: 'Say it', desc: 'Voice / speech input' },
+                { id: 'tap',   icon: '🔲', name: 'Tap letters', desc: 'Letter tile selection' },
+              ].map(mode => {
+                const isSelected = inputMode === mode.id
+                return (
+                  <div
+                    key={mode.id}
+                    onClick={() => setInputMode(mode.id)}
+                    style={{
+                      padding: '18px 16px', borderRadius: 16, cursor: 'pointer', textAlign: 'center',
+                      border: isSelected ? '2px solid #10B981' : '1.5px solid #1F2937',
+                      background: isSelected ? 'rgba(16, 185, 129, 0.1)' : '#0F172A',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>{mode.icon}</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: isSelected ? '#34D399' : '#F9FAFB' }}>
+                      {mode.name}
+                    </div>
+                    <div style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>{mode.desc}</div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+
+          {/* Section 6: Display mode (pick one) */}
+          <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
+              SECTION 6: DISPLAY MODE (PICK ONE)
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
+              {[
+                { id: 'standard',     name: 'Standard', desc: 'Default font and spacing' },
+                { id: 'opendyslexic', name: 'OpenDyslexic', desc: 'Weighted letters reduce flipping' },
+                { id: 'spotlight',    name: 'Spotlight', desc: 'One word at a time, rest masked' },
+              ].map(disp => {
+                const isSelected = displayMode === disp.id
+                return (
+                  <div
+                    key={disp.id}
+                    onClick={() => setDisplayMode(disp.id)}
+                    style={{
+                      padding: '16px 18px', borderRadius: 16, cursor: 'pointer',
+                      border: isSelected ? '2px solid #10B981' : '1.5px solid #1F2937',
+                      background: isSelected ? 'rgba(16, 185, 129, 0.1)' : '#0F172A',
+                      transition: 'all 0.2s ease',
+                      display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: isSelected ? '#34D399' : '#F9FAFB' }}>
+                          {disp.name}
+                        </div>
+                        {isSelected && <span style={{ color: '#10B981', fontWeight: 900, fontSize: 16 }}>✓</span>}
+                      </div>
+                      <div style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4, lineHeight: 1.4 }}>{disp.desc}</div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+
+          {/* Section 7: Colour overlay (pick one) */}
+          <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800, marginBottom: 6 }}>
+              SECTION 7: COLOUR OVERLAY
+            </div>
+            <div style={{ fontSize: 13, color: '#9CA3AF', marginBottom: '1.25rem' }}>
+              Child picks what feels right — reduces visual stress and glare
+            </div>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+              {[
+                { id: 'none',   label: 'None',   color: '#0F172A', border: '#1F2937' },
+                { id: 'yellow', label: 'Yellow', color: '#FEF3C7', border: '#FBBF24' },
+                { id: 'blue',   label: 'Blue',   color: '#DBEAFE', border: '#60A5FA' },
+                { id: 'green',  label: 'Green',  color: '#D1FAE5', border: '#34D399' },
+                { id: 'pink',   label: 'Pink',   color: '#FCE7F3', border: '#F472B6' },
+              ].map(item => {
+                const isSelected = colourOverlay === item.id
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => setColourOverlay(item.id)}
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer',
+                      padding: '10px 16px', borderRadius: 16,
+                      background: isSelected ? 'rgba(16, 185, 129, 0.1)' : '#0F172A',
+                      border: isSelected ? '2px solid #10B981' : '1.5px solid #1F2937',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 44, height: 44, borderRadius: '50%',
+                        background: item.color,
+                        border: `2.5px solid ${isSelected ? '#10B981' : item.border}`,
+                        boxShadow: isSelected ? '0 0 14px rgba(16,185,129,0.5)' : '0 2px 6px rgba(0,0,0,0.2)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 16,
+                        color: item.id === 'none' ? '#F9FAFB' : '#0F172A',
+                        fontWeight: 'bold',
+                        transition: 'transform 0.15s ease',
+                        transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+                      }}
+                    >
+                      {isSelected ? '✓' : ''}
+                    </div>
+                    <span style={{
+                      fontSize: 13,
+                      color: isSelected ? '#34D399' : '#F9FAFB',
+                      fontWeight: isSelected ? 800 : 600
+                    }}>
+                      {item.label}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Live Overlay Preview Swatch */}
+            <div
+              style={{
+                borderRadius: 14,
+                padding: '16px 20px',
+                background: colourOverlay === 'yellow' ? '#FEF3C7' :
+                            colourOverlay === 'blue' ? '#DBEAFE' :
+                            colourOverlay === 'green' ? '#D1FAE5' :
+                            colourOverlay === 'pink' ? '#FCE7F3' : '#0F172A',
+                border: '1.5px solid #1F2937',
+                color: colourOverlay === 'none' ? '#9CA3AF' : '#0F172A',
+                fontSize: 14,
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+              }}
+            >
+              <span style={{ fontSize: 20 }}>🎨</span>
+              <div>
+                <strong>Overlay Preview ({colourOverlay.toUpperCase()}):</strong>
+                <span style={{ marginLeft: 6 }}>
+                  {colourOverlay === 'none'
+                    ? 'Default crisp contrast canvas without background tint.'
+                    : 'Words and reading sentences appear against this gentle tint to minimize visual discomfort.'}
+                </span>
+              </div>
+            </div>
+          </section>
+
+          {/* Section 8: Session settings */}
+          <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
+              SECTION 8: SESSION SETTINGS
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+              {/* Bloom Goal */}
+              <div style={{ background: '#0F172A', padding: '16px', borderRadius: 14, border: '1px solid #1F2937' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>
+                  <span>🎯 Goal: {candyGoal} blooms 🌸</span>
+                  {hasADHD && <span style={{ color: '#FBBF24', fontSize: 12 }}>(ADHD auto-set to 5)</span>}
+                </div>
+                <input
+                  type="range" min={3} max={15} value={candyGoal}
+                  disabled={hasADHD}
+                  onChange={e => setCandyGoal(parseInt(e.target.value))}
+                  style={{ width: '100%', opacity: hasADHD ? 0.5 : 1, accentColor: '#10B981' }}
+                />
+                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 6, lineHeight: 1.4 }}>
+                  Session concludes once the child blooms {candyGoal} flowers — zero timer pressure!
+                </div>
+              </div>
+
+              {/* Break Frequency */}
+              <div style={{ background: '#0F172A', padding: '16px', borderRadius: 14, border: '1px solid #1F2937' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>
+                  <span>⏸️ Break after: {breakAfter} words</span>
+                  {hasADHD && <span style={{ color: '#FBBF24', fontSize: 12 }}>(ADHD auto-set)</span>}
+                </div>
+                <input
+                  type="range" min={3} max={15} value={breakAfter}
+                  disabled={hasADHD}
+                  onChange={e => setBreakAfter(parseInt(e.target.value))}
+                  style={{ width: '100%', opacity: hasADHD ? 0.5 : 1, accentColor: '#10B981' }}
+                />
+                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 6, lineHeight: 1.4 }}>
+                  Offers a gentle 30-second eye rest break after every {breakAfter} words.
+                </div>
+              </div>
+
+              {/* Safety Duration Ceiling */}
+              <div style={{ background: '#0F172A', padding: '16px', borderRadius: 14, border: '1px solid #1F2937' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>
+                  <span>⏱️ Safety duration ceiling: {sessionLength} min</span>
+                  {hasADHD && <span style={{ color: '#FBBF24', fontSize: 12 }}>(ADHD auto-set to 5 min)</span>}
+                </div>
+                <input
+                  type="range" min={3} max={20} value={sessionLength}
+                  disabled={hasADHD}
+                  onChange={e => setSessionLength(parseInt(e.target.value))}
+                  style={{ width: '100%', opacity: hasADHD ? 0.5 : 1, accentColor: '#10B981' }}
+                />
+                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 6, lineHeight: 1.4 }}>
+                  Safety ceiling so session closes gracefully if left unattended.
+                </div>
               </div>
             </div>
 
-            {/* Break Frequency */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 600, color: 'var(--white)', marginBottom: 6 }}>
-                <span>⏸️ Break after: {breakAfter} words</span>
-                {hasADHD && <span style={{ color: '#FBBF24' }}>(ADHD auto-set)</span>}
-              </div>
-              <input
-                type="range" min={3} max={15} value={breakAfter}
-                disabled={hasADHD}
-                onChange={e => setBreakAfter(parseInt(e.target.value))}
-                style={{ width: '100%', opacity: hasADHD ? 0.5 : 1 }}
-              />
-              <div style={{ fontSize: 12, color: 'var(--grey)', marginTop: 4 }}>
-                Offers a gentle 30-second stretch & eye rest break after every {breakAfter} words.
-              </div>
+            <div style={{ background: '#0F172A', padding: '12px 16px', borderRadius: 12, fontSize: 13, color: '#9CA3AF', border: '1px solid #1F2937' }}>
+              ℹ️ <strong style={{ color: '#F9FAFB' }}>No Timer Pressure:</strong> Countdown clocks are never shown to the child. Sessions end pleasantly when they earn their candy goal!
             </div>
+          </section>
 
-            {/* Safety Duration Ceiling */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 600, color: 'var(--white)', marginBottom: 6 }}>
-                <span>⏱️ Safety duration ceiling: {sessionLength} min</span>
-                {hasADHD && <span style={{ color: '#FBBF24' }}>(ADHD auto-set to 5 min)</span>}
-              </div>
-              <input
-                type="range" min={3} max={20} value={sessionLength}
-                disabled={hasADHD}
-                onChange={e => setSessionLength(parseInt(e.target.value))}
-                style={{ width: '100%', opacity: hasADHD ? 0.5 : 1 }}
-              />
-              <div style={{ fontSize: 12, color: 'var(--grey)', marginTop: 4 }}>
-                Safety ceiling so session closes gracefully if left unattended.
-              </div>
-            </div>
+          {/* Save button */}
+          <button
+            onClick={handleSave}
+            disabled={saving || !fullName.trim()}
+            style={{
+              width: '100%', minHeight: 56, padding: '16px 0',
+              background: 'linear-gradient(135deg, #10B981, #059669)',
+              color: '#FFFFFF', fontSize: 18, fontWeight: 800,
+              borderRadius: 50, border: 'none', cursor: saving ? 'wait' : 'pointer',
+              boxShadow: '0 8px 24px rgba(16,185,129,0.35)',
+              opacity: saving || !fullName.trim() ? 0.6 : 1,
+              marginBottom: '3rem',
+              transition: 'transform 0.15s, box-shadow 0.15s',
+            }}
+          >
+            {saving ? 'Saving profile...' : `Save ${fullName.split(' ')[0] || 'Child'}'s Profile`}
+          </button>
 
-            <div style={{ background: 'var(--surface)', padding: '10px 14px', borderRadius: 10, fontSize: 12, color: 'var(--grey)', border: '1px solid var(--border)' }}>
-              ℹ️ <strong style={{ color: 'var(--white)' }}>No Timer Pressure:</strong> Countdown clocks are never shown to the child. Sessions end pleasantly when they earn their candy goal!
-            </div>
-          </div>
-        </section>
-
-        {/* Save button */}
-        <button
-          onClick={handleSave}
-          disabled={saving || !fullName.trim()}
-          style={{
-            width: '100%', minHeight: 54, padding: '14px 0',
-            background: 'var(--bloom)', color: '#fff', fontSize: 17, fontWeight: 700,
-            borderRadius: 50, border: 'none', cursor: saving ? 'wait' : 'pointer',
-            boxShadow: '0 8px 20px rgba(16,185,129,0.3)',
-            opacity: saving || !fullName.trim() ? 0.6 : 1,
-            marginBottom: '3rem',
-          }}
-        >
-          {saving ? 'Saving profile...' : `Save ${fullName.split(' ')[0] || 'Child'}'s Profile`}
-        </button>
-
-      </div>
+        </div>
       </div>
     </main>
   )

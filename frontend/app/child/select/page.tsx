@@ -141,7 +141,7 @@ export default function ChildSelectPage() {
           position: 'relative',
           zIndex: 1,
           width: '100%',
-          maxWidth: 900,
+          maxWidth: 1040,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -198,14 +198,14 @@ export default function ChildSelectPage() {
           </p>
         </div>
 
-        {/* 2x2 Grid of Child Cards */}
+        {/* Responsive Grid of Child Cards */}
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
             gap: '1.75rem',
             width: '100%',
-            maxWidth: 720,
+            maxWidth: 1040,
           }}
         >
           {children.map(child => (
