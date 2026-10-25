@@ -1,4 +1,4 @@
-# 🌱 WordBloom
+# 🌸 WordBloom
 
 > ### *Every word. Every child. Every way.*  
 > **An adaptive reading learning system built for EVERY child — treating each learner individually and rejecting the myth of "one-size-fits-all". Powered by Google ADK (Agent Development Kit) and Google Cloud Vertex AI.**
@@ -135,7 +135,7 @@ flowchart TB
     subgraph ORCHESTRATION["⚡ API & Orchestration (FastAPI + Google ADK)"]
         direction TB
         API["FastAPI REST Endpoints<br/>(/session/start, /session/answer, /session/end, /report/approve)"]
-        ROOT["🌱 Root Orchestrator (agent.py)<br/>• Session State Memory<br/>• ADHD 5-Min / 5-Bloom Auto-Pacing<br/>• Hybrid Sequential & Concurrent Dispatch"]
+        ROOT["🌸 Root Orchestrator (agent.py)<br/>• Session State Memory<br/>• ADHD 5-Min / 5-Bloom Auto-Pacing<br/>• Hybrid Sequential & Concurrent Dispatch"]
     end
 
     subgraph AGENTS["🤖 Google ADK Multi-Agent Team"]
@@ -330,7 +330,7 @@ cd WordBloom/backend
 ```
 **Expected Output:**
 ```
-🌱 WordBloom — Running full pipeline test
+🌸 WordBloom — Running full pipeline test
 📍 Test 1: Start session -> ✅ PASS (Emma Clarke, Stage 1 CVC: 'sun')
 📍 Test 2: Answer 'sun' correctly -> ✅ PASS (Correct: True, Action: continue)
 📍 Test 3: Submit wrong answer -> ✅ PASS (Scaffolded hint: True)

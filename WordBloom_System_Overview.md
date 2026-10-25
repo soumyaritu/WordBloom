@@ -1,4 +1,4 @@
-# 🌱 WordBloom — Adaptive Reading Learning System for ALL Children
+# 🌸 WordBloom — Adaptive Reading Learning System for ALL Children
 
 > **Tagline**: *Every word. Every child. Every way.*  
 > **Core Philosophy**: *Built for ALL children — not just the hypothetical "average" child.*
@@ -140,7 +140,7 @@ flowchart TB
     subgraph ORCHESTRATION["⚡ API & Orchestration (FastAPI + Google ADK)"]
         direction TB
         API["FastAPI REST Application<br/>(/session/start, /session/answer, /session/end, /report/approve)"]
-        ROOT["🌱 Root ADK Orchestrator (agent.py)<br/>• Session State Memory<br/>• ADHD 5-Min / 5-Bloom Auto-Pacing<br/>• Hybrid Sequential & Concurrent Dispatch"]
+        ROOT["🌸 Root ADK Orchestrator (agent.py)<br/>• Session State Memory<br/>• ADHD 5-Min / 5-Bloom Auto-Pacing<br/>• Hybrid Sequential & Concurrent Dispatch"]
     end
 
     subgraph AGENTS["🤖 Google ADK Multi-Agent Team"]
