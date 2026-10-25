@@ -345,7 +345,36 @@ function GameContent() {
           localStorage.setItem('wb_session', JSON.stringify(s))
         } catch (err) {
           console.error('Failed to start session for', targetChildId, err)
-          if (!s) { router.push('/'); return }
+          if (!s) {
+            const fallbackProfile = {
+              child_id: targetChildId,
+              child_name: targetChildId === 'sofia' ? 'Sony' : targetChildId.charAt(0).toUpperCase() + targetChildId.slice(1),
+              reading_level: 1,
+              input_mode: 'voice',
+              display_mode: 'opendyslexic',
+              session_length: 5,
+              break_after: 5,
+              candy_goal: 5,
+            }
+            s = {
+              session_id: `session_${Date.now()}`,
+              profile: fallbackProfile,
+              current_word: {
+                word: 'sun',
+                difficulty: 'easy',
+                category: 'CVC',
+                phonics_rule: "Short 'u' sound",
+                audio_hint: 'sun',
+                visual_hint: 's·u·n',
+                sentence: 'The big yellow sun shines in the sky!',
+              },
+              words_done: [],
+              words_correct: [],
+              start_time: Date.now(),
+              stats: { words_done: 0, words_correct: 0, accuracy: 0 },
+            }
+            localStorage.setItem('wb_session', JSON.stringify(s))
+          }
         }
       }
 
@@ -411,10 +440,8 @@ function GameContent() {
       return next
     })
   }
-  // Dynamic layout alignment based on word length & input mode — comfortable breathing room for kids
-  const cardMaxWidth = inputMode === 'tap'
-    ? Math.max(520, Math.min(640, currentWord.length * 56 + 80))
-    : (currentWord.length <= 4 ? 440 : currentWord.length <= 7 ? 500 : 580)
+  // Spacious desktop layout — comfortable breathing room, large accessible targets and clear typography
+  const cardMaxWidth = 780
   const isCorrectAnswerPending = Boolean(pendingWord?.next_word && pendingWord?.evaluation?.is_correct)
 
   // Auto-focus & maintain locked keyboard focus on Type Mode input for children with dyspraxia / motor differences
@@ -990,11 +1017,11 @@ function GameContent() {
         <div
           className="spotlight-interactive-element"
           style={{
-            width: '100%', maxWidth: 480, padding: '1.25rem 1.5rem',
+            width: '100%', maxWidth: cardMaxWidth, padding: '1.25rem 1.75rem',
             background: 'var(--warn-bg, rgba(251,191,36,0.14))',
             border: '2px solid rgba(217, 119, 6, 0.45)',
-            borderRadius: 16, textAlign: 'center', marginBottom: '1.25rem',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14,
+            borderRadius: 20, textAlign: 'center', marginBottom: '1.5rem',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
             boxShadow: '0 4px 14px rgba(0,0,0,0.06)',
           }}
         >
@@ -1026,72 +1053,84 @@ function GameContent() {
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 9999,
-            background: 'rgba(6, 8, 15, 0.95)', backdropFilter: 'blur(12px)',
+            background: 'rgba(6, 8, 15, 0.95)', backdropFilter: 'blur(16px)',
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             padding: '2rem 1.5rem', textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: 72, marginBottom: 12 }}>🌸🎉🌻</div>
-          <h2 style={{ fontSize: 32, fontWeight: 900, color: '#FFFFFF', marginBottom: 10 }}>
-            Your Garden Bloomed!
-          </h2>
-          <p style={{ fontSize: 17, color: 'var(--bloom)', fontWeight: 700, maxWidth: 380, marginBottom: 20, lineHeight: 1.5 }}>
-            Incredible job, {profile.child_name?.split(' ')[0] || 'Super Reader'}! You bloomed all {totalWords} flowers in your garden today!
-          </p>
-          <div style={{ display: 'flex', gap: 10, fontSize: 34, marginBottom: 28, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 360 }}>
-            {Array.from({ length: totalWords }, (_, i) => (
-              <span
-                key={i}
-                role="button"
-                tabIndex={0}
-                onClick={() => { if (soundEnabled) playCandyTapSound(i) }}
-                onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && soundEnabled) playCandyTapSound(i) }}
-                aria-label={`Celebration flower ${i + 1}`}
+          <div
+            style={{
+              width: '100%', maxWidth: 640,
+              background: '#111827',
+              border: '2px solid var(--bloom)',
+              borderRadius: 32,
+              padding: '3rem 2.5rem',
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.6), 0 0 40px rgba(16,185,129,0.25)',
+            }}
+          >
+            <div style={{ fontSize: 72, marginBottom: 12 }}>🌸🎉🌻</div>
+            <h2 style={{ fontSize: 32, fontWeight: 900, color: '#FFFFFF', marginBottom: 10 }}>
+              Your Garden Bloomed!
+            </h2>
+            <p style={{ fontSize: 18, color: 'var(--bloom)', fontWeight: 700, maxWidth: 500, marginBottom: 24, lineHeight: 1.5 }}>
+              Incredible job, {profile.child_name?.split(' ')[0] || 'Super Reader'}! You bloomed all {totalWords} flowers in your garden today!
+            </p>
+            <div style={{ display: 'flex', gap: 12, fontSize: 36, marginBottom: 32, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 480 }}>
+              {Array.from({ length: totalWords }, (_, i) => (
+                <span
+                  key={i}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => { if (soundEnabled) playCandyTapSound(i) }}
+                  onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && soundEnabled) playCandyTapSound(i) }}
+                  aria-label={`Celebration flower ${i + 1}`}
+                  style={{
+                    filter: 'drop-shadow(0 2px 8px rgba(16,185,129,0.85))',
+                    cursor: 'pointer',
+                    transition: 'transform 0.15s ease',
+                    touchAction: 'manipulation',
+                    display: 'inline-block',
+                  }}
+                >
+                  🌸
+                </span>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 420 }}>
+              <button
+                onClick={handleRestartSession}
+                disabled={restarting}
                 style={{
-                  filter: 'drop-shadow(0 2px 8px rgba(16,185,129,0.85))',
-                  cursor: 'pointer',
-                  transition: 'transform 0.15s ease',
-                  touchAction: 'manipulation',
-                  display: 'inline-block',
+                  width: '100%', minHeight: 56, padding: '14px 28px',
+                  background: 'linear-gradient(135deg, #10B981, #059669)', color: '#FFFFFF',
+                  borderRadius: 50, border: 'none', fontSize: 18, fontWeight: 800,
+                  cursor: restarting ? 'wait' : 'pointer',
+                  boxShadow: '0 8px 24px rgba(16,185,129,0.4)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 }}
               >
-                🌸
-              </span>
-            ))}
-          </div>
+                {restarting ? '🔄 Loading fresh words...' : '🌟 Try New Words! 🍬'}
+              </button>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 320 }}>
-            <button
-              onClick={handleRestartSession}
-              disabled={restarting}
-              style={{
-                width: '100%', minHeight: 54, padding: '14px 24px',
-                background: 'linear-gradient(135deg, #10B981, #059669)', color: '#FFFFFF',
-                borderRadius: 50, border: 'none', fontSize: 17, fontWeight: 800,
-                cursor: restarting ? 'wait' : 'pointer',
-                boxShadow: '0 8px 24px rgba(16,185,129,0.4)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              }}
-            >
-              {restarting ? '🔄 Loading fresh words...' : '🌟 Try New Words! 🍬'}
-            </button>
-
-            <button
-              onClick={() => {
-                localStorage.removeItem('wb_session')
-                router.push('/child/select')
-              }}
-              style={{
-                width: '100%', minHeight: 48, padding: '12px 24px',
-                background: 'rgba(255, 255, 255, 0.15)', color: '#FFFFFF',
-                borderRadius: 50, border: '1.5px solid rgba(255, 255, 255, 0.3)',
-                fontSize: 15, fontWeight: 700, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              }}
-            >
-              <span>🎒</span>
-              <span style={{ color: '#FFFFFF', fontWeight: 700 }}>Student Home</span>
-            </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('wb_session')
+                  router.push('/child/select')
+                }}
+                style={{
+                  width: '100%', minHeight: 48, padding: '12px 24px',
+                  background: 'rgba(255, 255, 255, 0.15)', color: '#FFFFFF',
+                  borderRadius: 50, border: '1.5px solid rgba(255, 255, 255, 0.3)',
+                  fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                }}
+              >
+                <span>🎒</span>
+                <span style={{ color: '#FFFFFF', fontWeight: 700 }}>Student Home</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1268,7 +1307,7 @@ function GameContent() {
 
             {/* Generated Visual Hint Card (Shown only when child struggles/retries) */}
             {visualHintB64 && (
-              <div style={{ marginTop: '1.25rem', width: '100%', maxWidth: 440 }}>
+              <div style={{ marginTop: '1.25rem', width: '100%', maxWidth: 540 }}>
                 {/* Generated Audio scaffold button ONLY for voice mode — simple speaker icon to hear it again */}
                 {inputMode === 'voice' && audioScaffoldB64 && (
                   <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
@@ -1668,7 +1707,7 @@ function GameContent() {
             const slotGap = slotCount <= 5 ? 12 : slotCount <= 7 ? 8 : 6
 
             return (
-              <div className="spotlight-interactive-element" style={{ width: '100%', maxWidth: Math.max(520, Math.min(640, slotCount * 56 + 80)), marginBottom: '1.25rem' }}>
+              <div className="spotlight-interactive-element" style={{ width: '100%', maxWidth: cardMaxWidth, marginBottom: '1.25rem' }}>
                 {/* Visual Letter Slots: clearly shows word length and fills as child taps */}
                 <div style={{ display: 'flex', gap: slotGap, justifyContent: 'center', alignItems: 'center', marginBottom: 18, flexWrap: 'nowrap', width: '100%', overflowX: 'auto', padding: '6px 2px' }}>
                   {targetChars.map((_, idx) => {

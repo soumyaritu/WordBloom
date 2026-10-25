@@ -102,24 +102,26 @@ export default function ChildWelcomePage({
           textAlign: 'center',
         }}
       >
-        {/* Top Switcher Button */}
-        <div style={{ position: 'absolute', top: -50, left: 0 }}>
+        {/* Top Switcher Button Row */}
+        <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%', marginBottom: '1.25rem' }}>
           <Link
             href="/child/select"
             className="wb-btn"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 6,
-              padding: '8px 18px',
+              gap: 8,
+              padding: '10px 22px',
               borderRadius: 30,
               background: 'rgba(255, 255, 255, 0.22)',
               backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
               border: '1.5px solid rgba(255, 255, 255, 0.4)',
               color: '#FFFFFF',
-              fontSize: '0.9rem',
+              fontSize: '0.95rem',
               fontWeight: 800,
               textDecoration: 'none',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
             }}
           >
             ← Change Reader
