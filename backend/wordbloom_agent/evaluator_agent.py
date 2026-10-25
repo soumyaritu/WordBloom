@@ -240,7 +240,7 @@ def is_correct_for_profile(correct_word, child_answer, dyslexia_type,
             return True
 
     norm_dt = _normalize_dyslexia_type(dyslexia_type)
-    if norm_dt == "non_dyslexic":
+    if norm_dt in ("non_dyslexic", "unknown", "not_sure", "not_sure_yet"):
         return False
 
     # 2. Mirror letter swap (b/d, p/q) when length is identical:
@@ -411,7 +411,7 @@ def evaluate_answer(
         positive_observation = f"Great phonetic effort on the silent letter in '{correct_word}'!"
     elif is_correct and not is_non_dyslexic:
         pattern = "profile_accepted"
-        explanation = f"Word accepted with profile accommodations (score {partial_score} >= threshold {threshold_used})."
+        explanation = f"Word accepted with verified dyslexia accommodations on attempt {attempt_number}."
         positive_observation = f"You spotted {letters_correct} letters in that tricky word!"
     else:
         if is_non_dyslexic:
