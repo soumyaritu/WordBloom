@@ -15,6 +15,22 @@
 
 ---
 
+### 🌐 Live Cloud Deployment
+
+WordBloom is fully deployed and accessible on Google Cloud:
+
+* 🚀 **Live Web Application (Google Cloud Run)**:  
+  👉 **[https://wordbloom-frontend-820113329049.us-central1.run.app](https://wordbloom-frontend-820113329049.us-central1.run.app)**  
+  *(Open in Google Chrome or Microsoft Edge for full Web Speech API voice support)*
+
+* 🤖 **Multi-Agent Backend (Google Cloud Vertex AI Agent Runtime)**:  
+  * **Service Name**: `wordbloom-agent`
+  * **Reasoning Engine ID**: `projects/820113329049/locations/us-central1/reasoningEngines/1398722001920589824`
+  * **Region**: `us-central1` (Project: `soumyaaidevcamppro`)
+  * **Console Dashboard**: [Vertex AI Agent Engine](https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/us-central1/agent-engines/1398722001920589824?project=soumyaaidevcamppro)
+
+---
+
 ## 💡 Core Philosophy: Equal Care by Rejecting "One-Size-Fits-All"
 
 > **"Treating every child equally does NOT mean giving them the exact same rigid test.  
@@ -284,12 +300,26 @@ WordBloom/
 
 ## 9. Quick Start Guide
 
-### Prerequisites
+### 🚀 Try WordBloom Live (No Installation Required)
+
+Access the live production deployment directly in your browser:  
+👉 **[https://wordbloom-frontend-820113329049.us-central1.run.app](https://wordbloom-frontend-820113329049.us-central1.run.app)**
+
+* **Multi-Agent Backend**: Powered 24/7 by [Google Cloud Vertex AI Agent Runtime](https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/us-central1/agent-engines/1398722001920589824?project=soumyaaidevcamppro) (`wordbloom-agent`).
+* **Browser Recommendation**: Use Google Chrome or Microsoft Edge for full Web Speech API voice recognition and Google Cloud TTS phonics feedback.
+
+---
+
+### 💻 Local Development Setup (Optional)
+
+If you prefer to run and develop WordBloom locally on your computer:
+
+#### Prerequisites
 * **Python 3.10+** (Python 3.14 tested)
 * **Node.js 18+** (Node.js 20+ recommended)
 * **Google Cloud Account** with Vertex AI enabled.
 
-### 1. Backend Setup
+#### 1. Backend Setup
 ```bash
 cd WordBloom/backend
 
@@ -309,7 +339,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-### 2. Frontend Setup
+#### 2. Frontend Setup
 ```bash
 cd WordBloom/frontend
 
@@ -320,7 +350,7 @@ npm install
 npm run dev
 ```
 
-Visit **`http://localhost:3000`** in Google Chrome or Microsoft Edge (for full Web Speech API voice support).
+Visit **`http://localhost:3000`** in your browser.
 
 ---
 
