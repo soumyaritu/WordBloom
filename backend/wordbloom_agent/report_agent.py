@@ -42,25 +42,78 @@ def _instant_report(
     words_correct: list,
     accuracy: int,
     dyslexia_type: str = "phonological",
-) -> str:
+    error_patterns: list = None,
+    input_mode: str = "type",
+) -> tuple:
     first_name = child_name.split()[0]
-    is_non_dyslexic = any(k in str(dyslexia_type).lower() for k in ["non_dyslexic", "non-dyslexic", "none", "general", "normal", "standard"])
+    dt_lower = str(dyslexia_type or "").lower()
+    is_non_dyslexic = any(k in dt_lower for k in ["non_dyslexic", "non-dyslexic", "none", "general", "normal", "standard"])
+    is_unknown = any(k in dt_lower for k in ["unknown", "not_sure", "not sure yet", "not_sure_yet", "undetermined"])
+
+    patterns = [str(p).lower() for p in (error_patterns or [])]
+    mode_clean = str(input_mode or "type").strip().lower()
 
     if not words_attempted:
-        return f"{first_name} checked into WordBloom today. No full word exercises were completed in this check-in session."
+        return f"{first_name} checked into WordBloom today. No full word exercises were completed in this check-in session.", None, None
+
+    if is_unknown:
+        # WordBloom Assessment session logic: analyze observed patterns to recommend a profile
+        if any("reversal" in p or "mirror" in p or "visual" in p for p in patterns):
+            rec_profile = "Visual/Spatial"
+            rec_detail = "recurring letter reversals and spatial orientation struggle"
+            if mode_clean in ["tap", "tiles"]:
+                rec_reason = f"{first_name} used letter tiles and hesitated on letters that mirror or rotate (e.g., b↔d). OpenDyslexic weighted letter bases reduce spatial flipping."
+            elif mode_clean in ["voice", "speech", "say"]:
+                rec_reason = f"{first_name} answered verbally and showed perceptual letter reversal patterns. OpenDyslexic weighted letter bases reduce spatial flipping."
+            else:
+                rec_reason = f"{first_name} typed answers on the keyboard and hesitated on letters that mirror or rotate (e.g., b↔d). OpenDyslexic weighted letter bases reduce spatial flipping."
+        elif any("silent" in p or "whole_word" in p or "irregular" in p for p in patterns):
+            rec_profile = "Surface"
+            rec_detail = "difficulty recognizing irregular whole-word shapes and silent letters"
+            rec_reason = f"When reading and spelling, {first_name} struggled recognizing irregular whole-word shapes and silent letters. Visual spotlighting and word silhouettes strengthen orthographic memory."
+        elif any("omission" in p or "phonetic" in p or "blend" in p for p in patterns):
+            rec_profile = "Phonological"
+            rec_detail = "phonetic spelling approximations and letter-sound substitutions"
+            if mode_clean in ["voice", "speech", "say"]:
+                rec_reason = f"When speaking words, {first_name} showed difficulty segmenting individual phonemes and sound blends. Spoken sound chunking and audio models provide direct pronunciation support."
+            elif mode_clean in ["tap", "tiles"]:
+                rec_reason = f"When selecting letter tiles, {first_name} made phonetic letter substitutions. Breaking words into visual sound chunks will reinforce how letter tiles correspond to word sounds."
+            else:
+                rec_reason = f"When typing words, {first_name} demonstrated phonetic spelling patterns and sound-letter substitutions. Targeted sound-by-sound chunking and word-family practice will strengthen their letter-sound mapping."
+        elif accuracy >= 80:
+            rec_profile = "Non-dyslexic (General)"
+            rec_detail = f"strong natural fluency ({accuracy}% accuracy) without characteristic dyslexic errors"
+            rec_reason = f"{first_name} displayed natural decoding pace and high accuracy ({accuracy}%) without perceptual distortions."
+        else:
+            rec_profile = "Phonological"
+            rec_detail = "early phonics and sound-letter decoding needs"
+            if mode_clean in ["voice", "speech", "say"]:
+                rec_reason = f"At Stage {reading_level}, {first_name} benefits from spoken sound-by-sound chunking and guided speech practice to develop phonological awareness."
+            elif mode_clean in ["tap", "tiles"]:
+                rec_reason = f"At Stage {reading_level}, {first_name} benefits from tactile letter-tile sequencing to connect visual letters with word sounds."
+            else:
+                rec_reason = f"At Stage {reading_level}, {first_name} demonstrated emerging spelling patterns when typing. Sound-by-sound phonics chunking and word families will strengthen their letter-sound accuracy."
+
+        report_text = (
+            f"🌸 WordBloom Assessment: {first_name} completed {len(words_attempted)} words today with {accuracy}% accuracy. "
+            f"During the session, the Evaluator Agent noted {rec_detail}. "
+            f"WordBloom Recommended Profile: {rec_profile}."
+        )
+        return report_text, rec_profile, rec_reason
+
     elif is_non_dyslexic:
         if accuracy >= 80:
-            return f"{first_name} demonstrated strong reading fluency today, completing {len(words_attempted)} word exercises with {accuracy}% accuracy at Stage {reading_level}."
+            return f"{first_name} demonstrated strong reading fluency today, completing {len(words_attempted)} word exercises with {accuracy}% accuracy at Stage {reading_level}.", None, None
         elif accuracy >= 50:
-            return f"{first_name} worked through {len(words_attempted)} words today with {accuracy}% accuracy, maintaining steady engagement at Stage {reading_level}."
+            return f"{first_name} worked through {len(words_attempted)} words today with {accuracy}% accuracy, maintaining steady engagement at Stage {reading_level}.", None, None
         else:
-            return f"{first_name} practiced {len(words_attempted)} words today, reinforcing core Stage {reading_level} vocabulary."
+            return f"{first_name} practiced {len(words_attempted)} words today, reinforcing core Stage {reading_level} vocabulary.", None, None
     elif accuracy >= 80:
-        return f"{first_name} demonstrated strong reading fluency today, completing {len(words_attempted)} word exercises with {accuracy}% accuracy. Showed high confidence decoding reading level {reading_level} patterns."
+        return f"{first_name} demonstrated strong reading fluency today, completing {len(words_attempted)} word exercises with {accuracy}% accuracy. Showed high confidence decoding reading level {reading_level} patterns.", None, None
     elif accuracy >= 50:
-        return f"{first_name} worked through {len(words_attempted)} words today with {accuracy}% accuracy, maintaining steady engagement. Maintained focus while navigating tricky silent letter patterns."
+        return f"{first_name} worked through {len(words_attempted)} words today with {accuracy}% accuracy, maintaining steady engagement. Maintained focus while navigating tricky silent letter patterns.", None, None
     else:
-        return f"{first_name} showed great persistence during today's reading practice ({len(words_attempted)} words attempted). Stepped back to level {reading_level} target patterns to build decoding confidence."
+        return f"{first_name} showed great persistence during today's reading practice ({len(words_attempted)} words attempted). Stepped back to level {reading_level} target patterns to build decoding confidence.", None, None
 
 
 def generate_session_report(
@@ -75,6 +128,7 @@ def generate_session_report(
     error_patterns: list,
     encouragement_messages: list,
     breaks_taken: int,
+    input_mode: str = "type",
 ) -> dict:
     """
     Generates a session report for teacher review and approval.
@@ -85,28 +139,44 @@ def generate_session_report(
         if words_attempted else 0
     )
 
-    new_mastered = [w for w in words_correct if len(words_correct) > 0]
-    to_revisit   = list(set(words_incorrect))
+    def _clean_words(w_list):
+        cleaned, seen = [], set()
+        for item in (w_list or []):
+            val = str(item.get("target") or item.get("word") or item if isinstance(item, dict) else item or "").strip().lower()
+            if val and val not in seen:
+                seen.add(val)
+                cleaned.append(val)
+        return cleaned
+
+    new_mastered = _clean_words(words_correct)
+    to_revisit   = _clean_words(words_incorrect)
 
     # Instant zero-latency report generation (<0.001s)
-    report_text = _instant_report(child_name, reading_level, words_attempted, words_correct, accuracy, dyslexia_type)
+    report_text, recommended_profile, recommendation_reason = _instant_report(
+        child_name, reading_level, words_attempted, words_correct, accuracy, dyslexia_type, error_patterns, input_mode
+    )
+
+    is_unknown = any(k in str(dyslexia_type or "").lower() for k in ["unknown", "not_sure", "not sure yet", "not_sure_yet", "undetermined"])
 
     return {
-        "child_name":           child_name,
-        "session_date":         datetime.now().strftime("%Y-%m-%d"),
-        "session_date_display": datetime.now().strftime("%A %d %B %Y"),
-        "duration_minutes":     round(session_duration_mins),
-        "words_attempted":      len(words_attempted),
-        "words_correct":        len(words_correct),
-        "accuracy_percent":     accuracy,
-        "new_words_mastered":   new_mastered[:5],
-        "words_to_revisit":     to_revisit[:5],
-        "error_patterns_seen":  list(set(error_patterns)),
-        "adapter_actions":      adapter_actions,
-        "breaks_taken":         breaks_taken,
-        "report_text":          report_text,
-        "approval_required":    True,
-        "approved":             False,
+        "child_name":             child_name,
+        "session_date":           datetime.now().strftime("%Y-%m-%d"),
+        "session_date_display":   datetime.now().strftime("%A %d %B %Y"),
+        "duration_minutes":       round(session_duration_mins),
+        "words_attempted":        len(words_attempted),
+        "words_correct":          len(words_correct),
+        "accuracy_percent":       accuracy,
+        "new_words_mastered":     new_mastered[:5],
+        "words_to_revisit":       to_revisit[:5],
+        "error_patterns_seen":    list(set(error_patterns)),
+        "adapter_actions":        adapter_actions,
+        "breaks_taken":           breaks_taken,
+        "report_text":            report_text,
+        "recommended_profile":    recommended_profile,
+        "recommendation_reason":  recommendation_reason,
+        "is_assessment":          is_unknown,
+        "approval_required":      True,
+        "approved":               False,
     }
 
 

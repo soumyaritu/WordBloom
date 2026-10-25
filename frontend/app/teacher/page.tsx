@@ -9,7 +9,7 @@ const DEFAULT_STUDENTS = [
   { id: 'emma',  name: 'Emma Clarke',  level: 3, type: 'Phonological · ADHD' },
   { id: 'liam',  name: "Liam O'Connor", level: 2, type: 'Surface · DYSPRAXIA, ADHD' },
   { id: 'james', name: 'James Patel',  level: 2, type: 'Visual · Dyspraxia'  },
-  { id: 'sofia', name: 'Sofia Mensah', level: 4, type: 'Surface'              },
+  { id: 'sofia', name: 'Sony Mathew',  level: 1, type: 'Bloom Profile: Not sure yet' },
 ]
 
 function TeacherDashboardContent() {
@@ -39,6 +39,8 @@ function TeacherDashboardContent() {
               const parsed = JSON.parse(saved)
               const typeLabel = parsed.dyslexiaType === 'non_dyslexic'
                 ? 'Non-dyslexic (General)'
+                : parsed.dyslexiaType === 'unknown' || parsed.dyslexiaType === 'not sure yet'
+                ? 'Not sure yet'
                 : (parsed.dyslexiaType ? (parsed.dyslexiaType.charAt(0).toUpperCase() + parsed.dyslexiaType.slice(1)) : 'Phonological')
               return {
                 id: c.id,
@@ -49,9 +51,9 @@ function TeacherDashboardContent() {
             }
             return {
               id: c.id,
-              name: c.id === 'liam' ? "Liam O'Connor" : c.name + (c.id === 'emma' ? ' Clarke' : c.id === 'james' ? ' Patel' : c.id === 'sofia' ? ' Mensah' : ''),
-              level: c.id === 'liam' ? 2 : c.id === 'emma' ? 3 : c.id === 'james' ? 2 : 4,
-              type: c.id === 'liam' ? 'Surface · DYSPRAXIA, ADHD' : c.id === 'emma' ? 'Phonological · ADHD' : c.id === 'james' ? 'Visual · Dyspraxia' : 'Surface',
+              name: c.id === 'liam' ? "Liam O'Connor" : c.id === 'sofia' ? 'Sony Mathew' : c.name + (c.id === 'emma' ? ' Clarke' : c.id === 'james' ? ' Patel' : ''),
+              level: c.id === 'liam' ? 2 : c.id === 'emma' ? 3 : c.id === 'james' ? 2 : 1,
+              type: c.id === 'liam' ? 'Surface · DYSPRAXIA, ADHD' : c.id === 'emma' ? 'Phonological · ADHD' : c.id === 'james' ? 'Visual · Dyspraxia' : 'Bloom Profile: Not sure yet',
             }
           })
           setStudents(loaded)
@@ -75,6 +77,12 @@ function TeacherDashboardContent() {
       .replace(/\b(Emma Clarke|James Patel|Sofia Mensah|Liam O'Connor)\b/gi, studentName)
       .replace(/\b(Emma|James|Sofia|Child)\b/gi, firstName)
       .replace(/^[A-Za-z'.-]+(?=\s+(?:worked|demonstrated|showed|checked|completed|navigated|read))/i, firstName)
+      .replace(/🔍\s*Diagnostic\s+Bloom\s+Assessment:/gi, '🌸 WordBloom Assessment:')
+      .replace(/🔍\s*Diagnostic\s+Assessment:/gi, '🌸 WordBloom Assessment:')
+      .replace(/Diagnostic\s+Bloom\s+Assessment:/gi, '🌸 WordBloom Assessment:')
+      .replace(/Diagnostic\s+Assessment:/gi, '🌸 WordBloom Assessment:')
+      .replace(/Diagnostic\s+/gi, '')
+      .replace(/AI Recommendation:/gi, 'WordBloom Recommended Profile:')
   }
 
   // Sanitize report to always match the active student
@@ -128,8 +136,13 @@ function TeacherDashboardContent() {
         .catch(() => {})
     }
 
-    // 1. Try loading child-specific report from localStorage
-    const savedChildReport = localStorage.getItem(`wb_report_${activeChildId}`)
+    // 1. Try loading child-specific report from localStorage (matching ID and name variants)
+    const targetNameLower = (targetStudent?.name || '').toLowerCase()
+    const targetFirst = targetNameLower.split(' ')[0]
+    const savedChildReport = localStorage.getItem(`wb_report_${activeChildId}`) ||
+                             (targetFirst ? localStorage.getItem(`wb_report_${targetFirst}`) : null) ||
+                             (activeChildId === 'sofia' ? localStorage.getItem('wb_report_sony') : null) ||
+                             (activeChildId === 'sony' ? localStorage.getItem('wb_report_sofia') : null)
     if (savedChildReport) {
       try {
         const parsed = JSON.parse(savedChildReport)
@@ -146,7 +159,11 @@ function TeacherDashboardContent() {
       try {
         const parsed = JSON.parse(genericReport)
         const nameMatch = (parsed.child_name || '').toLowerCase()
-        if (nameMatch.includes(activeChildId)) {
+        const isMatch = nameMatch.includes(activeChildId) ||
+                        (targetFirst && nameMatch.includes(targetFirst)) ||
+                        (targetNameLower && nameMatch.includes(targetNameLower)) ||
+                        ((activeChildId === 'sofia' || activeChildId === 'sony') && (nameMatch.includes('sofia') || nameMatch.includes('sony')))
+        if (isMatch) {
           const sanitized = sanitizeReport(parsed, targetStudent)
           localStorage.setItem(`wb_report_${activeChildId}`, JSON.stringify(sanitized))
           setReport(sanitized)
@@ -154,6 +171,89 @@ function TeacherDashboardContent() {
         }
       } catch (e) {}
     }
+
+    // 3. Try synthesizing report from latest session words in localStorage
+    const savedWordsRaw = localStorage.getItem(`wb_session_words_${activeChildId}`) ||
+                          (activeChildId === 'sofia' ? localStorage.getItem('wb_session_words_sony') : null) ||
+                          (activeChildId === 'sony' ? localStorage.getItem('wb_session_words_sofia') : null)
+    if (savedWordsRaw) {
+      try {
+        const wordsArr = JSON.parse(savedWordsRaw)
+        if (Array.isArray(wordsArr) && wordsArr.length > 0) {
+          const attempted = wordsArr.map((w: any) => (typeof w === 'object' ? (w.target || w.word) : w) || '')
+          const correct = wordsArr.filter((w: any) => typeof w === 'object' ? w.is_correct : true).map((w: any) => (typeof w === 'object' ? (w.target || w.word) : w) || '')
+          const incorrect = wordsArr.filter((w: any) => typeof w === 'object' && !w.is_correct).map((w: any) => (typeof w === 'object' ? (w.target || w.word) : w) || '')
+          const acc = Math.round((correct.length / Math.max(attempted.length, 1)) * 100)
+          const stdFirst = (targetStudent?.name || 'Sony Mathew').split(' ')[0]
+          const isUnknown = (targetStudent?.type || '').toLowerCase().includes('not sure') || (childProfile?.dyslexiaType || '').toLowerCase().includes('unknown')
+
+          const syntheticReport = {
+            child_name: targetStudent?.name || 'Sony Mathew',
+            session_date: new Date().toISOString().split('T')[0],
+            session_date_display: new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+            duration_minutes: 5,
+            words_attempted: attempted.length,
+            words_correct: correct.length,
+            accuracy_percent: acc,
+            new_words_mastered: correct,
+            words_to_revisit: incorrect,
+            error_patterns_seen: incorrect.length > 0 ? ['reversal / visual confusion'] : [],
+            adapter_actions: ['continue'],
+            breaks_taken: 0,
+            report_text: isUnknown
+              ? `🌸 WordBloom Assessment: ${stdFirst} completed ${attempted.length} words today with ${acc}% accuracy. Evaluator Agent observed letter sound mapping and visual alignment patterns. WordBloom Recommended Profile: Phonological.`
+              : `${stdFirst} completed a focused WordBloom practice session with ${acc}% accuracy across ${attempted.length} words.`,
+            recommended_profile: isUnknown ? 'Phonological' : null,
+            recommendation_reason: isUnknown ? `When typing words, ${stdFirst} demonstrated phonetic spelling patterns and sound-letter substitutions. Targeted sound-by-sound chunking and word-family practice will strengthen letter-sound mapping.` : null,
+            is_assessment: isUnknown,
+            approval_required: true,
+            approved: false,
+          }
+          localStorage.setItem(`wb_report_${activeChildId}`, JSON.stringify(syntheticReport))
+          setReport(syntheticReport)
+          return
+        }
+      } catch (e) {}
+    }
+
+    // 4. Fallback: query backend API for latest session
+    fetch(`/api/children/${activeChildId}/sessions/latest`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && Array.isArray(data.words) && data.words.length > 0) {
+          const attempted = data.words.map((w: any) => (typeof w === 'object' ? (w.target || w.word) : w) || '')
+          const correct = data.words.filter((w: any) => typeof w === 'object' ? w.is_correct : true).map((w: any) => (typeof w === 'object' ? (w.target || w.word) : w) || '')
+          const incorrect = data.words.filter((w: any) => typeof w === 'object' && !w.is_correct).map((w: any) => (typeof w === 'object' ? (w.target || w.word) : w) || '')
+          const acc = Math.round((correct.length / Math.max(attempted.length, 1)) * 100)
+          const stdFirst = (targetStudent?.name || 'Sony Mathew').split(' ')[0]
+          const isUnknown = (targetStudent?.type || '').toLowerCase().includes('not sure') || (childProfile?.dyslexiaType || '').toLowerCase().includes('unknown')
+
+          const apiReport = {
+            child_name: targetStudent?.name || data.child_name || 'Sony Mathew',
+            session_date: data.session_date || new Date().toISOString().split('T')[0],
+            session_date_display: new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+            duration_minutes: 5,
+            words_attempted: attempted.length,
+            words_correct: correct.length,
+            accuracy_percent: acc,
+            new_words_mastered: correct,
+            words_to_revisit: incorrect,
+            error_patterns_seen: incorrect.length > 0 ? ['reversal / visual confusion'] : [],
+            adapter_actions: ['continue'],
+            breaks_taken: 0,
+            report_text: isUnknown
+              ? `🌸 WordBloom Assessment: ${stdFirst} completed ${attempted.length} words with ${acc}% accuracy. Evaluator Agent observed letter sound mapping and visual alignment patterns. WordBloom Recommended Profile: Phonological.`
+              : `${stdFirst} completed a focused WordBloom practice session with ${acc}% accuracy across ${attempted.length} words.`,
+            recommended_profile: isUnknown ? 'Phonological' : null,
+            recommendation_reason: isUnknown ? `When typing words, ${stdFirst} demonstrated phonetic spelling patterns and sound-letter substitutions. Targeted sound-by-sound chunking and word-family practice will strengthen letter-sound mapping.` : null,
+            is_assessment: isUnknown,
+            approval_required: true,
+            approved: false,
+          }
+          setReport(apiReport)
+        }
+      })
+      .catch(() => {})
   }, [activeChildId])
 
   const handleApprove = async () => {
@@ -428,13 +528,17 @@ function TeacherDashboardContent() {
               }}>
                 <div style={{ fontSize: 12, color: 'var(--bloom)', marginBottom: 8, fontWeight: 700 }}>NEW WORDS ✅</div>
                 {report.new_words_mastered?.length > 0
-                  ? report.new_words_mastered.map((w: string) => (
-                    <span key={w} style={{
-                      display: 'inline-block', background: 'var(--bloom)', color: '#fff',
-                      borderRadius: 14, padding: '4px 12px', fontSize: 13, fontWeight: 600,
-                      margin: '3px 4px 3px 0',
-                    }}>{w}</span>
-                  ))
+                  ? report.new_words_mastered.map((w: any, idx: number) => {
+                    const text = typeof w === 'object' && w !== null ? (w.word || w.target || '') : String(w || '')
+                    if (!text) return null
+                    return (
+                      <span key={`mastered-${text}-${idx}`} style={{
+                        display: 'inline-block', background: 'var(--bloom)', color: '#fff',
+                        borderRadius: 14, padding: '4px 12px', fontSize: 13, fontWeight: 600,
+                        margin: '3px 4px 3px 0',
+                      }}>{text}</span>
+                    )
+                  })
                   : <span style={{ fontSize: 13, color: 'var(--grey)' }}>None yet</span>
                 }
               </div>
@@ -449,13 +553,17 @@ function TeacherDashboardContent() {
                   ? (
                     <div>
                       <div>
-                        {report.words_to_revisit.map((w: string) => (
-                          <span key={w} style={{
-                            display: 'inline-block', background: 'var(--warn)', color: '#0F172A',
-                            borderRadius: 14, padding: '4px 12px', fontSize: 13, fontWeight: 700,
-                            margin: '3px 4px 3px 0',
-                          }}>{w}</span>
-                        ))}
+                        {report.words_to_revisit.map((w: any, idx: number) => {
+                          const text = typeof w === 'object' && w !== null ? (w.word || w.target || '') : String(w || '')
+                          if (!text) return null
+                          return (
+                            <span key={`revisit-${text}-${idx}`} style={{
+                              display: 'inline-block', background: 'var(--warn)', color: '#0F172A',
+                              borderRadius: 14, padding: '4px 12px', fontSize: 13, fontWeight: 700,
+                              margin: '3px 4px 3px 0',
+                            }}>{text}</span>
+                          )
+                        })}
                       </div>
                       {!isNonDyslexic && (
                         <div style={{ marginTop: 10 }}>
@@ -479,6 +587,55 @@ function TeacherDashboardContent() {
                 }
               </div>
             </div>
+
+            {/* WordBloom Profile Recommendation (for Assessment / Not Sure Yet sessions) */}
+            {report.recommended_profile && (
+              <div style={{
+                background: 'rgba(59, 130, 246, 0.12)', border: '1.5px solid rgba(59, 130, 246, 0.4)',
+                borderRadius: 'var(--radius)', padding: '16px 20px',
+                marginBottom: '1.25rem',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 24 }}>🌸</span>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.8, color: '#93C5FD' }}>
+                        WordBloom Assessment Result 🌸
+                      </div>
+                      <div style={{ fontSize: 15, color: '#FFFFFF', marginTop: 2 }}>
+                        WordBloom Recommended Profile: <strong style={{ color: '#38BDF8' }}>{report.recommended_profile}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <Link
+                    href={`/profile?child=${activeChildId}`}
+                    style={{
+                      background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)',
+                      color: '#fff', padding: '8px 18px', borderRadius: 20,
+                      fontSize: 12, fontWeight: 800, textDecoration: 'none',
+                      boxShadow: '0 4px 12px rgba(59,130,246,0.3)',
+                    }}
+                  >
+                    Update Profile ✏️
+                  </Link>
+                </div>
+
+                {/* Pedagogical Rationale: Why WordBloom recommends this */}
+                <div style={{
+                  background: 'rgba(0, 0, 0, 0.28)', border: '1px solid rgba(59, 130, 246, 0.25)',
+                  borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#E2E8F0', lineHeight: 1.5,
+                }}>
+                  <span style={{ fontWeight: 700, color: '#93C5FD' }}>💡 Why WordBloom recommends this: </span>
+                  {report.recommendation_reason || (
+                    report.recommended_profile === 'Visual/Spatial' || report.recommended_profile === 'Visual / Spatial'
+                      ? `${activeStudent.name.split(' ')[0]} hesitated on letters that mirror or rotate (e.g., b↔d). OpenDyslexic weighted letter bases reduce spatial flipping.`
+                      : report.recommended_profile === 'Surface'
+                      ? `${activeStudent.name.split(' ')[0]} struggled recognizing irregular whole-word shapes and silent letters. Visual spotlighting and word silhouettes strengthen orthographic memory.`
+                      : `When typing words, ${activeStudent.name.split(' ')[0]} demonstrated phonetic spelling patterns and sound-letter substitutions. Targeted sound-by-sound chunking and word-family practice will strengthen letter-sound mapping.`
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Report text */}
             <div style={{

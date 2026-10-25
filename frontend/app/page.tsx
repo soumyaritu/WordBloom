@@ -85,7 +85,9 @@ export default function LandingPage() {
             textShadow: '0 2px 6px rgba(0,0,0,0.2)',
           }}
         >
-          Adaptive AI reading adventures personalized for every curious mind. Select your portal to begin!
+          Adaptive AI reading adventures personalized for every curious mind.
+          <br />
+          Select your portal to begin!
         </p>
 
         {/* Two large cards side by side */}
@@ -156,7 +158,7 @@ export default function LandingPage() {
                 marginBottom: '1.75rem',
               }}
             >
-              Play fun reading quests, sound out words, and collect sweet candies!
+              Play fun reading quests, sound out words, and help your garden bloom!
             </p>
 
             <span
@@ -166,14 +168,14 @@ export default function LandingPage() {
                 gap: 8,
                 padding: '12px 28px',
                 borderRadius: 50,
-                background: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
-                color: '#1f1300',
+                background: 'linear-gradient(135deg, #10b981, #34d399)',
+                color: '#064e3b',
                 fontSize: '1.05rem',
                 fontWeight: 800,
-                boxShadow: '0 6px 18px rgba(245, 158, 11, 0.4)',
+                boxShadow: '0 6px 18px rgba(16, 185, 129, 0.4)',
               }}
             >
-              Let’s Read! 🍬 →
+              Let’s Read & Bloom! 🌸 →
             </span>
           </Link>
 

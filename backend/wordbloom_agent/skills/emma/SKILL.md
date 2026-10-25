@@ -24,9 +24,9 @@ description: Emma Clarke's learning profile and dyslexia settings
 
 ## Session Settings
 - Session length: 5
-- Candy goal: 5
+- Candy goal: 6
 - Break after: 5
-- Approach: phonics
+- Approach: audio_first
 - Encouragement style: specific
 
 ## Current Progress

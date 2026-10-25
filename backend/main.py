@@ -101,9 +101,15 @@ async def save_profile(body: dict):
     child_id = body.get("child_id", "emma").lower().strip()
     skill_content = body.get("skill_content", "")
     skills_dir = Path(__file__).parent / "wordbloom_agent" / "skills"
-    skill_dir = skills_dir / child_id
-    skill_dir.mkdir(parents=True, exist_ok=True)
-    (skill_dir / "SKILL.md").write_text(skill_content)
+    
+    target_ids = [child_id]
+    if child_id in ["sofia", "sony"]:
+        target_ids = ["sofia", "sony"]
+
+    for cid in target_ids:
+        skill_dir = skills_dir / cid
+        skill_dir.mkdir(parents=True, exist_ok=True)
+        (skill_dir / "SKILL.md").write_text(skill_content)
     return {"saved": True, "child_id": child_id}
 
 
@@ -115,9 +121,15 @@ async def save_profile(body: dict):
 async def get_profile(child_id: str):
     from pathlib import Path
     skills_dir = Path(__file__).parent / "wordbloom_agent" / "skills"
-    skill_file = skills_dir / child_id.lower().strip() / "SKILL.md"
+    c_id = child_id.lower().strip()
+    skill_file = skills_dir / c_id / "SKILL.md"
     if not skill_file.exists():
-        return {"found": False}
+        if c_id == "sony" and (skills_dir / "sofia" / "SKILL.md").exists():
+            skill_file = skills_dir / "sofia" / "SKILL.md"
+        elif c_id == "sofia" and (skills_dir / "sony" / "SKILL.md").exists():
+            skill_file = skills_dir / "sony" / "SKILL.md"
+        else:
+            return {"found": False}
     return {"found": True, "content": skill_file.read_text()}
 
 
@@ -211,17 +223,24 @@ DEFAULT_DIAGNOSTIC_WORDS = {
 async def get_latest_child_session(child_id: str):
     from datetime import datetime
     child_id = child_id.lower().strip()
-    fallback_words = DEFAULT_DIAGNOSTIC_WORDS.get(child_id, DEFAULT_DIAGNOSTIC_WORDS["emma"])
+    fallback_words = DEFAULT_DIAGNOSTIC_WORDS.get(child_id, DEFAULT_DIAGNOSTIC_WORDS.get("sofia", DEFAULT_DIAGNOSTIC_WORDS["emma"]))
 
     for s_id, s_data in reversed(list(_sessions.items())):
         p = s_data.get("profile", {})
         c_name = p.get("child_name", "").lower()
-        if child_id in c_name or c_name.startswith(child_id):
+        c_id = str(p.get("child_id", "")).lower()
+        is_match = (
+            child_id in c_name
+            or c_name.startswith(child_id)
+            or child_id == c_id
+            or (child_id in ["sofia", "sony"] and ("sony" in c_name or "sofia" in c_name or c_id in ["sofia", "sony"]))
+        )
+        if is_match:
             words = s_data.get("words", [])
             if words:
                 has_wrong = any(not w.get("is_correct") for w in words)
                 return {
-                    "child_name": p.get("child_name", child_id.capitalize()),
+                    "child_name": p.get("child_name", "Sony Mathew" if child_id in ["sofia", "sony"] else child_id.capitalize()),
                     "session_date": datetime.now().strftime("%Y-%m-%d"),
                     "words": words if has_wrong else (words + fallback_words),
                 }
@@ -248,13 +267,13 @@ async def get_latest_child_session(child_id: str):
                     })
                 has_wrong = any(not w.get("is_correct") for w in res_words)
                 return {
-                    "child_name": p.get("child_name", child_id.capitalize()),
+                    "child_name": p.get("child_name", "Sony Mathew" if child_id in ["sofia", "sony"] else child_id.capitalize()),
                     "session_date": datetime.now().strftime("%Y-%m-%d"),
                     "words": res_words if has_wrong else (res_words + fallback_words),
                 }
 
     return {
-        "child_name": child_id.capitalize() + (" Clarke" if child_id == "emma" else ""),
+        "child_name": "Sony Mathew" if child_id in ["sofia", "sony"] else (child_id.capitalize() + (" Clarke" if child_id == "emma" else "")),
         "session_date": datetime.now().strftime("%Y-%m-%d"),
         "words": fallback_words
     }
@@ -271,34 +290,44 @@ async def patch_child_profile(child_id: str, body: dict):
     import re
     child_id = child_id.lower().strip()
     skills_dir = Path(__file__).parent / "wordbloom_agent" / "skills"
-    skill_file = skills_dir / child_id / "SKILL.md"
-    if not skill_file.exists():
+    
+    target_ids = [child_id]
+    if child_id in ["sofia", "sony"]:
+        target_ids = ["sofia", "sony"]
+
+    matched_any = False
+    for cid in target_ids:
+        skill_file = skills_dir / cid / "SKILL.md"
+        if not skill_file.exists():
+            continue
+        matched_any = True
+        content = skill_file.read_text()
+
+        if "dyslexia_type" in body:
+            content = re.sub(r"(- (?:Dyslexia type|Type):\s*).+", rf"\g<1>{body['dyslexia_type']}", content)
+        if "display_mode" in body or "font" in body:
+            font_val = body.get("display_mode") or body.get("font")
+            content = re.sub(r"(- Display mode:\s*).+", rf"\g<1>{font_val}", content)
+        if "colour_overlay" in body:
+            content = re.sub(r"(- Colour overlay:\s*).+", rf"\g<1>{body['colour_overlay']}", content)
+        if "input_mode" in body:
+            content = re.sub(r"(- Input mode:\s*).+", rf"\g<1>{body['input_mode']}", content)
+        if "approach" in body:
+            content = re.sub(r"(- Approach:\s*).+", rf"\g<1>{body['approach']}", content)
+        if "session_length" in body:
+            content = re.sub(r"(- Session length:\s*).+", rf"\g<1>{body['session_length']}", content)
+        if "candy_goal" in body:
+            if re.search(r"- Candy goal:\s*.+", content):
+                content = re.sub(r"(- Candy goal:\s*).+", rf"\g<1>{body['candy_goal']}", content)
+            else:
+                content = re.sub(r"(- Session length:\s*.+)", rf"\g<1>\n- Candy goal: {body['candy_goal']}", content)
+        if "break_after" in body:
+            content = re.sub(r"(- Break after:\s*).+", rf"\g<1>{body['break_after']}", content)
+
+        skill_file.write_text(content)
+
+    if not matched_any:
         raise HTTPException(status_code=404, detail=f"Child profile for '{child_id}' not found")
-
-    content = skill_file.read_text()
-
-    if "dyslexia_type" in body:
-        content = re.sub(r"(- (?:Dyslexia type|Type):\s*).+", rf"\g<1>{body['dyslexia_type']}", content)
-    if "display_mode" in body or "font" in body:
-        font_val = body.get("display_mode") or body.get("font")
-        content = re.sub(r"(- Display mode:\s*).+", rf"\g<1>{font_val}", content)
-    if "colour_overlay" in body:
-        content = re.sub(r"(- Colour overlay:\s*).+", rf"\g<1>{body['colour_overlay']}", content)
-    if "input_mode" in body:
-        content = re.sub(r"(- Input mode:\s*).+", rf"\g<1>{body['input_mode']}", content)
-    if "approach" in body:
-        content = re.sub(r"(- Approach:\s*).+", rf"\g<1>{body['approach']}", content)
-    if "session_length" in body:
-        content = re.sub(r"(- Session length:\s*).+", rf"\g<1>{body['session_length']}", content)
-    if "candy_goal" in body:
-        if re.search(r"- Candy goal:\s*.+", content):
-            content = re.sub(r"(- Candy goal:\s*).+", rf"\g<1>{body['candy_goal']}", content)
-        else:
-            content = re.sub(r"(- Session length:\s*.+)", rf"\g<1>\n- Candy goal: {body['candy_goal']}", content)
-    if "break_after" in body:
-        content = re.sub(r"(- Break after:\s*).+", rf"\g<1>{body['break_after']}", content)
-
-    skill_file.write_text(content)
     return {"success": True, "child_id": child_id, "updated": body}
 
 

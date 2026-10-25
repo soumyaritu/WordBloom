@@ -24,6 +24,7 @@
   --accent-bg:   rgba(129,140,248,0.15);
 
   --warn:        #FBBF24;
+  --warn-text:   #FBBF24;
   --warn-bg:     rgba(251,191,36,0.15);
 
   /* Primary purple branding & Child warm yellow accent */
@@ -121,6 +122,7 @@ body[class*="overlay-"] {
 
   --accent-bg:   rgba(99, 102, 241, 0.14);
   --warn-bg:     rgba(217, 119, 6, 0.14);
+  --warn-text:   #B45309;
 
   color: #0F172A;
 }
@@ -343,6 +345,31 @@ body.spotlight-mode .spotlight-dimmed-peripheral:focus-within {
     opacity: 0;
     transform: translate(-50%, -26px) scale(0.9);
   }
+}
+
+/* High-contrast skip button adapted across dark mode & all colour overlays */
+.btn-skip-word {
+  background: linear-gradient(135deg, #4F46E5, #3730A3);
+  border: 2px solid rgba(199, 210, 254, 0.7);
+  color: #FFFFFF !important;
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+}
+
+.btn-skip-word:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 26px rgba(79, 70, 229, 0.6);
+}
+
+body[class*="overlay-"] .btn-skip-word {
+  background: linear-gradient(135deg, #312E81, #1E1B4B) !important;
+  border: 2px solid #6366F1 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 6px 22px rgba(30, 27, 75, 0.4) !important;
+}
+
+body[class*="overlay-"] .btn-skip-word:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(30, 27, 75, 0.55) !important;
 }
 
 

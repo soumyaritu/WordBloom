@@ -130,7 +130,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
 
     # ── START ─────────────────────────────────
     if action == "start":
-        child_name = body.get("child_name", "emma")
+        child_name = body.get("child_name") or body.get("child_id") or "emma"
         raw_exclude = body.get("exclude_words", []) or body.get("words_done", [])
         exclude_words = [str(w).lower().strip() for w in raw_exclude if str(w).strip()]
         session_id = str(uuid.uuid4())
@@ -264,6 +264,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
         dyslexia_type = profile.get("dyslexia_type", "unknown")
         # If input_mode is passed from frontend request (child switched mid-session), use that over stored SKILL.md value
         input_mode = body.get("input_mode") or profile.get("input_mode", "type")
+        session["input_mode"] = input_mode
         reading_stage = profile.get("reading_stage") or profile.get("reading_level", 1)
         conditions = profile.get("conditions") or profile.get("co_occurring", [])
         cond_lower = [str(c).strip().lower() for c in conditions]
@@ -371,11 +372,20 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
         )
 
         next_word = None
+        current_word_str = str(word or "").lower().strip()
+
+        # Invalidate cached_next_word if it matches the current word being answered
+        if session.get("cached_next_word"):
+            cached_str = str(session["cached_next_word"].get("word", "")).lower().strip()
+            if cached_str == current_word_str or cached_str in [str(w).lower().strip() for w in session.get("words_attempted", [])]:
+                session["cached_next_word"] = None
+
         if not adaptation.get("session_over"):
             if not evaluation.get("is_correct") and session.get("cached_next_word"):
                 encouragement = await encouragement_task
                 next_word = session["cached_next_word"]
             else:
+                exclude_words = list(set([str(w).lower().strip() for w in session["words_attempted"]] + [current_word_str]))
                 next_word_task = asyncio.to_thread(
                     select_next_word,
                     reading_level           = max(1, min(4, profile.get("reading_level", 1) + adaptation.get("level_change", 0))),
@@ -385,13 +395,21 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
                     approach                = profile.get("approach", "phonics"),
                     struggling_words        = profile.get("struggling_words", []),
                     mastered_words          = profile.get("mastered_words", []),
-                    words_done_this_session = session["words_attempted"],
+                    words_done_this_session = exclude_words,
                     last_answer_correct     = evaluation.get("is_correct", False),
                     consecutive_correct     = session["consecutive_correct"],
                     consecutive_wrong       = session["consecutive_wrong"],
                     adaptation_action       = adaptation.get("action", "continue"),
                 )
                 encouragement, next_word = await asyncio.gather(encouragement_task, next_word_task)
+
+                # Absolute guarantee: if next_word matches current_word, select a fresh fallback word
+                if next_word and str(next_word.get("word", "")).lower().strip() == current_word_str:
+                    next_word = _instant_select_word(
+                        reading_level           = max(1, min(4, profile.get("reading_level", 1) + adaptation.get("level_change", 0))),
+                        words_done_this_session = exclude_words,
+                    )
+
                 session["cached_next_word"] = next_word
 
             if evaluation.get("is_correct"):
@@ -448,6 +466,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
 
         child_display_name = profile.get("child_name") or req_child_name or "Child"
         print(f"\n📋 Report Agent: generating session report for {child_display_name}...")
+        session_input_mode = session.get("input_mode") or profile.get("input_mode", "type")
         report = generate_session_report(
             child_name            = child_display_name,
             dyslexia_type         = profile.get("dyslexia_type", "phonological"),
@@ -460,6 +479,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             error_patterns        = session.get("error_patterns", []),
             encouragement_messages= session.get("encouragements", []),
             breaks_taken          = session.get("breaks_taken", 0),
+            input_mode            = session_input_mode,
         )
 
         report["words"] = session.get("words", [])

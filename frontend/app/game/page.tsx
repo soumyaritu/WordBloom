@@ -91,6 +91,7 @@ function GameContent() {
   const [phonicsChunks,   setPhonicsChunks]   = useState<string | null>(null)
   const [phonicsSpoken,   setPhonicsSpoken]   = useState<string | null>(null)
   const [meaningIcon,     setMeaningIcon]     = useState<string | null>(null)
+  const [meaningDesc,     setMeaningDesc]     = useState<string | null>(null)
   const [candiesWon,      setCandiesWon]      = useState<number>(0)
   const [isListening,     setIsListening]     = useState<boolean>(false)
   const [interimSpoken,   setInterimSpoken]   = useState<string>('')
@@ -161,7 +162,7 @@ function GameContent() {
       recognition.lang = 'en-GB'
       recognition.continuous = false
       recognition.interimResults = true
-      recognition.maxAlternatives = 3
+      recognition.maxAlternatives = 5
 
       recognition.onstart = () => {
         setIsListening(true)
@@ -173,12 +174,86 @@ function GameContent() {
         let interim = ''
         let final = ''
 
+        const targetClean = (activeWord?.word || currentWord || '').toLowerCase().trim().replace(/[.,!?:;'"]/g, '')
+
+        // Helper: evaluate all speech alternatives to find target match or acoustic sound-alike match
+        const pickBestTranscript = (item: any): string => {
+          if (!item || item.length === 0) return ''
+          
+          // 1. Exact match among alternatives (e.g. alt[0] is "hope", alt[1] is "hop" -> picks "hop")
+          for (let j = 0; j < item.length; j++) {
+            const tr = (item[j]?.transcript || '').trim().toLowerCase().replace(/[.,!?:;'"]/g, '')
+            if (tr === targetClean) {
+              return targetClean
+            }
+          }
+
+          // 2. Trailing silent 'e' elongation (e.g. child says "hop" -> STT hears "hope")
+          for (let j = 0; j < item.length; j++) {
+            const tr = (item[j]?.transcript || '').trim().toLowerCase().replace(/[.,!?:;'"]/g, '')
+            if (tr.endsWith('e') && tr.slice(0, -1) === targetClean) {
+              return targetClean
+            }
+            if (targetClean.endsWith('e') && targetClean.slice(0, -1) === tr) {
+              return targetClean
+            }
+          }
+
+          // 3. Known acoustic homophones & sound-alikes
+          const HOMOPHONE_MAP: Record<string, string[]> = {
+            hop: ['hope', 'hot'],
+            hope: ['hop'],
+            sun: ['son', 'some'],
+            son: ['sun'],
+            not: ['note', 'knot'],
+            knot: ['not', 'note'],
+            pop: ['pope'],
+            pope: ['pop'],
+            rob: ['robe'],
+            robe: ['rob'],
+            pin: ['pine'],
+            pine: ['pin'],
+            cut: ['cute'],
+            cute: ['cut'],
+            tub: ['tube'],
+            tube: ['tub'],
+            cap: ['cape'],
+            cape: ['cap'],
+            tap: ['tape'],
+            tape: ['tap'],
+            rip: ['ripe'],
+            ripe: ['rip'],
+            dog: ['dock', 'doc'],
+            cat: ['kat'],
+            right: ['write'],
+            write: ['right'],
+            see: ['sea'],
+            sea: ['see'],
+            one: ['won'],
+            won: ['one'],
+            for: ['four'],
+            four: ['for'],
+          }
+          if (HOMOPHONE_MAP[targetClean]) {
+            for (let j = 0; j < item.length; j++) {
+              const tr = (item[j]?.transcript || '').trim().toLowerCase().replace(/[.,!?:;'"]/g, '')
+              if (HOMOPHONE_MAP[targetClean].includes(tr)) {
+                return targetClean
+              }
+            }
+          }
+
+          // Default fallback: top confidence candidate
+          return (item[0]?.transcript || '').trim()
+        }
+
         for (let i = e.resultIndex; i < e.results.length; ++i) {
           const item = e.results[i]
+          const best = pickBestTranscript(item)
           if (item.isFinal) {
-            final = item[0]?.transcript || ''
+            final = best
           } else {
-            interim += item[0]?.transcript || ''
+            interim += best
           }
         }
 
@@ -414,8 +489,34 @@ function GameContent() {
     setPhonicsChunks(null)
     setPhonicsSpoken(null)
     setMeaningIcon(null)
+    setMeaningDesc(null)
     setAnswer('')
     setTappedLetters([])
+  }
+
+  const handleSkipWord = () => {
+    const currentWordClean = (activeWord?.word || currentWord || '').toLowerCase().trim()
+    let targetNextWord = pendingWord?.next_word
+
+    // If next_word was missing or matches current word, guarantee a fresh new word
+    if (!targetNextWord || targetNextWord?.word?.toLowerCase().trim() === currentWordClean) {
+      const fallbacks = [
+        { word: 'cup', audio_hint: 'cup', visual_hint: 'c·u·p', sentence: 'Drink water from the blue cup.' },
+        { word: 'sun', audio_hint: 'sun', visual_hint: 's·u·n', sentence: 'The warm sun is shining bright.' },
+        { word: 'pin', audio_hint: 'pin', visual_hint: 'p·i·n', sentence: 'Fasten the paper with a pin.' },
+        { word: 'net', audio_hint: 'net', visual_hint: 'n·e·t', sentence: 'The butterfly landed on the net.' },
+        { word: 'fox', audio_hint: 'foks', visual_hint: 'f·o·x', sentence: 'The clever red fox dashed away.' },
+        { word: 'frog', audio_hint: 'frog', visual_hint: 'f·r·o·g', sentence: 'The green frog jumped in the pond.' },
+        { word: 'clap', audio_hint: 'clap', visual_hint: 'c·l·a·p', sentence: 'Clap your hands to the music.' },
+        { word: 'drum', audio_hint: 'drum', visual_hint: 'd·r·u·m', sentence: 'Beat the rhythm on the drum.' },
+      ]
+      const doneList = (session?.words_done || []).map((w: string) => String(w).toLowerCase().trim())
+      doneList.push(currentWordClean)
+      const fresh = fallbacks.find(f => !doneList.includes(f.word)) || fallbacks[0]
+      targetNextWord = { ...fresh, difficulty: 'easy', category: 'practice' }
+    }
+
+    advanceToNextWord(targetNextWord, pendingWord?.session_stats)
   }
 
   // Keyboard shortcut: Press Enter to advance to next word or restart when goal is reached
@@ -464,18 +565,21 @@ function GameContent() {
         setPhonicsChunks(null)
         setPhonicsSpoken(null)
         setMeaningIcon(null)
+        setMeaningDesc(null)
       } else {
         const vHint = result.visual_hint_b64 || result.adaptation?.visual_hint_b64 || null
         const aScaffold = result.audio_scaffold_b64 || result.adaptation?.audio_scaffold_b64 || null
         const pChunks = result.phonics_chunks || result.adaptation?.phonics_chunks || null
         const pSpoken = result.phonics_spoken || result.adaptation?.phonics_spoken || null
         const mIcon = result.meaning_icon || result.adaptation?.meaning_icon || null
+        const mDesc = result.meaning_desc || result.adaptation?.meaning_desc || null
 
         if (vHint) setVisualHintB64(vHint)
         if (aScaffold) setAudioScaffoldB64(aScaffold)
         if (pChunks) setPhonicsChunks(pChunks)
         if (pSpoken) setPhonicsSpoken(pSpoken)
         if (mIcon) setMeaningIcon(mIcon)
+        if (mDesc) setMeaningDesc(mDesc)
 
         // Automatically play the Google TTS audio scaffold ONLY for voice mode
         if (inputMode === 'voice') {
@@ -487,9 +591,17 @@ function GameContent() {
         }
       }
 
-      const childId = childFullName.toLowerCase().split(' ')[0]
+      const rawChildParam = (childParam || session?.profile?.child_id || '').toLowerCase()
+      const firstWordId = childFullName.toLowerCase().split(' ')[0]
+      const childIds = Array.from(new Set([rawChildParam, firstWordId, 'sofia', 'sony'].filter(id => {
+        if (!id) return false
+        if (rawChildParam === 'sofia' || firstWordId === 'sony' || childFullName.toLowerCase().includes('sony') || childFullName.toLowerCase().includes('sofia')) {
+          return id === 'sofia' || id === 'sony'
+        }
+        return id === rawChildParam || id === firstWordId
+      })))
 
-      // Save word attempt for Dyslexia Mirror diagnostic
+      // Save word attempt for Dyslexia Mirror diagnostic across both ID variants
       try {
         const attemptRecord = {
           target: currentWordTarget,
@@ -497,14 +609,16 @@ function GameContent() {
           is_correct: isCorrect,
           sentence: activeWord?.sentence || `The ${currentWordTarget} appeared on screen.`,
         }
-        const existingWordsRaw = localStorage.getItem(`wb_session_words_${childId}`)
-        let existingWords = []
-        if (existingWordsRaw) {
-          try { existingWords = JSON.parse(existingWordsRaw) } catch (e) {}
-          if (!Array.isArray(existingWords)) existingWords = []
-        }
-        existingWords.push(attemptRecord)
-        localStorage.setItem(`wb_session_words_${childId}`, JSON.stringify(existingWords))
+        childIds.forEach(cid => {
+          const existingWordsRaw = localStorage.getItem(`wb_session_words_${cid}`)
+          let existingWords = []
+          if (existingWordsRaw) {
+            try { existingWords = JSON.parse(existingWordsRaw) } catch (e) {}
+            if (!Array.isArray(existingWords)) existingWords = []
+          }
+          existingWords.push(attemptRecord)
+          localStorage.setItem(`wb_session_words_${cid}`, JSON.stringify(existingWords))
+        })
       } catch (e) {}
 
       // Update session stats and candies immediately so candy counter lights up in real-time
@@ -649,6 +763,7 @@ function GameContent() {
       setPhonicsChunks(null)
       setPhonicsSpoken(null)
       setMeaningIcon(null)
+      setMeaningDesc(null)
       setAnswer('')
       setTappedLetters([])
       setGoalAchieved(false)
@@ -666,7 +781,16 @@ function GameContent() {
   const handleEndSession = async () => {
     setLoading(true)
     const childFullName = session?.profile?.child_name || "Emma Clarke"
-    const childId = childFullName.toLowerCase().split(' ')[0]
+    const rawChildParam = (childParam || session?.profile?.child_id || '').toLowerCase()
+    const firstWordId = childFullName.toLowerCase().split(' ')[0]
+    const childIds = Array.from(new Set([rawChildParam, firstWordId, 'sofia', 'sony'].filter(id => {
+      if (!id) return false
+      if (rawChildParam === 'sofia' || firstWordId === 'sony' || childFullName.toLowerCase().includes('sony') || childFullName.toLowerCase().includes('sofia')) {
+        return id === 'sofia' || id === 'sony'
+      }
+      return id === rawChildParam || id === firstWordId
+    })))
+
     try {
       const result = await endSession(session.session_id, childFullName)
       const report = result.report || {}
@@ -679,7 +803,9 @@ function GameContent() {
           .replace(/^[A-Za-z'.-]+(?=\s+(?:worked|demonstrated|showed|checked|completed|navigated|read))/i, firstName)
       }
       localStorage.setItem('wb_report', JSON.stringify(report))
-      localStorage.setItem(`wb_report_${childId}`, JSON.stringify(report))
+      childIds.forEach(cid => {
+        localStorage.setItem(`wb_report_${cid}`, JSON.stringify(report))
+      })
     } catch (e) {
       console.error('Silent report finalize error on end session:', e)
     } finally {
@@ -763,20 +889,20 @@ function GameContent() {
           </button>
         </div>
 
-        {/* Candies Reward Counter */}
+        {/* Garden Bloom Reward Counter */}
         <div
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
-            background: 'rgba(244,114,182,0.18)', border: '1.5px solid rgba(244,114,182,0.5)',
+            background: 'rgba(16, 185, 129, 0.15)', border: '1.5px solid rgba(16, 185, 129, 0.45)',
             padding: '6px 14px', borderRadius: 24,
-            boxShadow: '0 4px 14px rgba(244,114,182,0.25)',
+            boxShadow: '0 4px 14px rgba(16, 185, 129, 0.2)',
             flexWrap: 'nowrap',
             whiteSpace: 'nowrap',
             flexShrink: 0,
             justifyContent: 'center',
           }}
           role="status"
-          aria-label={`${correctCount} of ${totalWords} candies earned`}
+          aria-label={`${correctCount} of ${totalWords} flowers bloomed`}
         >
           {Array.from({ length: totalWords }, (_, i) => {
             const isEarned = i < correctCount
@@ -798,12 +924,12 @@ function GameContent() {
                     playCandyTapSound(i)
                   }
                 }}
-                aria-label={isEarned ? `Candy ${i + 1} earned! Tap to hear soft marimba chime` : `Candy slot ${i + 1}`}
+                aria-label={isEarned ? `Flower ${i + 1} bloomed! Tap to hear soft chime` : `Seed slot ${i + 1}`}
                 style={{
                   position: 'relative',
                   fontSize: totalWords > 10 ? 16 : 22,
-                  opacity: isEarned ? 1 : 0.45,
-                  filter: isEarned ? 'drop-shadow(0 2px 8px rgba(244,114,182,0.8))' : 'grayscale(1)',
+                  opacity: isEarned ? 1 : 0.55,
+                  filter: isEarned ? 'drop-shadow(0 2px 8px rgba(16,185,129,0.8))' : 'grayscale(0.4)',
                   transform: isPopping ? 'scale(1.42) rotate(12deg)' : isEarned ? 'scale(1.15)' : 'scale(0.9)',
                   transition: isPopping ? 'all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                   display: 'inline-flex',
@@ -815,7 +941,7 @@ function GameContent() {
                   animation: isPopping ? 'candyPopPulse 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none',
                 }}
               >
-                {isEarned ? '🍬' : '⚪'}
+                {isEarned ? '🌸' : '🌱'}
                 {isPopping && (
                   <span
                     style={{
@@ -834,7 +960,7 @@ function GameContent() {
               </span>
             )
           })}
-          <span style={{ fontSize: 13, fontWeight: 800, color: '#F472B6', marginLeft: 6, whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 13, fontWeight: 800, color: '#34D399', marginLeft: 6, whiteSpace: 'nowrap' }}>
             {correctCount}/{totalWords}
           </span>
         </div>
@@ -864,22 +990,30 @@ function GameContent() {
         <div
           className="spotlight-interactive-element"
           style={{
-            width: '100%', maxWidth: 460, padding: '1.25rem 1.5rem',
-            background: 'rgba(251,191,36,0.12)', border: '1.5px solid rgba(251,191,36,0.4)',
+            width: '100%', maxWidth: 480, padding: '1.25rem 1.5rem',
+            background: 'var(--warn-bg, rgba(251,191,36,0.14))',
+            border: '2px solid rgba(217, 119, 6, 0.45)',
             borderRadius: 16, textAlign: 'center', marginBottom: '1.25rem',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14,
+            boxShadow: '0 4px 14px rgba(0,0,0,0.06)',
           }}
         >
           <div style={{ textAlign: 'left' }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#FBBF24', marginBottom: 2 }}>☕ Time for a quick break!</div>
-            <div style={{ fontSize: 13, color: '#CBD5E1' }}>Stretch your arms & rest your eyes.</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--warn-text, #D97706)', marginBottom: 3 }}>
+              ☕ Time for a quick break!
+            </div>
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--white)' }}>
+              Stretch your arms &amp; rest your eyes.
+            </div>
           </div>
           <button
             onClick={() => setShowBreak(false)}
             style={{
-              background: 'var(--warn)', color: '#0F172A',
-              minHeight: 40, padding: '8px 18px', borderRadius: 20, fontSize: 13, fontWeight: 700,
-              border: 'none', cursor: 'pointer', flexShrink: 0,
+              background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+              color: '#FFFFFF',
+              minHeight: 40, padding: '9px 20px', borderRadius: 20, fontSize: 13, fontWeight: 800,
+              border: '1.5px solid rgba(254, 243, 199, 0.7)', cursor: 'pointer', flexShrink: 0,
+              boxShadow: '0 4px 12px rgba(217, 119, 6, 0.35)',
             }}
           >
             Skip Break 🚀
@@ -887,7 +1021,7 @@ function GameContent() {
         </div>
       )}
 
-      {/* Candy Goal Celebration Modal */}
+      {/* Garden Bloom Goal Celebration Modal */}
       {goalAchieved && (
         <div
           style={{
@@ -897,12 +1031,12 @@ function GameContent() {
             padding: '2rem 1.5rem', textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: 72, marginBottom: 12 }}>🍬🎉🌟</div>
+          <div style={{ fontSize: 72, marginBottom: 12 }}>🌸🎉🌻</div>
           <h2 style={{ fontSize: 32, fontWeight: 900, color: '#FFFFFF', marginBottom: 10 }}>
-            Candy Goal Reached!
+            Your Garden Bloomed!
           </h2>
           <p style={{ fontSize: 17, color: 'var(--bloom)', fontWeight: 700, maxWidth: 380, marginBottom: 20, lineHeight: 1.5 }}>
-            Incredible job, {profile.child_name?.split(' ')[0] || 'Super Reader'}! You collected all {totalWords} candies!
+            Incredible job, {profile.child_name?.split(' ')[0] || 'Super Reader'}! You bloomed all {totalWords} flowers in your garden today!
           </p>
           <div style={{ display: 'flex', gap: 10, fontSize: 34, marginBottom: 28, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 360 }}>
             {Array.from({ length: totalWords }, (_, i) => (
@@ -912,16 +1046,16 @@ function GameContent() {
                 tabIndex={0}
                 onClick={() => { if (soundEnabled) playCandyTapSound(i) }}
                 onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && soundEnabled) playCandyTapSound(i) }}
-                aria-label={`Celebration candy ${i + 1}`}
+                aria-label={`Celebration flower ${i + 1}`}
                 style={{
-                  filter: 'drop-shadow(0 2px 8px rgba(244,114,182,0.85))',
+                  filter: 'drop-shadow(0 2px 8px rgba(16,185,129,0.85))',
                   cursor: 'pointer',
                   transition: 'transform 0.15s ease',
                   touchAction: 'manipulation',
                   display: 'inline-block',
                 }}
               >
-                🍬
+                🌸
               </span>
             ))}
           </div>
@@ -1168,6 +1302,25 @@ function GameContent() {
                     display: 'block', margin: '0 auto',
                   }}
                 />
+
+                {meaningDesc && (
+                  <div
+                    style={{
+                      marginTop: 8,
+                      padding: '8px 14px',
+                      borderRadius: 10,
+                      background: 'rgba(30, 41, 59, 0.85)',
+                      border: '1px solid rgba(59, 130, 246, 0.35)',
+                      color: '#E2E8F0',
+                      fontSize: 13.5,
+                      fontWeight: 600,
+                      textAlign: 'center',
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    💡 <span style={{ color: '#93C5FD', fontWeight: 700 }}>Meaning:</span> &ldquo;{meaningDesc}&rdquo;
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1261,10 +1414,10 @@ function GameContent() {
             <div className="spotlight-interactive-element" style={{ width: '100%', maxWidth: cardMaxWidth, marginBottom: '1.25rem' }}>
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                fontSize: 13, color: '#9CA3AF', marginBottom: 8, padding: '0 4px', fontWeight: 500
+                fontSize: 13.5, color: 'var(--white)', marginBottom: 8, padding: '0 6px', fontWeight: 700
               }}>
                 <span>🌱 Take your time to celebrate</span>
-                <span style={{ fontSize: 12, color: '#10B981', fontWeight: 600 }}>Tap when you&apos;re ready</span>
+                <span style={{ fontSize: 13, color: 'var(--bloom-text, #059669)', fontWeight: 800 }}>Tap when you&apos;re ready</span>
               </div>
               <button
                 onClick={() => advanceToNextWord(pendingWord.next_word, pendingWord.session_stats)}
@@ -1448,7 +1601,7 @@ function GameContent() {
               )}
 
               {micStatusMsg && !interimSpoken && (
-                <p style={{ marginTop: 6, fontSize: 13, color: '#9CA3AF' }}>
+                <p style={{ marginTop: 6, fontSize: 13, color: 'var(--grey)', fontWeight: 600 }}>
                   {micStatusMsg}
                 </p>
               )}
@@ -1653,7 +1806,7 @@ function GameContent() {
                       type="button"
                       onClick={() => setTappedLetters([])}
                       style={{
-                        background: 'rgba(148, 163, 184, 0.1)', border: '1px solid rgba(148, 163, 184, 0.2)', color: '#CBD5E1',
+                        background: 'rgba(148, 163, 184, 0.15)', border: '1.5px solid rgba(148, 163, 184, 0.35)', color: 'var(--white)',
                         fontSize: 13, fontWeight: 700, cursor: 'pointer', borderRadius: 8, padding: '6px 14px', minHeight: 38,
                         touchAction: 'manipulation',
                       }}
@@ -1687,28 +1840,27 @@ function GameContent() {
           )}
 
           {/* Skip option if child wants to move to the next word instead of retrying */}
-          {pendingWord?.next_word && !pendingWord?.evaluation?.is_correct && (
+          {pendingWord && !pendingWord?.evaluation?.is_correct && (
             <div className="spotlight-interactive-element" style={{ width: '100%', maxWidth: cardMaxWidth, textAlign: 'center', margin: '0.75rem 0 1.25rem' }}>
               <button
-                onClick={() => advanceToNextWord(pendingWord.next_word, pendingWord.session_stats)}
+                type="button"
+                onClick={handleSkipWord}
+                className="btn-skip-word"
                 style={{
-                  background: '#1E293B',
-                  border: '1.5px solid rgba(148, 163, 184, 0.45)',
-                  color: '#F8FAFC',
-                  fontSize: 14,
+                  fontSize: 15,
                   cursor: 'pointer',
-                  borderRadius: 24,
-                  padding: '10px 22px',
-                  fontWeight: 700,
-                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
+                  borderRadius: 30,
+                  padding: '12px 28px',
+                  fontWeight: 800,
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 8,
+                  gap: 10,
+                  letterSpacing: '0.02em',
                   transition: 'all 0.2s ease',
                 }}
               >
-                <span>Skip for now? Move to next word &quot;{pendingWord.next_word.word}&quot;</span>
-                <span style={{ fontSize: 16 }}>➔</span>
+                <span>Skip this word for now · Next word</span>
+                <span style={{ fontSize: 18, color: '#FCD34D' }}>➔</span>
               </button>
             </div>
           )}

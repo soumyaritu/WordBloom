@@ -40,16 +40,8 @@ export async function GET(
     if (res.ok) {
       const data = await res.json()
       // If words are present and have wrong answers, return directly
-      if (Array.isArray(data.words) && data.words.some((w: any) => !w.is_correct)) {
+      if (Array.isArray(data.words) && data.words.length > 0) {
         return NextResponse.json(data)
-      } else if (Array.isArray(data.words) && data.words.length > 0) {
-        // All words were correct in this specific session; supplement with student diagnostic words
-        const fallback = DEFAULT_STUDENT_WRONG_WORDS[cleanId] || DEFAULT_STUDENT_WRONG_WORDS.emma
-        return NextResponse.json({
-          child_name: data.child_name || (cleanId.charAt(0).toUpperCase() + cleanId.slice(1)),
-          session_date: data.session_date || new Date().toISOString().split('T')[0],
-          words: [...data.words, ...fallback],
-        })
       }
     }
   } catch (e) {

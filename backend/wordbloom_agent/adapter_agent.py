@@ -242,6 +242,22 @@ def draw_cartoon_anchor(draw, cx: int, cy: int, word: str):
     elif w in ["cup", "mug"]:
         draw.rounded_rectangle([cx - 16, cy - 12, cx + 16, cy + 16], radius=5, fill=(59, 130, 246), outline=(37, 99, 235), width=2)
         draw.arc([cx + 12, cy - 4, cx + 24, cy + 10], 270, 90, fill=(37, 99, 235), width=3)
+    elif w in ["fox"]:
+        # Cute cartoon fox face with ears and markings
+        draw.polygon([(cx - 24, cy - 8), (cx + 24, cy - 8), (cx, cy + 22)], fill=(249, 115, 22), outline=(194, 65, 12), width=2)
+        draw.polygon([(cx - 22, cy - 8), (cx - 26, cy - 28), (cx - 10, cy - 8)], fill=(249, 115, 22), outline=(194, 65, 12))
+        draw.polygon([(cx - 20, cy - 9), (cx - 23, cy - 23), (cx - 13, cy - 9)], fill=(255, 255, 255))
+        draw.polygon([(cx + 22, cy - 8), (cx + 26, cy - 28), (cx + 10, cy - 8)], fill=(249, 115, 22), outline=(194, 65, 12))
+        draw.polygon([(cx + 20, cy - 9), (cx + 23, cy - 23), (cx + 13, cy - 9)], fill=(255, 255, 255))
+        draw.polygon([(cx - 22, cy - 6), (cx - 2, cy + 16), (cx - 2, cy - 4)], fill=(255, 255, 255))
+        draw.polygon([(cx + 22, cy - 6), (cx + 2, cy + 16), (cx + 2, cy - 4)], fill=(255, 255, 255))
+        draw.ellipse([cx - 10, cy - 3, cx - 6, cy + 1], fill=(30, 41, 59))
+        draw.ellipse([cx + 6, cy - 3, cx + 10, cy + 1], fill=(30, 41, 59))
+        draw.ellipse([cx - 4, cy + 16, cx + 4, cy + 22], fill=(15, 23, 42))
+    elif w in ["box"]:
+        draw.rounded_rectangle([cx - 20, cy - 10, cx + 20, cy + 20], radius=4, fill=(180, 83, 9), outline=(146, 64, 14), width=2)
+        draw.line([cx - 20, cy + 5, cx + 20, cy + 5], fill=(217, 119, 6), width=2)
+        draw.line([cx, cy - 10, cx, cy + 20], fill=(217, 119, 6), width=2)
     else:
         draw.ellipse([cx - 18, cy - 18, cx + 18, cy + 18], fill=(16, 185, 129), outline=(5, 150, 105), width=2)
         draw.ellipse([cx - 6, cy - 6, cx + 6, cy + 6], fill=(255, 255, 255))
@@ -263,7 +279,7 @@ def generate_visual_hint(
       - Type: Visual letter spelling guide with keyboard pattern.
     """
     word = str(word or "word").strip().lower()
-    width, height = 500, 240
+    width, height = 500, 255
     img = Image.new("RGB", (width, height), color=(15, 23, 42))
     draw = ImageDraw.Draw(img)
 
@@ -366,10 +382,14 @@ def generate_visual_hint(
         ty = y_pos + (box_h - th) // 2 - 4
         draw.text((tx, ty), ch, fill=(248, 250, 252), font=font_large)
 
-    # Meaning line if voice_mode and meaning_desc provided
+    # Meaning lines if voice_mode and meaning_desc provided (fully visible with clean word-wrapping)
     if voice_mode and meaning_desc:
-        desc_text = f'Meaning: "{meaning_desc[:38]}..."' if len(meaning_desc) > 40 else f'Meaning: "{meaning_desc}"'
-        draw.text((125, 130), desc_text, fill=(226, 232, 240), font=font_small)
+        import textwrap
+        full_desc = f'Meaning: "{meaning_desc}"'
+        lines = textwrap.wrap(full_desc, width=40)
+        y_meaning = 124
+        for line_idx, line in enumerate(lines[:3]):
+            draw.text((125, y_meaning + line_idx * 16), line, fill=(226, 232, 240), font=font_small)
 
     # Bottom guidance text — friendly and concise
     if voice_mode:
@@ -387,8 +407,8 @@ def generate_visual_hint(
 
     bbox_f = draw.textbbox((0, 0), footer, font=font_small)
     fx = (width - (bbox_f[2] - bbox_f[0])) // 2
-    draw.rounded_rectangle([18, 185, width - 18, 225], radius=10, fill=(30, 41, 59), outline=f_color, width=1)
-    draw.text((fx, 196), footer, fill=f_color, font=font_small)
+    draw.rounded_rectangle([18, 195, width - 18, 238], radius=10, fill=(30, 41, 59), outline=f_color, width=1)
+    draw.text((fx, 206), footer, fill=f_color, font=font_small)
 
     buf = io.BytesIO()
     img.save(buf, format="PNG")
@@ -522,7 +542,7 @@ def decide_adaptation(
 
     if session_over:
         action = "end_session"
-        reason = f"🎉 Goal achieved! {words_correct}/{effective_candy_goal} candies earned."
+        reason = f"🎉 Goal achieved! {words_correct}/{effective_candy_goal} flowers bloomed in the garden."
     elif not is_correct:
         # Child missed or struggled: NEVER end session, adapt difficulty to help them succeed!
         if consecutive_wrong >= 2:

@@ -144,7 +144,7 @@ SILENT_VARIANTS = {
 }
 
 VOICE_HOMOPHONES = {
-    "sun": ["son"],
+    "sun": ["son", "some"],
     "son": ["sun"],
     "right": ["write"],
     "write": ["right"],
@@ -159,19 +159,64 @@ VOICE_HOMOPHONES = {
     "too": ["to", "two"],
     "be": ["bee"],
     "bee": ["be"],
+    "hop": ["hope", "hot"],
+    "hope": ["hop"],
+    "not": ["note", "knot"],
+    "knot": ["not", "note"],
+    "rob": ["robe"],
+    "robe": ["rob"],
+    "pin": ["pine"],
+    "pine": ["pin"],
+    "cut": ["cute"],
+    "cute": ["cut"],
+    "tub": ["tube"],
+    "tube": ["tub"],
+    "cap": ["cape"],
+    "cape": ["cap"],
+    "tap": ["tape"],
+    "tape": ["tap"],
+    "rip": ["ripe"],
+    "ripe": ["rip"],
+    "dog": ["dock", "doc", "dawg"],
+    "cat": ["kat"],
+    "pop": ["pope"],
+    "pope": ["pop"],
+    "dot": ["dote"],
+    "dote": ["dot"],
+    "mop": ["mope"],
+    "mope": ["mop"],
+    "pan": ["pane", "pain"],
+    "pane": ["pan", "pain"],
+    "pain": ["pan", "pane"],
+    "red": ["read"],
+    "read": ["red", "reed"],
+    "hear": ["here"],
+    "here": ["hear"],
+    "blue": ["blew"],
+    "blew": ["blue"],
+    "meat": ["meet"],
+    "meet": ["meat"],
+    "stair": ["stare"],
+    "stare": ["stair"],
+    "flour": ["flower"],
+    "flower": ["flour"],
+    "knight": ["night"],
+    "night": ["knight"],
 }
 
 
 def is_correct_for_profile(correct_word, child_answer, dyslexia_type,
-                            input_mode, reading_stage, conditions, partial_score):
+                            input_mode, reading_stage, conditions, partial_score, attempt_number=1):
     """
     Determines whether child answer earns candy based on profile threshold.
-    For non-dyslexic learners, standard exact spelling is required.
+    For voice input, acoustic STT artifacts and homophones are evaluated directly
+    (microphone acoustic distortion affects all learners).
+    For non-dyslexic learners in written modes, standard exact spelling is required.
     For dyslexic learners, genuine dyslexia accommodations apply:
-      - Mirror letter swaps (b/d, p/q) e.g. dog -> bog
+      - Mirror letter swaps (b/d, p/q) on attempt 1 trigger scaffolded retry; on attempt 2+ visual profile accommodation applies
       - Silent letter phonetic variants e.g. knight -> nite
-      - Adjacent letter transposition e.g. chair -> cahir
-      - Voice mode homophones e.g. sun -> son
+      - Adjacent letter transposition e.g. chair -> chair
+      - Voice mode homophones & acoustic STT phonetic variants e.g. sun -> son, hop -> hope
     Incorrect words (e.g. run for sun, cat for dog, bad for bed) are strictly False.
     """
     clean_target = str(correct_word or "").lower().strip(" .,!?:;'\"")
@@ -183,27 +228,39 @@ def is_correct_for_profile(correct_word, child_answer, dyslexia_type,
     if clean_target == clean_answer:
         return True
 
+    # 1. Voice mode speech homophones & acoustic STT phonetic variants
+    # (Evaluated before profile restrictions because microphone distortion / STT priors affect any speaker)
+    if str(input_mode or "").lower() == "voice":
+        if clean_answer in VOICE_HOMOPHONES.get(clean_target, []):
+            return True
+        # Common STT vowel elongation (e.g. child says "hop" -> mic hears "hope")
+        if clean_answer.endswith("e") and clean_answer[:-1] == clean_target:
+            return True
+        if clean_target.endswith("e") and clean_target[:-1] == clean_answer:
+            return True
+
     norm_dt = _normalize_dyslexia_type(dyslexia_type)
     if norm_dt == "non_dyslexic":
         return False
 
-    # 1. Mirror letter swap (b/d, p/q) when length is identical
+    # 2. Mirror letter swap (b/d, p/q) when length is identical:
+    # Option 1 (Scaffolded Retry): On attempt 1, do NOT mark as correct.
+    # This allows the evaluator to accurately log the 'reversal' error pattern and present a visual hint so the child learns the correct orientation.
+    # On attempt 2+, if the child already has a confirmed visual dyslexia profile, grant the accommodation.
     if len(clean_target) == len(clean_answer) and clean_answer.translate(DYSLEXIC_MIRRORS) == clean_target:
-        return True
+        if attempt_number >= 2 and norm_dt in ("visual_spatial", "visual"):
+            return True
+        return False
 
-    # 2. Recognized silent letter phonetic variant
+    # 3. Recognized silent letter phonetic variant
     if clean_answer in SILENT_VARIANTS.get(clean_target, []):
         return True
 
-    # 3. Adjacent letter transposition with identical character set
+    # 4. Adjacent letter transposition with identical character set
     if len(clean_target) == len(clean_answer) and sorted(clean_target) == sorted(clean_answer):
         diffs = sum(1 for x, y in zip(clean_target, clean_answer) if x != y)
         if diffs <= 2:
             return True
-
-    # 4. Voice mode speech homophones
-    if str(input_mode or "").lower() == "voice" and clean_answer in VOICE_HOMOPHONES.get(clean_target, []):
-        return True
 
     # 5. High-fidelity near match for long multisyllabic words (Stage 4, 6+ letters) with single character typo
     if len(clean_target) >= 6 and abs(len(clean_target) - len(clean_answer)) <= 1 and partial_score >= 0.88:
@@ -279,15 +336,46 @@ def evaluate_answer(
         reading_stage=reading_stage,
         conditions=conditions,
         partial_score=partial_score,
+        attempt_number=attempt_number,
     )
     candy_earned = is_correct
 
     is_non_dyslexic = _normalize_dyslexia_type(dyslexia_type) == "non_dyslexic"
 
+    clean_t = str(correct_word or "").lower().strip(" .,!?:;'\"")
+    clean_a = str(child_answer or "").lower().strip(" .,!?:;'\"")
+    is_mirror_swap = (len(clean_t) == len(clean_a) and clean_a.translate(DYSLEXIC_MIRRORS) == clean_t)
+    is_silent_variant = clean_a in SILENT_VARIANTS.get(clean_t, [])
+
+    is_voice_match = False
+    if str(input_mode or "").lower() == "voice":
+        if clean_a in VOICE_HOMOPHONES.get(clean_t, []):
+            is_voice_match = True
+        elif clean_a.endswith("e") and clean_a[:-1] == clean_t:
+            is_voice_match = True
+        elif clean_t.endswith("e") and clean_t[:-1] == clean_a:
+            is_voice_match = True
+
     if exact_match:
         pattern = "correct"
         explanation = "Word read correctly!"
         positive_observation = f"Read '{correct_word}' accurately!"
+    elif is_voice_match and is_correct:
+        pattern = "voice_match"
+        explanation = f"Spoken word '{correct_word}' recognized accurately! (Acoustic voice match for '{child_answer}')."
+        positive_observation = f"Great, clear pronunciation of '{correct_word}'!"
+    elif is_mirror_swap:
+        pattern = "reversal"
+        if is_correct:
+            explanation = f"Word accepted with visual accommodation (mirror letter flip) on attempt {attempt_number}."
+            positive_observation = f"Great persistence working through '{correct_word}'!"
+        else:
+            explanation = f"Mirror letter reversal detected (e.g. b↔d, p↔q) in '{correct_word}'. Look at the visual hint below to see which way the letter faces!"
+            positive_observation = f"So close! You have the right sounds — look at the visual hint below to see which way the letter faces."
+    elif is_silent_variant:
+        pattern = "silent_letter"
+        explanation = f"Phonetic attempt on tricky silent letter in '{correct_word}'."
+        positive_observation = f"Great phonetic effort on the silent letter in '{correct_word}'!"
     elif is_correct and not is_non_dyslexic:
         pattern = "profile_accepted"
         explanation = f"Word accepted with profile accommodations (score {partial_score} >= threshold {threshold_used})."
@@ -310,7 +398,7 @@ def evaluate_answer(
             explanation = f"Attempted '{child_answer}' for '{correct_word}'."
             positive_observation = f"Stayed engaged and identified {letters_correct} letter{'s' if letters_correct != 1 else ''}!"
 
-    needs_visual_hint = (not is_correct) and (attempt_number >= 2)
+    needs_visual_hint = (not is_correct) and (attempt_number >= 2 or is_mirror_swap)
 
     return {
         "correct":               is_correct,

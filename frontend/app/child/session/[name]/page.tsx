@@ -176,7 +176,7 @@ export default function ChildWelcomePage({
             Hi, {displayName}! 👋
           </h1>
 
-          {/* Prompt: Ready to collect some candies today? */}
+          {/* Prompt: Ready to help your garden bloom today? */}
           <p
             style={{
               fontSize: '1.35rem',
@@ -188,10 +188,10 @@ export default function ChildWelcomePage({
               marginBottom: '2.5rem',
             }}
           >
-            Ready to collect some candies today?
+            Ready to help your garden bloom today? 🌸
           </p>
 
-          {/* Large pink gradient “🍬 Start Reading!” button */}
+          {/* Large floral green-to-pink gradient “🌸 Start Blooming!” button */}
           <button
             onClick={handleStartGame}
             disabled={starting}
@@ -202,9 +202,9 @@ export default function ChildWelcomePage({
               fontWeight: 900,
               borderRadius: 60,
               border: '2px solid rgba(255, 255, 255, 0.6)',
-              background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 50%, #fb7185 100%)',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 45%, #ec4899 100%)',
               color: '#FFFFFF',
-              boxShadow: '0 12px 30px rgba(236, 72, 153, 0.5)',
+              boxShadow: '0 12px 30px rgba(16, 185, 129, 0.45)',
               cursor: starting ? 'not-allowed' : 'pointer',
               opacity: starting ? 0.75 : 1,
               display: 'inline-flex',
@@ -213,10 +213,10 @@ export default function ChildWelcomePage({
               marginBottom: '2.5rem',
             }}
           >
-            {starting ? 'Getting your garden ready... 🌸' : '🍬 Start Reading!'}
+            {starting ? 'Getting your garden ready... 🌸' : '🌸 Start Blooming!'}
           </button>
 
-          {/* Row of 5 candy emojis at the bottom */}
+          {/* Row of 5 blooming flower emojis at the bottom */}
           <div
             style={{
               display: 'flex',
@@ -231,11 +231,11 @@ export default function ChildWelcomePage({
               userSelect: 'none',
             }}
           >
-            <span role="img" aria-label="candy">🍬</span>
-            <span role="img" aria-label="candy">🍬</span>
-            <span role="img" aria-label="candy">🍬</span>
-            <span role="img" aria-label="candy">🍬</span>
-            <span role="img" aria-label="candy">🍬</span>
+            <span role="img" aria-label="flower">🌸</span>
+            <span role="img" aria-label="flower">🌼</span>
+            <span role="img" aria-label="flower">🌻</span>
+            <span role="img" aria-label="flower">🌷</span>
+            <span role="img" aria-label="flower">🌸</span>
           </div>
         </div>
 

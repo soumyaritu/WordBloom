@@ -71,7 +71,7 @@ const FALLBACK_CHILDREN: ChildRow[] = [
     input_mode: 'type',
     conditions: [],
     last_session: 'Oct 17',
-    candy_count: 5,
+    candy_count: 4,
   },
 ]
 
@@ -102,7 +102,25 @@ export default function TeacherDashboardPage() {
       .then(res => res.json())
       .then(data => {
         if (data.children && data.children.length > 0) {
-          setChildren(data.children)
+          // Dynamically enrich with actual completed session words from this browser if available
+          const enriched = data.children.map((c: ChildRow) => {
+            try {
+              const sessionRaw = localStorage.getItem(`wb_session_words_${c.id}`)
+              if (sessionRaw) {
+                const words = JSON.parse(sessionRaw)
+                if (Array.isArray(words) && words.length > 0) {
+                  const correctCount = words.filter((w: any) => w.is_correct).length
+                  return {
+                    ...c,
+                    candy_count: correctCount,
+                    last_session: 'Today'
+                  }
+                }
+              }
+            } catch (e) {}
+            return c
+          })
+          setChildren(enriched)
         }
       })
       .catch(err => {
@@ -406,10 +424,10 @@ export default function TeacherDashboardPage() {
 
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>
-                      Candies
+                      Blooms
                     </div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#d97706' }}>
-                      {child.candy_count ?? 5} 🍬
+                    <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#059669' }}>
+                      {child.candy_count ?? 5} 🌸
                     </div>
                   </div>
                 </div>

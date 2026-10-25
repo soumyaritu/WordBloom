@@ -98,9 +98,10 @@ def _instant_encouragement(
             msg = random.choice(hint_messages)
         elif session_streak >= 3:
             messages = [
-                f"You're on fire! 🔥 That's {session_streak} words in a row!",
-                f"Unstoppable streak! 🚀 {session_streak} in a row — keep rocking it!",
-                f"Look at you go! 🌟 {session_streak} words nailed in a row!",
+                f"You're on fire! 🔥 That's {session_streak} words correct back-to-back!",
+                f"Unstoppable streak! 🚀 An incredible {session_streak}-word winning streak!",
+                f"Look at you go! 🌟 {session_streak} words solved back-to-back without a miss!",
+                f"Garden mastery! 🌸 You've bloomed {session_streak} flowers back-to-back!",
             ]
             msg = random.choice(messages)
         elif mode == "voice":

@@ -60,13 +60,13 @@ const DEFAULT_CHILDREN: ChildProfileData[] = [
     id: 'sofia',
     name: 'Sony Mathew',
     avatar: '🌟',
-    dyslexia_type: 'Phonological',
-    reading_stage: 2,
-    input_mode: 'voice',
+    dyslexia_type: 'Not sure yet',
+    reading_stage: 1,
+    input_mode: 'type',
     conditions: [],
-    last_session: 'Oct 15',
+    last_session: 'Today',
     candy_count: 5,
-    font: 'opendyslexic',
+    font: 'standard',
     colour_overlay: 'none',
   },
   {
@@ -78,7 +78,7 @@ const DEFAULT_CHILDREN: ChildProfileData[] = [
     input_mode: 'type',
     conditions: [],
     last_session: 'Oct 17',
-    candy_count: 5,
+    candy_count: 4,
     font: 'standard',
     colour_overlay: 'none',
   },
@@ -89,6 +89,7 @@ const AVATAR_MAP: Record<string, string> = {
   liam: '👦',
   james: '🚀',
   sofia: '🌟',
+  sony: '🌟',
   alex: '🦊',
 }
 
@@ -98,10 +99,12 @@ export async function GET() {
     if (fs.existsSync(skillsDir)) {
       const entries = fs.readdirSync(skillsDir, { withFileTypes: true })
       const children: ChildProfileData[] = []
+      const seenNames = new Set<string>()
 
       for (const entry of entries) {
         if (!entry.isDirectory()) continue
         if (entry.name === 'word-bank' || entry.name === 'dyslexic-heroes') continue
+        if (entry.name === 'sony' && fs.existsSync(path.join(skillsDir, 'sofia'))) continue
 
         const childId = entry.name.toLowerCase()
         const skillPath = path.join(skillsDir, entry.name, 'SKILL.md')
@@ -115,11 +118,13 @@ export async function GET() {
 
           const rawType = extract(/- (?:Dyslexia profile|Dyslexia type|Type):\s*(.+)/i, 'phonological').toLowerCase()
           let dyslexiaType = 'Phonological'
-          if (rawType.includes('non')) dyslexiaType = 'Non-dyslexic'
+          if (rawType.includes('unknown') || rawType.includes('not sure') || rawType.includes('undetermined')) dyslexiaType = 'Not sure yet'
+          else if (rawType.includes('non')) dyslexiaType = 'Non-dyslexic'
           else if (rawType.includes('surface')) dyslexiaType = 'Surface'
           else if (rawType.includes('visual')) dyslexiaType = 'Visual / Spatial'
           else if (rawType.includes('attentional')) dyslexiaType = 'Attentional'
           else if (rawType.includes('double')) dyslexiaType = 'Double Deficit'
+          else if (rawType.includes('phono')) dyslexiaType = 'Phonological'
 
           const rawCo = extract(/- Co-occurring:\s*(.+)/i, 'none')
           const conditions: string[] = []
@@ -131,17 +136,24 @@ export async function GET() {
           }
 
           const fallback = DEFAULT_CHILDREN.find(d => d.id === childId)
+          const parsedName = extract(/- Full name:\s*(.+)/i, fallback?.name || (childId.charAt(0).toUpperCase() + childId.slice(1)))
+
+          if (seenNames.has(parsedName.toLowerCase())) continue
+          seenNames.add(parsedName.toLowerCase())
+
+          const rawGoal = extract(/- Candy goal:\s*(\d+)/i, '')
+          const parsedGoal = rawGoal ? parseInt(rawGoal, 10) : (fallback?.candy_count ?? 5)
 
           children.push({
             id: childId,
-            name: extract(/- Full name:\s*(.+)/i, fallback?.name || (childId.charAt(0).toUpperCase() + childId.slice(1))),
+            name: parsedName,
             avatar: AVATAR_MAP[childId] || '🎨',
             dyslexia_type: dyslexiaType,
             reading_stage: parseInt(extract(/- Reading (?:level|stage):\s*(\d+)/i, String(fallback?.reading_stage || 2)), 10),
             input_mode: extract(/- Input mode:\s*(.+)/i, fallback?.input_mode || 'voice'),
             conditions: conditions.length > 0 ? conditions : (fallback?.conditions || []),
             last_session: fallback?.last_session || 'Today',
-            candy_count: fallback?.candy_count ?? 5,
+            candy_count: parsedGoal,
             font: extract(/- Display mode:\s*(.+)/i, fallback?.font || 'standard'),
             colour_overlay: extract(/- Colour overlay:\s*(.+)/i, fallback?.colour_overlay || 'none'),
           })

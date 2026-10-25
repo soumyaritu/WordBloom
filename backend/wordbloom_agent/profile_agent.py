@@ -35,13 +35,30 @@ def load_child_profile(child_name: str) -> dict:
     Returns:
         Complete profile dict with dyslexia type, settings, progress
     """
-    skill_dir = SKILLS_DIR / child_name.lower()
+    cleaned = child_name.lower().strip()
+    target = cleaned.split()[0] if cleaned else "emma"
+    if target in ["sony", "sony mathew"] and (SKILLS_DIR / "sofia").exists():
+        target = "sofia"
+
+    skill_dir = SKILLS_DIR / target
 
     if not skill_dir.exists() or not (skill_dir / "SKILL.md").exists():
-        return {
-            "error": f"No skill package found for {child_name}",
-            "child_name": child_name
-        }
+        # Fallback scan across skill directories for matching name
+        matched_dir = None
+        if SKILLS_DIR.exists():
+            for d in SKILLS_DIR.iterdir():
+                if d.is_dir() and (d / "SKILL.md").exists():
+                    txt = (d / "SKILL.md").read_text().lower()
+                    if cleaned in txt or target in txt:
+                        matched_dir = d
+                        break
+        if matched_dir:
+            skill_dir = matched_dir
+        else:
+            return {
+                "error": f"No skill package found for {child_name}",
+                "child_name": child_name
+            }
 
     skill = load_skill_from_dir(skill_dir)
     raw = skill.instructions

@@ -12,25 +12,25 @@ description: Sony Mathew's learning profile and dyslexia settings
 - School year: Year 3
 
 ## Dyslexia Profile
-- Type: phonological
+- Type: unknown
 - Co-occurring: none
 
 ## Access Settings
-- Input mode: voice
-- Display mode: opendyslexic
-- Colour overlay: none
+- Input mode: type
+- Display mode: standard
+- Colour overlay: blue
 - Show timer: never
 - Score display: stars only
 
 ## Session Settings
 - Session length: 5
-- Candy goal: 5
+- Candy goal: 10
 - Break after: 5
-- Approach: audio_first
+- Approach: phonics
 - Encouragement style: warm
 
 ## Current Progress
-- Reading level: 2
+- Reading level: 1
 - Mastered words: cat, dog, run, play, help
 - Struggling with: through, knight, enough
 - Pattern difficulty: silent letters

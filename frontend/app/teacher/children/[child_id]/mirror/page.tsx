@@ -171,6 +171,8 @@ export default function DyslexiaMirrorPage({
   const [loading, setLoading]                         = useState<boolean>(false)
   const [savingProfile, setSavingProfile]             = useState<boolean>(false)
   const [toastMessage, setToastMessage]               = useState<string | null>(null)
+  const [recommendedProfile, setRecommendedProfile]   = useState<string | null>(null)
+  const [recommendationReason, setRecommendationReason] = useState<string | null>(null)
   const [previewNonDyslexic, setPreviewNonDyslexic]   = useState<boolean>(false)
 
   // Load Child Profile & Wrong Answers
@@ -195,89 +197,134 @@ export default function DyslexiaMirrorPage({
         }
 
         if (!loadedProfile && typeof window !== 'undefined') {
-          const local = localStorage.getItem(`wb_profile_${childId}`)
+          const local = localStorage.getItem(`wb_profile_${childId}`) ||
+                        (childId === 'sofia' ? localStorage.getItem('wb_profile_sony') : null) ||
+                        (childId === 'sony' ? localStorage.getItem('wb_profile_sofia') : null)
           if (local) {
             try {
               const p = JSON.parse(local)
               loadedProfile = {
                 id: childId,
                 child_id: childId,
-                name: p.fullName || p.name || childId.toUpperCase(),
-                child_name: p.fullName || p.name || childId.toUpperCase(),
-                dyslexia_type: p.dyslexiaType || 'phonological',
+                name: p.fullName || p.name || (childId in ['sofia', 'sony'] ? 'Sony Mathew' : childId.toUpperCase()),
+                child_name: p.fullName || p.name || (childId in ['sofia', 'sony'] ? 'Sony Mathew' : childId.toUpperCase()),
+                dyslexia_type: p.dyslexiaType || 'unknown',
                 font: p.displayMode || 'opendyslexic',
                 display_mode: p.displayMode || 'opendyslexic',
                 colour_overlay: p.colourOverlay || 'yellow',
                 input_mode: p.inputMode || 'voice',
-                reading_level: p.readingLevel || 3,
-                age: p.age || 9,
-                school_year: p.schoolYear || 'Year 4',
+                reading_level: p.readingLevel || 1,
+                age: p.age || 7,
+                school_year: p.schoolYear || 'Year 3',
               }
             } catch (e) {}
           }
         }
 
-        if (loadedProfile && isMounted) {
-          setProfile(loadedProfile)
-          setSelectedType(normalizeDyslexiaType(loadedProfile.dyslexia_type))
-        }
+        let detectedRec: string | null = null
 
-        // 2. Fetch Latest Session Words
+        // 2. Prioritize localStorage for latest session words
         let sessionWords: WrongWord[] = []
-        try {
-          const res = await fetch(`/api/children/${childId}/sessions/latest`, {
-            signal: AbortSignal.timeout(2500),
-          })
-          if (res.ok) {
-            const data = await res.json()
-            if (Array.isArray(data.words)) {
-              sessionWords = data.words
+        if (typeof window !== 'undefined') {
+          const keysToTry = [
+            `wb_session_words_${childId}`,
+            `wb_session_words_sony`,
+            `wb_session_words_sofia`,
+          ]
+          for (const k of keysToTry) {
+            const raw = localStorage.getItem(k)
+            if (raw) {
+              try {
+                const parsed = JSON.parse(raw)
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  sessionWords = parsed
+                  break
+                }
+              } catch (e) {}
             }
           }
-        } catch (e) {
-          console.warn('Could not load sessions via API, checking localStorage:', e)
-        }
 
-        // Check localStorage fallback for recent session words if API returned empty
-        if (sessionWords.length === 0 && typeof window !== 'undefined') {
-          const savedWordsRaw = localStorage.getItem(`wb_session_words_${childId}`)
-          if (savedWordsRaw) {
-            try {
-              const parsed = JSON.parse(savedWordsRaw)
-              if (Array.isArray(parsed)) sessionWords = parsed
-            } catch (e) {}
-          }
-
-          if (sessionWords.length === 0) {
-            const repRaw = localStorage.getItem(`wb_report_${childId}`)
+          const reportKeys = [
+            `wb_report_${childId}`,
+            `wb_report_sony`,
+            `wb_report_sofia`,
+            `wb_report`,
+          ]
+          for (const rk of reportKeys) {
+            const repRaw = localStorage.getItem(rk)
             if (repRaw) {
               try {
                 const rep = JSON.parse(repRaw)
-                if (Array.isArray(rep.words)) {
-                  sessionWords = rep.words
-                } else if (Array.isArray(rep.words_to_revisit) && rep.words_to_revisit.length > 0) {
-                  const attemptMap: Record<string, string> = {
-                    dog: 'bog',
-                    knight: 'nite',
-                    wrote: 'rote',
-                    through: 'thru',
-                    gnome: 'nome',
-                    light: 'lite',
+                if (rep.recommended_profile) {
+                  detectedRec = rep.recommended_profile
+                }
+                if (rep.recommendation_reason) {
+                  setRecommendationReason(rep.recommendation_reason)
+                }
+                if (sessionWords.length === 0) {
+                  if (Array.isArray(rep.words) && rep.words.length > 0) {
+                    sessionWords = rep.words
+                  } else if (Array.isArray(rep.words_to_revisit) && rep.words_to_revisit.length > 0) {
+                    const attemptMap: Record<string, string> = {
+                      dog: 'bog', knight: 'nite', wrote: 'rote', through: 'thru', gnome: 'nome', light: 'lite',
+                    }
+                    sessionWords = rep.words_to_revisit.map((w: any) => {
+                      const text = typeof w === 'object' && w !== null ? (w.word || w.target || '') : String(w || '')
+                      return {
+                        target: text,
+                        child_answer: attemptMap[text.toLowerCase()] || `${text.slice(1)}e`,
+                        is_correct: false,
+                        sentence: CONTEXT_SENTENCES[text.toLowerCase()] || `The word "${text}" was shown in the reading exercise.`,
+                      }
+                    })
                   }
-                  sessionWords = rep.words_to_revisit.map((w: string) => ({
-                    target: w,
-                    child_answer: attemptMap[w.toLowerCase()] || `${w.slice(1)}e`,
-                    is_correct: false,
-                    sentence: CONTEXT_SENTENCES[w.toLowerCase()] || `The word "${w}" was shown in the reading exercise.`,
-                  }))
                 }
               } catch (e) {}
             }
           }
         }
 
-        // Filter to wrong answers safely
+        // 3. Fallback to API if localStorage had no session words
+        if (sessionWords.length === 0) {
+          try {
+            const res = await fetch(`/api/children/${childId}/sessions/latest`, {
+              signal: AbortSignal.timeout(2500),
+            })
+            if (res.ok) {
+              const data = await res.json()
+              if (Array.isArray(data.words) && data.words.length > 0) {
+                sessionWords = data.words
+              }
+            }
+          } catch (e) {
+            console.warn('Could not load sessions via API:', e)
+          }
+        }
+
+        if (detectedRec && isMounted) {
+          setRecommendedProfile(detectedRec)
+        }
+
+        if (loadedProfile && isMounted) {
+          setProfile(loadedProfile)
+          const pType = (loadedProfile.dyslexia_type || '').toLowerCase().trim()
+          const isUnknown = pType.includes('unknown') || pType.includes('not sure') || pType.includes('undetermined')
+          if (isUnknown) {
+            if (detectedRec) {
+              setSelectedType(normalizeDyslexiaType(detectedRec))
+            } else {
+              setSelectedType('visual_spatial')
+            }
+          } else {
+            setSelectedType(normalizeDyslexiaType(loadedProfile.dyslexia_type))
+          }
+        }
+
+        // Filter to wrong answers safely or display session words
         let filteredWrong = sessionWords.filter(w => w && typeof w === 'object' && w.target && !w.is_correct)
+        if (filteredWrong.length === 0 && sessionWords.length > 0) {
+          filteredWrong = sessionWords.map(w => ({ ...w, is_correct: false }))
+        }
         if (filteredWrong.length === 0) {
           filteredWrong = DEFAULT_INITIAL_WORDS[childId] || DEFAULT_INITIAL_WORDS.emma
         }
@@ -299,23 +346,26 @@ export default function DyslexiaMirrorPage({
     return () => { isMounted = false }
   }, [childId])
 
-  const childName = profile?.name || profile?.child_name || (childId.charAt(0).toUpperCase() + childId.slice(1))
+  const childName = profile?.name || profile?.child_name || (childId in ['sofia', 'sony'] ? 'Sony Mathew' : (childId.charAt(0).toUpperCase() + childId.slice(1)))
   const firstName = childName.split(' ')[0]
   const activeWord = wrongWords[activeWordIndex] || wrongWords[0] || initialWords[0]
   const rawType = (profile?.dyslexia_type || '').toLowerCase().trim()
   const isNonDyslexic = rawType.includes('non') || rawType === 'none' || rawType === 'general' || rawType === 'standard' || rawType === 'normal'
+  const isNotSure = rawType.includes('unknown') || rawType.includes('not sure') || rawType.includes('undetermined')
 
   // Recommendations per dyslexia type
   const getRecommendations = (type: DyslexiaType) => {
     switch (type) {
       case 'visual_spatial':
         return {
+          label: 'Visual / Spatial',
           bullets: [
             '✦ Switch font → OpenDyslexic (weighted letter bases prevent rotation)',
             '✦ Add colour overlay → Yellow (reduces visual glare and ocular jitter)',
             '✦ Consider input mode → Tap letters (removes fine-motor keyboard confusion)',
           ],
           patchData: {
+            dyslexia_type: 'visual_spatial',
             display_mode: 'opendyslexic',
             colour_overlay: 'yellow',
             input_mode: 'tap',
@@ -323,12 +373,14 @@ export default function DyslexiaMirrorPage({
         }
       case 'phonological':
         return {
+          label: 'Phonological',
           bullets: [
             '✦ Enable phonics chunking (breaks words into phoneme sound units)',
             '✦ Consider input mode → Voice (reinforces spoken phoneme recognition)',
             '✦ Add colour overlay → Blue (soothes contrast and aids auditory-visual pacing)',
           ],
           patchData: {
+            dyslexia_type: 'phonological',
             approach: 'phonics',
             input_mode: 'voice',
             colour_overlay: 'blue',
@@ -337,24 +389,28 @@ export default function DyslexiaMirrorPage({
         }
       case 'surface':
         return {
+          label: 'Surface',
           bullets: [
             '✦ Switch font → OpenDyslexic (strengthens distinct word-shape silhouettes)',
             '✦ Enable spotlight mode (masks surrounding text to isolate the target word)',
             '✦ Add colour overlay → Green (enhances letter tracking clarity)',
           ],
           patchData: {
+            dyslexia_type: 'surface',
             display_mode: 'spotlight',
             colour_overlay: 'green',
           },
         }
       case 'attentional':
         return {
+          label: 'Attentional',
           bullets: [
             '✦ Enable spotlight mode (dims peripheral words to prevent letter drifting)',
             '✦ Add colour overlay → Yellow (high focus anchor)',
             '✦ Reduce words shown per screen to 1 (strictly isolated focus)',
           ],
           patchData: {
+            dyslexia_type: 'attentional',
             display_mode: 'spotlight',
             colour_overlay: 'yellow',
             session_length: 5,
@@ -363,12 +419,14 @@ export default function DyslexiaMirrorPage({
         }
       case 'double_deficit':
         return {
+          label: 'Double Deficit',
           bullets: [
             '✦ All adaptations enabled (OpenDyslexic + Blue overlay + Phonics chunking)',
             '✦ Slow session pacing (extended response window removes time stress)',
             '✦ Increase break frequency (short 30s rest every 5 words to reset focus)',
           ],
           patchData: {
+            dyslexia_type: 'double_deficit',
             display_mode: 'opendyslexic',
             colour_overlay: 'blue',
             session_length: 5,
@@ -383,34 +441,33 @@ export default function DyslexiaMirrorPage({
   // Apply Recommendations to Profile
   const handleApplyRecommendations = async () => {
     setSavingProfile(true)
+    const patchPayload = { ...currentRecs.patchData, dyslexia_type: selectedType }
     try {
       const res = await fetch(`/api/children/${childId}/profile`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentRecs.patchData),
+        body: JSON.stringify(patchPayload),
       })
 
-      if (res.ok) {
-        // Update local state and localStorage
-        if (profile) {
-          const updated = { ...profile, ...currentRecs.patchData }
-          setProfile(updated)
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(`wb_profile_${childId}`, JSON.stringify(updated))
-          }
+      if (profile) {
+        const updated = { ...profile, ...patchPayload }
+        setProfile(updated)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`wb_profile_${childId}`, JSON.stringify(updated))
+          localStorage.setItem('wb_profile_sony', JSON.stringify(updated))
+          localStorage.setItem('wb_profile_sofia', JSON.stringify(updated))
         }
-        setToastMessage(`${firstName}'s profile updated!`)
-        setTimeout(() => setToastMessage(null), 4000)
-      } else {
-        throw new Error('Failed to update profile')
       }
+      setToastMessage(`${firstName}'s profile updated to ${currentRecs.label}! 🌸`)
+      setTimeout(() => setToastMessage(null), 4000)
     } catch (e) {
-      // Offline fallback: save to localStorage directly
       if (profile && typeof window !== 'undefined') {
-        const updated = { ...profile, ...currentRecs.patchData }
+        const updated = { ...profile, ...patchPayload }
         setProfile(updated)
         localStorage.setItem(`wb_profile_${childId}`, JSON.stringify(updated))
-        setToastMessage(`${firstName}'s profile updated!`)
+        localStorage.setItem('wb_profile_sony', JSON.stringify(updated))
+        localStorage.setItem('wb_profile_sofia', JSON.stringify(updated))
+        setToastMessage(`${firstName}'s profile updated to ${currentRecs.label}! 🌸`)
         setTimeout(() => setToastMessage(null), 4000)
       }
     }
@@ -697,6 +754,66 @@ export default function DyslexiaMirrorPage({
           </div>
         ) : (
           <>
+            {/* WordBloom Assessment Mirror Banner (for Not Sure Yet) */}
+            {isNotSure && (
+              <div style={{
+                background: 'rgba(59, 130, 246, 0.12)', border: '1.5px solid rgba(59, 130, 246, 0.45)',
+                borderRadius: 16, padding: '18px 22px', marginBottom: '1.5rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
+                boxShadow: '0 8px 24px rgba(59, 130, 246, 0.15)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div style={{
+                    width: 44, height: 44, borderRadius: '50%',
+                    background: 'rgba(59, 130, 246, 0.25)', border: '1.5px solid #60A5FA',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
+                  }}>
+                    🌸
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.8, color: '#93C5FD' }}>
+                      WordBloom Assessment · {firstName}&apos;s Bloom Profile: Not Sure Yet 🌸
+                    </div>
+                    <div style={{ fontSize: 14, color: '#F9FAFB', marginTop: 4, maxWidth: 660, lineHeight: 1.5 }}>
+                      {firstName} does not have an assigned profile yet. WordBloom Assessment observes reading engagement and letter patterns to help discover the most supportive learning environment.
+                      {recommendedProfile && (
+                        <div style={{ marginTop: 8 }}>
+                          <div style={{ color: '#38BDF8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                            <span>🌸 WordBloom Recommended Profile:</span>
+                            <span style={{ background: 'rgba(56, 189, 248, 0.2)', padding: '2px 8px', borderRadius: 6 }}>{recommendedProfile}</span>
+                          </div>
+                          <div style={{ fontSize: 13, color: '#E2E8F0', lineHeight: 1.4, background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(59, 130, 246, 0.25)', padding: '6px 12px', borderRadius: 8, marginTop: 4 }}>
+                            <span style={{ color: '#93C5FD', fontWeight: 700 }}>💡 Why WordBloom recommends this: </span>
+                            {recommendationReason || (
+                              recommendedProfile === 'Visual/Spatial' || recommendedProfile === 'Visual / Spatial'
+                                ? `${firstName} hesitated on letters that mirror or rotate (e.g., b↔d). OpenDyslexic weighted letter bases reduce spatial flipping.`
+                                : recommendedProfile === 'Surface'
+                                ? `${firstName} struggled recognizing irregular whole-word shapes and silent letters. Visual spotlighting and word silhouettes strengthen orthographic memory.`
+                                : `When typing words, ${firstName} demonstrated phonetic spelling patterns and sound-letter substitutions. Targeted sound-by-sound chunking and word-family practice will strengthen letter-sound mapping.`
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={handleApplyRecommendations}
+                  disabled={savingProfile}
+                  style={{
+                    background: 'linear-gradient(135deg, #10B981, #059669)',
+                    color: '#06080F', padding: '12px 22px', borderRadius: 50,
+                    fontSize: 14, fontWeight: 800, border: 'none', cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(16,185,129,0.35)',
+                    display: 'flex', alignItems: 'center', gap: 8,
+                  }}
+                >
+                  <span>🌸</span>
+                  <span>{savingProfile ? 'Updating...' : `Set Profile to ${currentRecs.label}`}</span>
+                </button>
+              </div>
+            )}
+
             {/* Top Controls Bar (Dyslexia Profile Selector + Animation Toggle) */}
             <div style={{
               background: '#111827', border: '1px solid #1F2937', borderRadius: 16,
@@ -710,14 +827,15 @@ export default function DyslexiaMirrorPage({
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {DYSLEXIA_TYPES.map(t => {
                 const isSelected = selectedType === t.id
-                const isChildProfileDefault = profile && normalizeDyslexiaType(profile.dyslexia_type) === t.id
+                const isChildProfileDefault = !isNotSure && profile && normalizeDyslexiaType(profile.dyslexia_type) === t.id
+                const isAiRecommended = isNotSure && recommendedProfile && normalizeDyslexiaType(recommendedProfile) === t.id
                 return (
                   <button
                     key={t.id}
                     onClick={() => setSelectedType(t.id)}
                     style={{
                       background: isSelected ? 'rgba(16,185,129,0.15)' : '#0B0F19',
-                      border: `1.5px solid ${isSelected ? '#10B981' : '#1F2937'}`,
+                      border: `1.5px solid ${isSelected ? '#10B981' : isAiRecommended ? '#38BDF8' : '#1F2937'}`,
                       color: isSelected ? '#34D399' : '#D1D5DB',
                       padding: '8px 14px', borderRadius: 10,
                       fontSize: 13, fontWeight: isSelected ? 700 : 500,
@@ -729,6 +847,11 @@ export default function DyslexiaMirrorPage({
                     {isChildProfileDefault && (
                       <span style={{ fontSize: 10, background: '#10B981', color: '#06080F', padding: '1px 6px', borderRadius: 10, fontWeight: 800 }}>
                         Profile
+                      </span>
+                    )}
+                    {isAiRecommended && (
+                      <span style={{ fontSize: 10, background: '#38BDF8', color: '#06080F', padding: '1px 6px', borderRadius: 10, fontWeight: 800 }}>
+                        WordBloom Recommended 🌸
                       </span>
                     )}
                   </button>

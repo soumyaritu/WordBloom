@@ -148,7 +148,7 @@ function ProfileForm() {
         return
       }
       if (!dyslexiaType) {
-        alert('Please select a dyslexia type (or "Not sure yet").')
+        alert('Please select a Bloom profile (or "Not sure yet").')
         return
       }
       if (readingLevel === null) {
@@ -368,11 +368,19 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
           </div>
         </section>
 
-        {/* Section 2: Dyslexia type (pick one) */}
+        {/* Section 2: Bloom Profile */}
         <section style={{ background: 'var(--panel)', padding: '1.5rem', borderRadius: 16, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800, marginBottom: '1rem' }}>
-            SECTION 2: DYSLEXIA TYPE (PICK ONE)
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 800 }}>
+              SECTION 2: BLOOM PROFILE 🌸
+            </div>
+            <span style={{ fontSize: 11, color: 'var(--bloom-text)', fontWeight: 700, background: 'rgba(16, 185, 129, 0.12)', padding: '2px 8px', borderRadius: 20 }}>
+              Pick One
+            </span>
           </div>
+          <p style={{ fontSize: 12, color: 'var(--grey)', marginBottom: '1rem', lineHeight: 1.4 }}>
+            Every child blooms in their own way — select their primary reading and learning profile:
+          </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {[
               { id: 'non_dyslexic', name: 'Non-dyslexic (General)', desc: 'Standard reader — normal font, pacing & display without accommodations' },
@@ -434,7 +442,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
             SECTION 3: CO-OCCURRING CONDITIONS (PICK MULTIPLE)
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: '1rem' }}>
-            {['adhd', 'dyspraxia', 'autism', 'dyscalculia'].map(cond => {
+            {['adhd', 'dyspraxia', 'autism'].map(cond => {
               const active = coOccurring.includes(cond)
               return (
                 <button
@@ -633,10 +641,10 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            {/* Candy Goal */}
+            {/* Bloom Goal */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 600, color: 'var(--white)', marginBottom: 6 }}>
-                <span>🎯 Goal: {candyGoal} candies 🍬</span>
+                <span>🎯 Goal: {candyGoal} blooms 🌸</span>
                 {hasADHD && <span style={{ color: '#FBBF24' }}>(ADHD auto-set to 5)</span>}
               </div>
               <input
@@ -646,7 +654,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                 style={{ width: '100%', opacity: hasADHD ? 0.5 : 1 }}
               />
               <div style={{ fontSize: 12, color: 'var(--grey)', marginTop: 4 }}>
-                Session concludes with celebration once the child earns {candyGoal} candies — zero timer pressure!
+                Session concludes with celebration once the child blooms {candyGoal} flowers — zero timer pressure!
               </div>
             </div>
 
