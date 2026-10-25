@@ -1,0 +1,21 @@
+.gcloudignore
+.git
+.gitignore
+
+# Frontend
+frontend/
+.next/
+node_modules/
+
+# Python Virtual Environments & Cache
+backend/venv/
+backend/env/
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Local environments
+.env
+.env.local
+*.env
