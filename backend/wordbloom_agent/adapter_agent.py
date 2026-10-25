@@ -298,11 +298,15 @@ def generate_visual_hint(
         width=2,
     )
 
-    # System fonts
+    # System fonts (supports Linux containers, Docker, and macOS)
     font_large = None
     font_small = None
     font_badge = None
     for p in [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
         "/System/Library/Fonts/Supplemental/Arial.ttf",
         "/System/Library/Fonts/Helvetica.ttc",
         "/Library/Fonts/Arial.ttf",
@@ -316,9 +320,15 @@ def generate_visual_hint(
             except Exception:
                 pass
     if not font_large:
-        font_large = ImageFont.load_default()
-        font_small = ImageFont.load_default()
-        font_badge = ImageFont.load_default()
+        try:
+            # Pillow 10.1.0+ supports size parameter for load_default
+            font_large = ImageFont.load_default(size=36)
+            font_small = ImageFont.load_default(size=14)
+            font_badge = ImageFont.load_default(size=12)
+        except TypeError:
+            font_large = ImageFont.load_default()
+            font_small = ImageFont.load_default()
+            font_badge = ImageFont.load_default()
 
     # Header Badge — child-friendly and uncluttered
     if voice_mode:
