@@ -111,14 +111,14 @@ export default function ChildWelcomePage({
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              padding: '10px 22px',
+              padding: '11px 24px',
               borderRadius: 30,
               background: 'rgba(255, 255, 255, 0.22)',
               backdropFilter: 'blur(10px)',
               WebkitBackdropFilter: 'blur(10px)',
               border: '1.5px solid rgba(255, 255, 255, 0.4)',
               color: '#FFFFFF',
-              fontSize: '0.95rem',
+              fontSize: '1.05rem',
               fontWeight: 800,
               textDecoration: 'none',
               boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
@@ -245,9 +245,9 @@ export default function ChildWelcomePage({
         <p
           style={{
             marginTop: '2rem',
-            fontSize: '1rem',
-            color: 'rgba(255, 255, 255, 0.85)',
-            fontWeight: 600,
+            fontSize: '1.15rem',
+            color: 'rgba(255, 255, 255, 0.9)',
+            fontWeight: 700,
           }}
         >
           No rush, no timer. Read at your own pace! ✨

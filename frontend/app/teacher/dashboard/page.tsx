@@ -381,11 +381,11 @@ export default function TeacherDashboardPage() {
                 href="/profile?child=new"
                 className="wb-btn"
                 style={{
-                  padding: '10px 22px',
+                  padding: '11px 24px',
                   borderRadius: 50,
                   background: 'linear-gradient(135deg, #10B981, #059669)',
                   color: '#FFFFFF',
-                  fontSize: '0.92rem',
+                  fontSize: '1.05rem',
                   fontWeight: 800,
                   textDecoration: 'none',
                   boxShadow: '0 6px 16px rgba(16, 185, 129, 0.35)',
@@ -401,11 +401,11 @@ export default function TeacherDashboardPage() {
                 href="/teacher?child=emma"
                 className="wb-btn"
                 style={{
-                  padding: '10px 20px',
+                  padding: '11px 24px',
                   borderRadius: 50,
                   background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
                   color: '#FFFFFF',
-                  fontSize: '0.92rem',
+                  fontSize: '1.05rem',
                   fontWeight: 800,
                   textDecoration: 'none',
                   boxShadow: '0 6px 16px rgba(124, 58, 237, 0.3)',
@@ -468,13 +468,13 @@ export default function TeacherDashboardPage() {
                     {/* dyslexia_type · Stage N · input_mode · conditions */}
                     <div
                       style={{
-                        fontSize: '0.88rem',
+                        fontSize: '1rem',
                         fontWeight: 700,
                         color: '#6d28d9',
                         display: 'flex',
                         alignItems: 'center',
                         flexWrap: 'wrap',
-                        gap: 6,
+                        gap: 8,
                       }}
                     >
                       <span>{child.dyslexia_type}</span>
@@ -495,17 +495,17 @@ export default function TeacherDashboardPage() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 16,
-                    padding: '8px 16px',
+                    padding: '9px 18px',
                     borderRadius: 14,
                     background: '#ffffff',
                     border: '1px solid #e9d5ff',
                   }}
                 >
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>
                       Last Session
                     </div>
-                    <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#374151' }}>
+                    <div style={{ fontSize: '1.02rem', fontWeight: 800, color: '#374151' }}>
                       {child.last_session || 'Today'}
                     </div>
                   </div>
@@ -513,10 +513,10 @@ export default function TeacherDashboardPage() {
                   <div style={{ height: 28, width: 1, background: '#e5e7eb' }} />
 
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>
                       Blooms
                     </div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#059669' }}>
+                    <div style={{ fontSize: '1.12rem', fontWeight: 900, color: '#059669' }}>
                       {child.candy_count ?? 5} 🌸
                     </div>
                   </div>
@@ -531,12 +531,12 @@ export default function TeacherDashboardPage() {
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: 6,
-                      padding: '10px 18px',
+                      padding: '11px 20px',
                       borderRadius: 12,
                       background: '#ede9fe',
                       border: '1.5px solid #c4b5fd',
                       color: '#5b21b6',
-                      fontSize: '0.92rem',
+                      fontSize: '1.02rem',
                       fontWeight: 800,
                       textDecoration: 'none',
                     }}
@@ -551,12 +551,12 @@ export default function TeacherDashboardPage() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: 6,
-                        padding: '10px 16px',
+                        padding: '11px 18px',
                         borderRadius: 12,
                         background: 'rgba(16, 185, 129, 0.12)',
                         border: '1.5px solid rgba(16, 185, 129, 0.35)',
                         color: '#059669',
-                        fontSize: '0.88rem',
+                        fontSize: '0.98rem',
                         fontWeight: 800,
                       }}
                     >
@@ -570,12 +570,12 @@ export default function TeacherDashboardPage() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: 6,
-                        padding: '10px 18px',
+                        padding: '11px 20px',
                         borderRadius: 12,
                         background: 'linear-gradient(135deg, #7c3aed, #9333ea)',
                         border: 'none',
                         color: '#FFFFFF',
-                        fontSize: '0.92rem',
+                        fontSize: '1.02rem',
                         fontWeight: 800,
                         textDecoration: 'none',
                         boxShadow: '0 4px 14px rgba(124, 58, 237, 0.3)',

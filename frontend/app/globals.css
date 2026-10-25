@@ -42,14 +42,23 @@
   --radius:      12px;
 }
 
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  letter-spacing: -0.01em;
+}
+
 body {
   font-family: var(--font);
+  font-size: 1.05rem;
   background:  linear-gradient(135deg, #667eea 0%, #764ba2 40%, #f093fb 100%);
   background-attachment: fixed;
   color:       var(--white);
   min-height:  100vh;
-  line-height: 1.7;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -75,11 +84,12 @@ input, textarea {
   outline: none;
 }
 
-/* OpenDyslexic mode — targeted cleanly to text, headings, and reading letters without breaking UI icons */
+/* OpenDyslexic mode — boosted to compensate for OpenDyslexic's lower x-height */
 body.opendyslexic {
   font-family: 'OpenDyslexic', 'Nunito', system-ui, sans-serif;
-  letter-spacing: 0.04em;
-  word-spacing: 0.08em;
+  font-size: 1.12rem;
+  letter-spacing: 0.05em;
+  word-spacing: 0.09em;
 }
 
 body.opendyslexic p,
@@ -88,7 +98,10 @@ body.opendyslexic h2,
 body.opendyslexic h3,
 body.opendyslexic .reading-letter,
 body.opendyslexic .dyslexic-text,
-body.opendyslexic label {
+body.opendyslexic label,
+body.opendyslexic span,
+body.opendyslexic button,
+body.opendyslexic input {
   font-family: 'OpenDyslexic', 'Nunito', system-ui, sans-serif;
 }
 

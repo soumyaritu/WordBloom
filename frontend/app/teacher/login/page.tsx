@@ -185,7 +185,7 @@ export default function TeacherLoginPage() {
                 htmlFor="teacher-email"
                 style={{
                   display: 'block',
-                  fontSize: '0.9rem',
+                  fontSize: '1rem',
                   fontWeight: 800,
                   color: '#4c1d95',
                   marginBottom: '0.45rem',
@@ -202,12 +202,12 @@ export default function TeacherLoginPage() {
                 placeholder="teacher@wordbloom.edu"
                 style={{
                   width: '100%',
-                  padding: '12px 16px',
+                  padding: '13px 18px',
                   borderRadius: 12,
                   border: '2px solid #e9d5ff',
                   background: '#faf5ff',
                   color: '#1e1b4b',
-                  fontSize: '1rem',
+                  fontSize: '1.05rem',
                   fontWeight: 600,
                   outline: 'none',
                   transition: 'border-color 0.2s',
@@ -222,7 +222,7 @@ export default function TeacherLoginPage() {
                 htmlFor="teacher-password"
                 style={{
                   display: 'block',
-                  fontSize: '0.9rem',
+                  fontSize: '1rem',
                   fontWeight: 800,
                   color: '#4c1d95',
                   marginBottom: '0.45rem',
@@ -239,12 +239,12 @@ export default function TeacherLoginPage() {
                 placeholder="••••••••"
                 style={{
                   width: '100%',
-                  padding: '12px 16px',
+                  padding: '13px 18px',
                   borderRadius: 12,
                   border: '2px solid #e9d5ff',
                   background: '#faf5ff',
                   color: '#1e1b4b',
-                  fontSize: '1rem',
+                  fontSize: '1.05rem',
                   fontWeight: 600,
                   outline: 'none',
                   transition: 'border-color 0.2s',

@@ -313,10 +313,10 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
           </button>
 
           <div style={{ textAlign: 'center' }}>
-            <h1 style={{ fontSize: 24, fontWeight: 900, color: '#F9FAFB', margin: 0, letterSpacing: '-0.01em' }}>
+            <h1 style={{ fontSize: 28, fontWeight: 900, color: '#F9FAFB', margin: 0, letterSpacing: '-0.01em' }}>
               {isNew ? 'New Child Profile' : `Edit ${fullName.split(' ')[0] || 'Child'}'s Profile`}
             </h1>
-            <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4, margin: 0 }}>
+            <p style={{ fontSize: 15, color: '#9CA3AF', marginTop: 4, margin: 0 }}>
               WordBloom Adaptive Neurodiverse Learning Settings
             </p>
           </div>
@@ -328,9 +328,9 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
               background: 'linear-gradient(135deg, #10B981, #059669)',
               border: 'none',
               color: '#FFFFFF',
-              padding: '10px 22px',
+              padding: '10px 24px',
               borderRadius: 30,
-              fontSize: 14,
+              fontSize: 15,
               fontWeight: 800,
               cursor: saving ? 'wait' : 'pointer',
               display: 'flex',
@@ -349,37 +349,37 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
           {/* Section 1: Identity */}
           <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
-            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
+            <div style={{ fontSize: 13.5, textTransform: 'uppercase', letterSpacing: 1.8, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
               SECTION 1: IDENTITY
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>Full Name</label>
+                  <label style={{ display: 'block', fontSize: 15, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>Full Name</label>
                   <input
                     type="text"
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
                     placeholder="e.g. Emma Clarke"
                     style={{
-                      width: '100%', padding: '12px 16px', background: '#0F172A',
+                      width: '100%', padding: '13px 16px', background: '#0F172A',
                       border: '1.5px solid #1F2937', borderRadius: 12,
-                      color: '#F9FAFB', fontSize: 15, outline: 'none',
+                      color: '#F9FAFB', fontSize: 16, outline: 'none',
                     }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>Parent's Email Address (For Progress Reports)</label>
+                  <label style={{ display: 'block', fontSize: 15, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>Parent's Email Address (For Progress Reports)</label>
                   <input
                     type="email"
                     value={parentEmail}
                     onChange={e => setParentEmail(e.target.value)}
                     placeholder="e.g. parent@example.com"
                     style={{
-                      width: '100%', padding: '12px 16px', background: '#0F172A',
+                      width: '100%', padding: '13px 16px', background: '#0F172A',
                       border: '1.5px solid #1F2937', borderRadius: 12,
-                      color: '#F9FAFB', fontSize: 15, outline: 'none',
+                      color: '#F9FAFB', fontSize: 16, outline: 'none',
                     }}
                   />
                 </div>
@@ -387,30 +387,30 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>Age</label>
+                  <label style={{ display: 'block', fontSize: 15, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>Age</label>
                   <input
                     type="number"
                     value={age}
                     onChange={e => setAge(e.target.value)}
                     placeholder="e.g. 9"
                     style={{
-                      width: '100%', padding: '12px 16px', background: '#0F172A',
+                      width: '100%', padding: '13px 16px', background: '#0F172A',
                       border: '1.5px solid #1F2937', borderRadius: 12,
-                      color: '#F9FAFB', fontSize: 15, outline: 'none',
+                      color: '#F9FAFB', fontSize: 16, outline: 'none',
                     }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>School Year</label>
+                  <label style={{ display: 'block', fontSize: 15, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>School Year</label>
                   <input
                     type="text"
                     value={schoolYear}
                     onChange={e => setSchoolYear(e.target.value)}
                     placeholder="e.g. Year 4"
                     style={{
-                      width: '100%', padding: '12px 16px', background: '#0F172A',
+                      width: '100%', padding: '13px 16px', background: '#0F172A',
                       border: '1.5px solid #1F2937', borderRadius: 12,
-                      color: '#F9FAFB', fontSize: 15, outline: 'none',
+                      color: '#F9FAFB', fontSize: 16, outline: 'none',
                     }}
                   />
                 </div>
@@ -421,14 +421,14 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
           {/* Section 2: Bloom Profile */}
           <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800 }}>
+              <div style={{ fontSize: 13.5, textTransform: 'uppercase', letterSpacing: 1.8, color: '#10B981', fontWeight: 800 }}>
                 SECTION 2: BLOOM PROFILE 🌸
               </div>
-              <span style={{ fontSize: 12, color: '#10B981', fontWeight: 800, background: 'rgba(16, 185, 129, 0.15)', padding: '3px 10px', borderRadius: 20, border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+              <span style={{ fontSize: 13, color: '#10B981', fontWeight: 800, background: 'rgba(16, 185, 129, 0.15)', padding: '4px 12px', borderRadius: 20, border: '1px solid rgba(16, 185, 129, 0.3)' }}>
                 Pick One
               </span>
             </div>
-            <p style={{ fontSize: 13, color: '#9CA3AF', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 14.5, color: '#9CA3AF', marginBottom: '1.25rem', lineHeight: 1.5 }}>
               Every child blooms in their own way — select their primary reading and learning profile:
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
@@ -447,7 +447,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                     key={type.id}
                     onClick={() => handleSelectDyslexiaType(type.id)}
                     style={{
-                      padding: '14px 16px', borderRadius: 14, cursor: 'pointer',
+                      padding: '16px 18px', borderRadius: 14, cursor: 'pointer',
                       border: isSelected ? '2px solid #10B981' : '1.5px solid #1F2937',
                       background: isSelected ? 'rgba(16, 185, 129, 0.1)' : '#0F172A',
                       transition: 'all 0.2s ease',
@@ -455,14 +455,14 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: isSelected ? '#34D399' : '#F9FAFB' }}>
+                      <div style={{ fontSize: 16.5, fontWeight: 800, color: isSelected ? '#34D399' : '#F9FAFB' }}>
                         {type.id === 'non_dyslexic' ? '🌱 ' + type.name : type.name}
                       </div>
                       {isSelected && (
-                        <span style={{ color: '#10B981', fontWeight: 900, fontSize: 16 }}>✓</span>
+                        <span style={{ color: '#10B981', fontWeight: 900, fontSize: 18 }}>✓</span>
                       )}
                     </div>
-                    <div style={{ fontSize: 12.5, color: '#9CA3AF', marginTop: 5, lineHeight: 1.4 }}>
+                    <div style={{ fontSize: 14, color: '#9CA3AF', marginTop: 6, lineHeight: 1.45 }}>
                       {type.desc}
                     </div>
                   </div>
@@ -491,7 +491,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
           {/* Section 3: Co-occurring conditions (pick multiple) */}
           <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
-            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
+            <div style={{ fontSize: 13.5, textTransform: 'uppercase', letterSpacing: 1.8, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
               SECTION 3: CO-OCCURRING CONDITIONS (PICK MULTIPLE)
             </div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: '1.25rem' }}>
@@ -502,7 +502,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                     key={cond}
                     onClick={() => toggleCoOccurring(cond)}
                     style={{
-                      padding: '10px 22px', borderRadius: 30, fontSize: 13.5, fontWeight: 700,
+                      padding: '11px 24px', borderRadius: 30, fontSize: 15, fontWeight: 700,
                       border: active ? '2px solid #10B981' : '1.5px solid #1F2937',
                       background: active ? 'rgba(16, 185, 129, 0.12)' : '#0F172A',
                       color: active ? '#34D399' : '#F9FAFB', cursor: 'pointer',
@@ -519,8 +519,8 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
             {hasADHD && (
               <div style={{
                 background: 'rgba(245,158,11,0.12)', border: '1.5px solid rgba(245,158,11,0.4)',
-                borderRadius: 14, padding: '14px 18px', fontSize: 13.5, color: '#FBBF24',
-                lineHeight: 1.5, fontWeight: 600, marginBottom: hasAutism ? 12 : 0
+                borderRadius: 14, padding: '15px 20px', fontSize: 14.5, color: '#FBBF24',
+                lineHeight: 1.55, fontWeight: 600, marginBottom: hasAutism ? 12 : 0
               }}>
                 ⚠️ <strong>ADHD detected</strong> — session auto-set to 5 min, break every 5 words, encouragement style set to specific (factual not vague)
               </div>
@@ -529,8 +529,8 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
             {hasAutism && (
               <div style={{
                 background: 'rgba(129,140,248,0.12)', border: '1.5px solid rgba(129,140,248,0.4)',
-                borderRadius: 14, padding: '14px 18px', fontSize: 13.5, color: '#C7D2FE',
-                lineHeight: 1.5, fontWeight: 600
+                borderRadius: 14, padding: '15px 20px', fontSize: 14.5, color: '#C7D2FE',
+                lineHeight: 1.55, fontWeight: 600
               }}>
                 💡 <strong>Autism flag</strong> — encouragement will use specific facts only. No sudden difficulty changes.
               </div>
@@ -539,7 +539,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
           {/* Section 4: Reading level (pick one) */}
           <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
-            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
+            <div style={{ fontSize: 13.5, textTransform: 'uppercase', letterSpacing: 1.8, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
               SECTION 4: READING LEVEL (PICK ONE)
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
@@ -555,16 +555,16 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                     key={item.lvl}
                     onClick={() => setReadingLevel(item.lvl)}
                     style={{
-                      padding: '16px 14px', borderRadius: 14, cursor: 'pointer', textAlign: 'center',
+                      padding: '16px 16px', borderRadius: 14, cursor: 'pointer', textAlign: 'center',
                       border: isSelected ? '2px solid #10B981' : '1.5px solid #1F2937',
                       background: isSelected ? 'rgba(16, 185, 129, 0.1)' : '#0F172A',
                       transition: 'all 0.2s ease',
                     }}
                   >
-                    <div style={{ fontSize: 15, fontWeight: 800, color: isSelected ? '#34D399' : '#F9FAFB' }}>
+                    <div style={{ fontSize: 16.5, fontWeight: 800, color: isSelected ? '#34D399' : '#F9FAFB' }}>
                       {item.name}
                     </div>
-                    <div style={{ fontSize: 12.5, color: '#9CA3AF', marginTop: 4, lineHeight: 1.3 }}>
+                    <div style={{ fontSize: 13.5, color: '#9CA3AF', marginTop: 5, lineHeight: 1.35 }}>
                       {item.desc}
                     </div>
                   </button>
@@ -575,7 +575,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
           {/* Section 5: How they answer (pick one) */}
           <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
-            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
+            <div style={{ fontSize: 13.5, textTransform: 'uppercase', letterSpacing: 1.8, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
               SECTION 5: HOW THEY ANSWER (PICK ONE)
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
@@ -590,17 +590,17 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                     key={mode.id}
                     onClick={() => setInputMode(mode.id)}
                     style={{
-                      padding: '18px 16px', borderRadius: 16, cursor: 'pointer', textAlign: 'center',
+                      padding: '20px 18px', borderRadius: 16, cursor: 'pointer', textAlign: 'center',
                       border: isSelected ? '2px solid #10B981' : '1.5px solid #1F2937',
                       background: isSelected ? 'rgba(16, 185, 129, 0.1)' : '#0F172A',
                       transition: 'all 0.2s ease',
                     }}
                   >
-                    <div style={{ fontSize: 32, marginBottom: 8 }}>{mode.icon}</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: isSelected ? '#34D399' : '#F9FAFB' }}>
+                    <div style={{ fontSize: 34, marginBottom: 8 }}>{mode.icon}</div>
+                    <div style={{ fontSize: 16.5, fontWeight: 800, color: isSelected ? '#34D399' : '#F9FAFB' }}>
                       {mode.name}
                     </div>
-                    <div style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>{mode.desc}</div>
+                    <div style={{ fontSize: 14, color: '#9CA3AF', marginTop: 5 }}>{mode.desc}</div>
                   </div>
                 )
               })}
@@ -609,7 +609,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
           {/* Section 6: Display mode (pick one) */}
           <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
-            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
+            <div style={{ fontSize: 13.5, textTransform: 'uppercase', letterSpacing: 1.8, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
               SECTION 6: DISPLAY MODE (PICK ONE)
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
@@ -624,7 +624,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                     key={disp.id}
                     onClick={() => setDisplayMode(disp.id)}
                     style={{
-                      padding: '16px 18px', borderRadius: 16, cursor: 'pointer',
+                      padding: '18px 20px', borderRadius: 16, cursor: 'pointer',
                       border: isSelected ? '2px solid #10B981' : '1.5px solid #1F2937',
                       background: isSelected ? 'rgba(16, 185, 129, 0.1)' : '#0F172A',
                       transition: 'all 0.2s ease',
@@ -633,12 +633,12 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                   >
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ fontSize: 15, fontWeight: 800, color: isSelected ? '#34D399' : '#F9FAFB' }}>
+                        <div style={{ fontSize: 16.5, fontWeight: 800, color: isSelected ? '#34D399' : '#F9FAFB' }}>
                           {disp.name}
                         </div>
-                        {isSelected && <span style={{ color: '#10B981', fontWeight: 900, fontSize: 16 }}>✓</span>}
+                        {isSelected && <span style={{ color: '#10B981', fontWeight: 900, fontSize: 18 }}>✓</span>}
                       </div>
-                      <div style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4, lineHeight: 1.4 }}>{disp.desc}</div>
+                      <div style={{ fontSize: 14, color: '#9CA3AF', marginTop: 5, lineHeight: 1.45 }}>{disp.desc}</div>
                     </div>
                   </div>
                 )
@@ -648,10 +648,10 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
           {/* Section 7: Colour overlay (pick one) */}
           <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
-            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800, marginBottom: 6 }}>
+            <div style={{ fontSize: 13.5, textTransform: 'uppercase', letterSpacing: 1.8, color: '#10B981', fontWeight: 800, marginBottom: 6 }}>
               SECTION 7: COLOUR OVERLAY
             </div>
-            <div style={{ fontSize: 13, color: '#9CA3AF', marginBottom: '1.25rem' }}>
+            <div style={{ fontSize: 14.5, color: '#9CA3AF', marginBottom: '1.25rem' }}>
               Child picks what feels right — reduces visual stress and glare
             </div>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
@@ -669,7 +669,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                     onClick={() => setColourOverlay(item.id)}
                     style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer',
-                      padding: '10px 16px', borderRadius: 16,
+                      padding: '12px 18px', borderRadius: 16,
                       background: isSelected ? 'rgba(16, 185, 129, 0.1)' : '#0F172A',
                       border: isSelected ? '2px solid #10B981' : '1.5px solid #1F2937',
                       transition: 'all 0.2s ease',
@@ -677,12 +677,12 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                   >
                     <div
                       style={{
-                        width: 44, height: 44, borderRadius: '50%',
+                        width: 46, height: 46, borderRadius: '50%',
                         background: item.color,
                         border: `2.5px solid ${isSelected ? '#10B981' : item.border}`,
                         boxShadow: isSelected ? '0 0 14px rgba(16,185,129,0.5)' : '0 2px 6px rgba(0,0,0,0.2)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 16,
+                        fontSize: 18,
                         color: item.id === 'none' ? '#F9FAFB' : '#0F172A',
                         fontWeight: 'bold',
                         transition: 'transform 0.15s ease',
@@ -692,7 +692,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                       {isSelected ? '✓' : ''}
                     </div>
                     <span style={{
-                      fontSize: 13,
+                      fontSize: 14.5,
                       color: isSelected ? '#34D399' : '#F9FAFB',
                       fontWeight: isSelected ? 800 : 600
                     }}>
@@ -714,14 +714,14 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                             colourOverlay === 'pink' ? '#FCE7F3' : '#0F172A',
                 border: '1.5px solid #1F2937',
                 color: colourOverlay === 'none' ? '#9CA3AF' : '#0F172A',
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: 600,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,
               }}
             >
-              <span style={{ fontSize: 20 }}>🎨</span>
+              <span style={{ fontSize: 22 }}>🎨</span>
               <div>
                 <strong>Overlay Preview ({colourOverlay.toUpperCase()}):</strong>
                 <span style={{ marginLeft: 6 }}>
@@ -735,16 +735,16 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
           {/* Section 8: Session settings */}
           <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
-            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
+            <div style={{ fontSize: 13.5, textTransform: 'uppercase', letterSpacing: 1.8, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
               SECTION 8: SESSION SETTINGS
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
               {/* Bloom Goal */}
-              <div style={{ background: '#0F172A', padding: '16px', borderRadius: 14, border: '1px solid #1F2937' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>
+              <div style={{ background: '#0F172A', padding: '18px', borderRadius: 14, border: '1px solid #1F2937' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>
                   <span>🎯 Goal: {candyGoal} blooms 🌸</span>
-                  {hasADHD && <span style={{ color: '#FBBF24', fontSize: 12 }}>(ADHD auto-set to 5)</span>}
+                  {hasADHD && <span style={{ color: '#FBBF24', fontSize: 13 }}>(ADHD auto-set to 5)</span>}
                 </div>
                 <input
                   type="range" min={3} max={15} value={candyGoal}
@@ -752,16 +752,16 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                   onChange={e => setCandyGoal(parseInt(e.target.value))}
                   style={{ width: '100%', opacity: hasADHD ? 0.5 : 1, accentColor: '#10B981' }}
                 />
-                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 6, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 13.5, color: '#9CA3AF', marginTop: 8, lineHeight: 1.45 }}>
                   Session concludes once the child blooms {candyGoal} flowers — zero timer pressure!
                 </div>
               </div>
 
               {/* Break Frequency */}
-              <div style={{ background: '#0F172A', padding: '16px', borderRadius: 14, border: '1px solid #1F2937' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>
+              <div style={{ background: '#0F172A', padding: '18px', borderRadius: 14, border: '1px solid #1F2937' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>
                   <span>⏸️ Break after: {breakAfter} words</span>
-                  {hasADHD && <span style={{ color: '#FBBF24', fontSize: 12 }}>(ADHD auto-set)</span>}
+                  {hasADHD && <span style={{ color: '#FBBF24', fontSize: 13 }}>(ADHD auto-set)</span>}
                 </div>
                 <input
                   type="range" min={3} max={15} value={breakAfter}
@@ -769,16 +769,16 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                   onChange={e => setBreakAfter(parseInt(e.target.value))}
                   style={{ width: '100%', opacity: hasADHD ? 0.5 : 1, accentColor: '#10B981' }}
                 />
-                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 6, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 13.5, color: '#9CA3AF', marginTop: 8, lineHeight: 1.45 }}>
                   Offers a gentle 30-second eye rest break after every {breakAfter} words.
                 </div>
               </div>
 
               {/* Safety Duration Ceiling */}
-              <div style={{ background: '#0F172A', padding: '16px', borderRadius: 14, border: '1px solid #1F2937' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>
+              <div style={{ background: '#0F172A', padding: '18px', borderRadius: 14, border: '1px solid #1F2937' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, fontWeight: 700, color: '#F9FAFB', marginBottom: 8 }}>
                   <span>⏱️ Safety duration ceiling: {sessionLength} min</span>
-                  {hasADHD && <span style={{ color: '#FBBF24', fontSize: 12 }}>(ADHD auto-set to 5 min)</span>}
+                  {hasADHD && <span style={{ color: '#FBBF24', fontSize: 13 }}>(ADHD auto-set to 5 min)</span>}
                 </div>
                 <input
                   type="range" min={3} max={20} value={sessionLength}
@@ -786,13 +786,13 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                   onChange={e => setSessionLength(parseInt(e.target.value))}
                   style={{ width: '100%', opacity: hasADHD ? 0.5 : 1, accentColor: '#10B981' }}
                 />
-                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 6, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 13.5, color: '#9CA3AF', marginTop: 8, lineHeight: 1.45 }}>
                   Safety ceiling so session closes gracefully if left unattended.
                 </div>
               </div>
             </div>
 
-            <div style={{ background: '#0F172A', padding: '12px 16px', borderRadius: 12, fontSize: 13, color: '#9CA3AF', border: '1px solid #1F2937' }}>
+            <div style={{ background: '#0F172A', padding: '14px 18px', borderRadius: 12, fontSize: 14.5, color: '#9CA3AF', border: '1px solid #1F2937' }}>
               ℹ️ <strong style={{ color: '#F9FAFB' }}>No Timer Pressure:</strong> Countdown clocks are never shown to the child. Sessions end pleasantly when they earn their candy goal!
             </div>
           </section>

@@ -436,15 +436,15 @@ function TeacherDashboardContent() {
                 background: 'var(--panel)',
                 border: '1px solid var(--border)',
                 color: 'var(--white)',
-                padding: '8px 16px',
+                padding: '9px 18px',
                 borderRadius: 20,
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                minHeight: 40,
+                minHeight: 42,
                 transition: 'all 0.2s ease',
               }}
             >
@@ -454,10 +454,10 @@ function TeacherDashboardContent() {
           </div>
 
           <div style={{ textAlign: 'center' }}>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--white)', margin: 0, lineHeight: 1.2 }}>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--white)', margin: 0, lineHeight: 1.2 }}>
               Session Reports
             </h1>
-            <p suppressHydrationWarning style={{ fontSize: 13, color: 'var(--grey)', marginTop: 4 }}>
+            <p suppressHydrationWarning style={{ fontSize: 15, color: 'var(--grey)', marginTop: 4 }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
           </div>
@@ -471,14 +471,14 @@ function TeacherDashboardContent() {
                 color: '#EEF2FF',
                 border: '1.5px solid var(--accent)',
                 borderRadius: 24,
-                padding: '8px 16px',
-                fontSize: 13,
+                padding: '9px 18px',
+                fontSize: 15,
                 fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                minHeight: 40,
+                minHeight: 42,
                 boxShadow: '0 4px 14px rgba(129,140,248,0.3)',
                 transition: 'all 0.2s ease',
               }}
@@ -491,7 +491,7 @@ function TeacherDashboardContent() {
 
       {/* Student selector tabs */}
       <div style={{ width: '100%', maxWidth: 1040, marginBottom: '1.5rem' }}>
-        <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--grey)', fontWeight: 700, marginBottom: 8 }}>
+        <div style={{ fontSize: 13.5, textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--grey)', fontWeight: 700, marginBottom: 8 }}>
           Select Student:
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -506,18 +506,18 @@ function TeacherDashboardContent() {
                 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '8px 16px', borderRadius: 20,
+                  padding: '9px 18px', borderRadius: 20,
                   border: `${isSelected ? '2px' : '1px'} solid ${isSelected ? 'var(--bloom)' : 'var(--border)'}`,
                   background: isSelected ? 'var(--bloom-bg)' : 'var(--panel)',
                   color: isSelected ? '#34D399' : 'var(--white)',
-                  fontSize: 14, fontWeight: isSelected ? 700 : 500,
+                  fontSize: 15.5, fontWeight: isSelected ? 700 : 500,
                   cursor: 'pointer', transition: 'all 0.2s ease',
                 }}
               >
                 <div style={{
-                  width: 22, height: 22, borderRadius: '50%',
+                  width: 24, height: 24, borderRadius: '50%',
                   background: isSelected ? 'var(--bloom)' : 'var(--border2)',
-                  color: '#fff', fontSize: 11, fontWeight: 800,
+                  color: '#fff', fontSize: 12, fontWeight: 800,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   {st.name.charAt(0)}
@@ -539,10 +539,10 @@ function TeacherDashboardContent() {
           ].map((stat, i) => (
             <div key={i} style={{
               background: 'var(--panel)', border: '1.5px solid var(--border2)',
-              borderRadius: 'var(--radius)', padding: '14px 16px',
+              borderRadius: 'var(--radius)', padding: '16px 18px',
             }}>
-              <div style={{ fontSize: 13, color: 'var(--grey)', marginBottom: 4, fontWeight: 500 }}>{stat.label}</div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--white)' }}>{stat.value}</div>
+              <div style={{ fontSize: 14.5, color: 'var(--grey)', marginBottom: 4, fontWeight: 600 }}>{stat.label}</div>
+              <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--white)' }}>{stat.value}</div>
             </div>
           ))}
         </div>
@@ -569,10 +569,10 @@ function TeacherDashboardContent() {
                   {activeStudent.name.charAt(0)}
                 </div>
                 <div>
-                  <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--white)' }}>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--white)' }}>
                     {dedupeName(activeStudent.name)} · Session Report
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--grey)', marginTop: 2 }}>
+                  <div style={{ fontSize: 14.5, color: 'var(--grey)', marginTop: 2 }}>
                     {report.session_date_display || 'Recent session'} · drafted by Report Agent
                   </div>
                 </div>
@@ -584,8 +584,8 @@ function TeacherDashboardContent() {
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 6,
                     background: 'rgba(16,185,129,0.15)', border: '1.5px solid rgba(16,185,129,0.35)',
-                    color: '#34D399', borderRadius: 20, padding: '6px 14px',
-                    fontSize: 12, fontWeight: 700, textDecoration: 'none',
+                    color: '#34D399', borderRadius: 20, padding: '7px 16px',
+                    fontSize: 13.5, fontWeight: 700, textDecoration: 'none',
                   }}
                 >
                   <span>🔍</span>
@@ -599,12 +599,12 @@ function TeacherDashboardContent() {
           <div style={{ padding: '1.5rem' }}>
 
             {/* Words mastered / to revisit */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: '1.25rem' }}>
               <div style={{
                 background: 'var(--bloom-bg)', border: '1.5px solid rgba(16,185,129,0.3)',
-                borderRadius: 'var(--radius)', padding: '12px 14px',
+                borderRadius: 'var(--radius)', padding: '14px 16px',
               }}>
-                <div style={{ fontSize: 12, color: 'var(--bloom)', marginBottom: 8, fontWeight: 700 }}>NEW WORDS ✅</div>
+                <div style={{ fontSize: 13.5, color: 'var(--bloom)', marginBottom: 8, fontWeight: 800 }}>NEW WORDS ✅</div>
                 {report.new_words_mastered?.length > 0
                   ? report.new_words_mastered.map((w: any, idx: number) => {
                     const text = typeof w === 'object' && w !== null ? (w.word || w.target || '') : String(w || '')
@@ -612,20 +612,20 @@ function TeacherDashboardContent() {
                     return (
                       <span key={`mastered-${text}-${idx}`} style={{
                         display: 'inline-block', background: 'var(--bloom)', color: '#fff',
-                        borderRadius: 14, padding: '4px 12px', fontSize: 13, fontWeight: 600,
+                        borderRadius: 14, padding: '5px 14px', fontSize: 14.5, fontWeight: 700,
                         margin: '3px 4px 3px 0',
                       }}>{text}</span>
                     )
                   })
-                  : <span style={{ fontSize: 13, color: 'var(--grey)' }}>None yet</span>
+                  : <span style={{ fontSize: 14, color: 'var(--grey)' }}>None yet</span>
                 }
               </div>
               <div style={{
                 background: 'var(--warn-bg)', border: '1.5px solid rgba(251,191,36,0.3)',
-                borderRadius: 'var(--radius)', padding: '12px 14px',
+                borderRadius: 'var(--radius)', padding: '14px 16px',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ fontSize: 12, color: 'var(--warn)', fontWeight: 700 }}>TO REVISIT ⚠️</span>
+                  <span style={{ fontSize: 13.5, color: 'var(--warn)', fontWeight: 800 }}>TO REVISIT ⚠️</span>
                 </div>
                 {report.words_to_revisit?.length > 0
                   ? (
@@ -637,7 +637,7 @@ function TeacherDashboardContent() {
                           return (
                             <span key={`revisit-${text}-${idx}`} style={{
                               display: 'inline-block', background: 'var(--warn)', color: '#0F172A',
-                              borderRadius: 14, padding: '4px 12px', fontSize: 13, fontWeight: 700,
+                              borderRadius: 14, padding: '5px 14px', fontSize: 14.5, fontWeight: 800,
                               margin: '3px 4px 3px 0',
                             }}>{text}</span>
                           )
@@ -651,7 +651,7 @@ function TeacherDashboardContent() {
                               display: 'inline-flex', alignItems: 'center', gap: 6,
                               background: 'rgba(251,191,36,0.2)', border: '1.5px solid rgba(251,191,36,0.5)',
                               color: '#FBBF24', borderRadius: 8, padding: '6px 12px',
-                              fontSize: 12, fontWeight: 800, textDecoration: 'none',
+                              fontSize: 13, fontWeight: 800, textDecoration: 'none',
                             }}
                           >
                             <span>🔍</span>
@@ -661,7 +661,7 @@ function TeacherDashboardContent() {
                       )}
                     </div>
                   )
-                  : <span style={{ fontSize: 13, color: 'var(--grey)' }}>None</span>
+                  : <span style={{ fontSize: 14, color: 'var(--grey)' }}>None</span>
                 }
               </div>
             </div>
@@ -675,12 +675,12 @@ function TeacherDashboardContent() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontSize: 24 }}>🌸</span>
+                    <span style={{ fontSize: 26 }}>🌸</span>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.8, color: '#93C5FD' }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.8, color: '#93C5FD' }}>
                         WordBloom Assessment Result 🌸
                       </div>
-                      <div style={{ fontSize: 15, color: '#FFFFFF', marginTop: 2 }}>
+                      <div style={{ fontSize: 16, color: '#FFFFFF', marginTop: 2 }}>
                         WordBloom Recommended Profile: <strong style={{ color: '#38BDF8' }}>{report.recommended_profile}</strong>
                       </div>
                     </div>
@@ -689,8 +689,8 @@ function TeacherDashboardContent() {
                     href={`/profile?child=${activeChildId}`}
                     style={{
                       background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)',
-                      color: '#fff', padding: '8px 18px', borderRadius: 20,
-                      fontSize: 12, fontWeight: 800, textDecoration: 'none',
+                      color: '#fff', padding: '9px 20px', borderRadius: 20,
+                      fontSize: 13.5, fontWeight: 800, textDecoration: 'none',
                       boxShadow: '0 4px 12px rgba(59,130,246,0.3)',
                     }}
                   >
@@ -701,7 +701,7 @@ function TeacherDashboardContent() {
                 {/* Pedagogical Rationale: Why WordBloom recommends this */}
                 <div style={{
                   background: 'rgba(0, 0, 0, 0.28)', border: '1px solid rgba(59, 130, 246, 0.25)',
-                  borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#E2E8F0', lineHeight: 1.5,
+                  borderRadius: 10, padding: '12px 16px', fontSize: 14, color: '#E2E8F0', lineHeight: 1.55,
                 }}>
                   <span style={{ fontWeight: 700, color: '#93C5FD' }}>💡 Why WordBloom recommends this: </span>
                   {report.recommendation_reason || (
@@ -717,10 +717,10 @@ function TeacherDashboardContent() {
 
             {/* Report text */}
             <div style={{
-              fontSize: 15, lineHeight: 1.8, color: 'var(--white)', fontWeight: 500,
+              fontSize: 17, lineHeight: 1.85, color: 'var(--white)', fontWeight: 500,
               background: 'rgba(255,255,255,0.04)',
               border: '1.5px solid var(--border2)', borderRadius: 'var(--radius)',
-              padding: '16px 18px', marginBottom: '1.25rem',
+              padding: '18px 22px', marginBottom: '1.25rem',
             }}>
               {cleanReportText(report.report_text, activeStudent.name) || 'Report text loading...'}
             </div>
@@ -729,12 +729,12 @@ function TeacherDashboardContent() {
             {!approved && (
               <div style={{
                 background: 'rgba(251,191,36,0.12)', border: '1.5px solid rgba(251,191,36,0.4)',
-                borderRadius: 'var(--radius)', padding: '14px 18px',
-                fontSize: 14, color: '#FCD34D', fontWeight: 600,
+                borderRadius: 'var(--radius)', padding: '15px 20px',
+                fontSize: 15, color: '#FCD34D', fontWeight: 600,
                 display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.25rem',
-                lineHeight: 1.5,
+                lineHeight: 1.55,
               }}>
-                <span style={{ fontSize: 20 }}>⚠️</span>
+                <span style={{ fontSize: 22 }}>⚠️</span>
                 <span>Nothing is sent to parents until you approve this report. This is your approval gate.</span>
               </div>
             )}
@@ -747,10 +747,10 @@ function TeacherDashboardContent() {
                 placeholder="Add any notes for parents (optional)..."
                 rows={2}
                 style={{
-                  width: '100%', padding: '12px 16px',
+                  width: '100%', padding: '14px 18px',
                   background: 'var(--panel)', border: '1.5px solid var(--border2)',
                   borderRadius: 'var(--radius)', color: 'var(--white)',
-                  fontSize: 14, resize: 'vertical', marginBottom: '1.25rem',
+                  fontSize: 16, resize: 'vertical', marginBottom: '1.25rem',
                 }}
               />
             )}
@@ -759,12 +759,12 @@ function TeacherDashboardContent() {
             {approved && (
               <div style={{
                 background: 'var(--bloom-bg)', border: '1.5px solid rgba(16,185,129,0.4)',
-                borderRadius: 'var(--radius)', padding: '14px 18px',
-                fontSize: 15, color: '#34D399', fontWeight: 600,
+                borderRadius: 'var(--radius)', padding: '15px 20px',
+                fontSize: 16, color: '#34D399', fontWeight: 600,
                 display: 'flex', alignItems: 'center', gap: 10,
                 marginBottom: '1.25rem',
               }}>
-                <span style={{ fontSize: 20 }}>✅</span>
+                <span style={{ fontSize: 22 }}>✅</span>
                 Report approved and sent to {(report.child_name || activeStudent.name).split(' ')[0]}'s parents.
               </div>
             )}
@@ -776,9 +776,9 @@ function TeacherDashboardContent() {
                   onClick={handleApprove}
                   disabled={loading}
                   style={{
-                    flex: 1, padding: '14px', background: 'var(--bloom)',
-                    color: '#fff', borderRadius: 50, minHeight: 52,
-                    fontSize: 16, fontWeight: 700,
+                    flex: 1, padding: '15px', background: 'var(--bloom)',
+                    color: '#fff', borderRadius: 50, minHeight: 54,
+                    fontSize: 17.5, fontWeight: 700,
                     opacity: loading ? 0.6 : 1, cursor: 'pointer',
                     boxShadow: '0 4px 16px rgba(16,185,129,0.3)',
                   }}
@@ -808,35 +808,35 @@ function TeacherDashboardContent() {
               {activeStudent.name.charAt(0)}
             </div>
             <div>
-              <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--white)' }}>
+              <h3 style={{ fontSize: 22, fontWeight: 800, color: '#F9FAFB' }}>
                 {childProfile?.fullName || activeStudent.name}
               </h3>
-              <div style={{ fontSize: 14, color: 'var(--grey)', marginTop: 2 }}>
+              <div style={{ fontSize: 15, color: '#9CA3AF', marginTop: 4, fontWeight: 600 }}>
                 Stage {childProfile?.readingLevel || activeStudent.level} · {childProfile?.dyslexiaType === 'non_dyslexic' ? 'NON-DYSLEXIC (GENERAL)' : (childProfile?.dyslexiaType ? childProfile.dyslexiaType.toUpperCase() : activeStudent.type)}
               </div>
             </div>
           </div>
 
           <div style={{
-            background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border2)',
-            borderRadius: 12, padding: '1.25rem', marginBottom: '1.5rem',
+            background: 'rgba(255,255,255,0.05)', border: '1.5px solid var(--border2)',
+            borderRadius: 14, padding: '1.4rem', marginBottom: '1.5rem',
           }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--bloom)', marginBottom: 8, letterSpacing: 0.5 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 800, color: '#34D399', marginBottom: 8, letterSpacing: 1, textTransform: 'uppercase' }}>
               STUDENT PROFILE STATUS
             </div>
-            <div style={{ fontSize: 14, color: 'var(--white)', lineHeight: 1.6 }}>
-              No completed session report recorded for <strong>{activeStudent.name}</strong> yet. You can edit their profile settings or launch an adaptive session below.
+            <div style={{ fontSize: 15.5, color: '#F9FAFB', lineHeight: 1.65 }}>
+              No completed session report recorded for <strong style={{ color: '#34D399' }}>{activeStudent.name}</strong> yet. You can edit their profile settings or launch an adaptive session below.
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
             <button
               onClick={() => handleStartSessionForChild(activeChildId)}
               disabled={sessionStarting}
               style={{
-                flex: 1, minWidth: 200, background: 'var(--bloom)',
-                color: '#fff', padding: '14px 24px', minHeight: 50,
-                borderRadius: 50, fontSize: 15, fontWeight: 700,
+                flex: 1, minWidth: 220, background: 'var(--bloom)',
+                color: '#fff', padding: '15px 28px', minHeight: 52,
+                borderRadius: 50, fontSize: 16.5, fontWeight: 800,
                 border: 'none', cursor: 'pointer',
                 boxShadow: '0 4px 14px rgba(16,185,129,0.3)',
                 opacity: sessionStarting ? 0.7 : 1,
@@ -847,9 +847,9 @@ function TeacherDashboardContent() {
             <button
               onClick={() => router.push(`/profile?child=${activeChildId}`)}
               style={{
-                padding: '14px 20px', minHeight: 50,
+                padding: '15px 24px', minHeight: 52,
                 background: 'var(--panel)', border: '1.5px solid var(--border2)',
-                color: 'var(--white)', borderRadius: 50, fontSize: 14, fontWeight: 600,
+                color: '#F9FAFB', borderRadius: 50, fontSize: 15.5, fontWeight: 700,
                 cursor: 'pointer',
               }}
             >

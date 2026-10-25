@@ -156,13 +156,13 @@ export default function ChildSelectPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              padding: '10px 20px',
+              padding: '11px 24px',
               borderRadius: 50,
               background: 'rgba(255, 255, 255, 0.22)',
               backdropFilter: 'blur(10px)',
               border: '1.5px solid rgba(255, 255, 255, 0.45)',
               color: '#FFFFFF',
-              fontSize: '0.95rem',
+              fontSize: '1.05rem',
               fontWeight: 800,
               textDecoration: 'none',
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
@@ -267,12 +267,12 @@ export default function ChildSelectPage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 8,
-                  padding: '6px 14px',
+                  padding: '7px 16px',
                   borderRadius: 20,
                   background: 'rgba(0, 0, 0, 0.22)',
                   border: '1px solid rgba(255, 255, 255, 0.25)',
                   color: '#FFFFFF',
-                  fontSize: '0.9rem',
+                  fontSize: '1.05rem',
                   fontWeight: 700,
                   marginTop: '0.5rem',
                 }}
@@ -289,9 +289,9 @@ export default function ChildSelectPage() {
         <p
           style={{
             marginTop: '2.5rem',
-            fontSize: '0.95rem',
-            color: 'rgba(255, 255, 255, 0.8)',
-            fontWeight: 600,
+            fontSize: '1.05rem',
+            color: 'rgba(255, 255, 255, 0.85)',
+            fontWeight: 700,
             textAlign: 'center',
           }}
         >

@@ -873,15 +873,15 @@ function GameContent() {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <div style={{
-            width: 38, height: 38, borderRadius: '50%',
+            width: 42, height: 42, borderRadius: '50%',
             background: 'var(--bloom)', display: 'flex',
             alignItems: 'center', justifyContent: 'center',
-            fontSize: 15, fontWeight: 700, color: '#fff',
+            fontSize: 17, fontWeight: 800, color: '#fff',
             flexShrink: 0,
           }}>
             {profile.child_name?.charAt(0) || 'E'}
           </div>
-          <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--white)', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--white)', whiteSpace: 'nowrap' }}>
             {profile.child_name?.split(' ')[0] || 'Emma'}
           </span>
 
@@ -896,12 +896,12 @@ function GameContent() {
               border: `1.5px solid ${soundEnabled ? 'rgba(16, 185, 129, 0.4)' : 'rgba(148, 163, 184, 0.35)'}`,
               color: soundEnabled ? 'var(--bloom)' : '#94A3B8',
               borderRadius: 20,
-              padding: '4px 10px',
-              fontSize: 12,
+              padding: '6px 12px',
+              fontSize: 13.5,
               fontWeight: 700,
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 5,
+              gap: 6,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               touchAction: 'manipulation',
@@ -910,7 +910,7 @@ function GameContent() {
             }}
           >
             <span>{soundEnabled ? '🔊' : '🔇'}</span>
-            <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
               {hasAutism ? 'Sensory' : (soundEnabled ? 'Sound' : 'Muted')}
             </span>
           </button>
@@ -987,7 +987,7 @@ function GameContent() {
               </span>
             )
           })}
-          <span style={{ fontSize: 13, fontWeight: 800, color: '#34D399', marginLeft: 6, whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 15, fontWeight: 800, color: '#34D399', marginLeft: 6, whiteSpace: 'nowrap' }}>
             {correctCount}/{totalWords}
           </span>
         </div>
@@ -997,7 +997,7 @@ function GameContent() {
           aria-label="Finish and save learning session"
           style={{
             background: '#1E293B', color: '#FFFFFF',
-            fontSize: 14, minHeight: 44, padding: '8px 18px',
+            fontSize: 15.5, minHeight: 46, padding: '9px 20px',
             border: '1.5px solid rgba(255, 255, 255, 0.35)', borderRadius: 24,
             fontWeight: 800, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,
@@ -1007,7 +1007,7 @@ function GameContent() {
             whiteSpace: 'nowrap',
           }}
         >
-          <span style={{ fontSize: 16 }}>🚪</span>
+          <span style={{ fontSize: 18 }}>🚪</span>
           <span style={{ fontWeight: 800, color: '#FFFFFF' }}>Finish</span>
         </button>
       </div>
@@ -1172,10 +1172,10 @@ function GameContent() {
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
                 background: 'rgba(129,140,248,0.14)', border: '1.5px solid rgba(129,140,248,0.45)',
-                borderRadius: 24, padding: '7px 18px', maxWidth: '100%',
+                borderRadius: 24, padding: '8px 20px', maxWidth: '100%',
                 boxShadow: '0 4px 14px rgba(129,140,248,0.18)',
               }}>
-                <span style={{ fontSize: 13.5, color: '#F3F4F6', fontWeight: 700 }}>
+                <span style={{ fontSize: 15, color: '#F3F4F6', fontWeight: 700 }}>
                   🎯 Stage {profile.reading_level || 1} · {formatCategoryBadge(activeWord?.category, profile.reading_level)}
                 </span>
               </div>
@@ -1189,8 +1189,8 @@ function GameContent() {
                     background: 'rgba(129,140,248,0.18)',
                     border: '1.5px solid var(--accent)',
                     borderRadius: 24,
-                    padding: '7px 18px',
-                    fontSize: 13.5,
+                    padding: '8px 20px',
+                    fontSize: 15,
                     fontWeight: 700,
                     color: '#EEF2FF',
                     cursor: 'pointer',
@@ -1483,7 +1483,7 @@ function GameContent() {
             <>
               {/* Input mode selector */}
           <div className="spotlight-interactive-element" style={{ width: '100%', maxWidth: cardMaxWidth, marginBottom: '1.5rem' }}>
-            <div style={{ fontSize: 15, color: 'var(--white)', marginBottom: 12, fontWeight: 700 }}>
+            <div style={{ fontSize: 16.5, color: 'var(--white)', marginBottom: 12, fontWeight: 700 }}>
               How would you like to answer?
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
@@ -1497,18 +1497,18 @@ function GameContent() {
                     aria-pressed={isSelected}
                     aria-label={`Switch to ${mode} answer mode`}
                     style={{
-                      flex: 1, minHeight: 66, padding: '12px 10px',
+                      flex: 1, minHeight: 72, padding: '14px 12px',
                       border: `${isSelected ? '2.5px' : '1.5px'} solid ${isSelected ? 'var(--bloom)' : 'var(--border2)'}`,
                       background: isSelected ? 'var(--bloom-bg)' : 'var(--panel)',
                       color: isSelected ? 'var(--bloom-text)' : 'var(--white)',
-                      borderRadius: 'var(--radius)', fontSize: 14.5, fontWeight: 700,
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                      borderRadius: 'var(--radius)', fontSize: 16, fontWeight: 700,
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
                       boxShadow: isSelected ? '0 4px 14px rgba(16,185,129,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
                       transition: 'all 0.2s ease',
                       cursor: 'pointer',
                     }}
                   >
-                    <span style={{ fontSize: 26 }}>
+                    <span style={{ fontSize: 28 }}>
                       {mode === 'type' ? '⌨️' : mode === 'voice' ? '🎤' : '🔲'}
                     </span>
                     <span>{mode.charAt(0).toUpperCase() + mode.slice(1)} it</span>
@@ -1547,7 +1547,7 @@ function GameContent() {
                 aria-label="Type word answer"
                 autoFocus
                 style={{
-                  flex: 1, padding: '16px 20px', fontSize: 24, minHeight: 58,
+                  flex: 1, padding: '16px 20px', fontSize: 26, minHeight: 60,
                   background: 'var(--panel)', border: '1.5px solid var(--border2)',
                   borderRadius: 'var(--radius)', color: 'var(--white)',
                   letterSpacing: 3, fontFamily: 'monospace',
@@ -1560,7 +1560,7 @@ function GameContent() {
                 style={{
                   padding: '16px 28px', background: 'var(--bloom)',
                   color: '#fff', borderRadius: 'var(--radius)',
-                  fontSize: 16, fontWeight: 700, minHeight: 58,
+                  fontSize: 17.5, fontWeight: 700, minHeight: 60,
                   opacity: loading || !answer.trim() ? 0.6 : 1,
                   display: 'flex', alignItems: 'center', gap: 8,
                 }}
@@ -1833,8 +1833,8 @@ function GameContent() {
                     onClick={() => setShowFullKeyboard(prev => !prev)}
                     style={{
                       background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.25)', color: 'var(--accent)',
-                      fontSize: 13, fontWeight: 700, cursor: 'pointer', borderRadius: 8, padding: '6px 14px',
-                      display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 38, touchAction: 'manipulation',
+                      fontSize: 14.5, fontWeight: 700, cursor: 'pointer', borderRadius: 8, padding: '8px 16px',
+                      display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 40, touchAction: 'manipulation',
                     }}
                   >
                     <span>{showFullKeyboard ? '🔲 Focus on letter bank' : '⌨️ Full A–Z keyboard'}</span>
@@ -1846,7 +1846,7 @@ function GameContent() {
                       onClick={() => setTappedLetters([])}
                       style={{
                         background: 'rgba(148, 163, 184, 0.15)', border: '1.5px solid rgba(148, 163, 184, 0.35)', color: 'var(--white)',
-                        fontSize: 13, fontWeight: 700, cursor: 'pointer', borderRadius: 8, padding: '6px 14px', minHeight: 38,
+                        fontSize: 14.5, fontWeight: 700, cursor: 'pointer', borderRadius: 8, padding: '8px 16px', minHeight: 40,
                         touchAction: 'manipulation',
                       }}
                     >
@@ -1886,7 +1886,7 @@ function GameContent() {
                 onClick={handleSkipWord}
                 className="btn-skip-word"
                 style={{
-                  fontSize: 15,
+                  fontSize: 16,
                   cursor: 'pointer',
                   borderRadius: 30,
                   padding: '12px 28px',
@@ -1910,14 +1910,14 @@ function GameContent() {
             aria-live="polite"
             data-dark-card="true"
             style={{
-              fontSize: 13, color: '#F8FAFC', fontWeight: 600,
+              fontSize: 14.5, color: '#F8FAFC', fontWeight: 600,
               display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
-              background: '#0F172A', padding: '8px 20px', borderRadius: 24,
+              background: '#0F172A', padding: '9px 22px', borderRadius: 24,
               border: '1.5px solid rgba(255,255,255,0.15)',
               boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
             }}
           >
-            <span style={{ color: loading ? 'var(--warn)' : 'var(--bloom)', fontSize: 14 }}>●</span>
+            <span style={{ color: loading ? 'var(--warn)' : 'var(--bloom)', fontSize: 15 }}>●</span>
             <span>{loading ? 'Checking your answer...' : '✨ Learn at your own pace · No time pressure'}</span>
           </div>
         </>
