@@ -67,19 +67,23 @@ def _instant_report(
                 rec_reason = f"{first_name} answered verbally and showed perceptual letter reversal patterns. OpenDyslexic weighted letter bases reduce spatial flipping."
             else:
                 rec_reason = f"{first_name} typed answers on the keyboard and hesitated on letters that mirror or rotate (e.g., b↔d). OpenDyslexic weighted letter bases reduce spatial flipping."
+        elif any("transposition" in p or "swap" in p or "order" in p for p in patterns):
+            rec_profile = "Attentional"
+            rec_detail = "letters swapping order and letter sequencing difficulties"
+            rec_reason = f"When spelling and reading words, {first_name} exhibited letter transposition patterns (swapping adjacent letter positions within words). Spotlight mode and visual letter anchor boxes help keep letters locked in sequential order."
         elif any("silent" in p or "whole_word" in p or "irregular" in p for p in patterns):
             rec_profile = "Surface"
             rec_detail = "difficulty recognizing irregular whole-word shapes and silent letters"
             rec_reason = f"When reading and spelling, {first_name} struggled recognizing irregular whole-word shapes and silent letters. Visual spotlighting and word silhouettes strengthen orthographic memory."
-        elif any("omission" in p or "phonetic" in p or "blend" in p for p in patterns):
+        elif any("vowel" in p or "omission" in p or "phonetic" in p or "blend" in p for p in patterns):
             rec_profile = "Phonological"
-            rec_detail = "phonetic spelling approximations and letter-sound substitutions"
+            rec_detail = "vowel sound confusions and phoneme discrimination difficulties"
             if mode_clean in ["voice", "speech", "say"]:
-                rec_reason = f"When speaking words, {first_name} showed difficulty segmenting individual phonemes and sound blends. Spoken sound chunking and audio models provide direct pronunciation support."
+                rec_reason = f"When speaking words, {first_name} showed difficulty segmenting individual phonemes and distinguishing vowel sounds. Spoken sound chunking and audio models provide direct vowel pronunciation support."
             elif mode_clean in ["tap", "tiles"]:
-                rec_reason = f"When selecting letter tiles, {first_name} made phonetic letter substitutions. Breaking words into visual sound chunks will reinforce how letter tiles correspond to word sounds."
+                rec_reason = f"When selecting letter tiles, {first_name} made phonetic vowel substitutions. Color-coded vowel tiles and sound chunks will reinforce how letter tiles correspond to word sounds."
             else:
-                rec_reason = f"When typing words, {first_name} demonstrated phonetic spelling patterns and sound-letter substitutions. Targeted sound-by-sound chunking and word-family practice will strengthen their letter-sound mapping."
+                rec_reason = f"When typing words, {first_name} demonstrated vowel substitution patterns (e.g. confusing short vowel sounds like 'a' for 'i'). Targeted vowel phonics and color-coded sound chunking will strengthen their letter-sound mapping."
         elif accuracy >= 80:
             rec_profile = "Non-dyslexic (General)"
             rec_detail = f"strong natural fluency ({accuracy}% accuracy) without characteristic dyslexic errors"
