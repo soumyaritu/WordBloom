@@ -5,15 +5,51 @@
 
 ---
 
-## 1. Executive Summary & Problem Space
+## 1. What is WordBloom?
 
-**WordBloom** is an adaptive, AI-powered reading learning system engineered on the principles of **Universal Design for Learning (UDL)**.
+### 🌟 The Big Picture
+Learning to read is one of the biggest milestones in a child's life. But for millions of children, traditional reading apps are terrifying:
+* **Countdown timers** create panic and rushing.
+* **Loud red buzzers** make kids feel like failures when they make a mistake.
+* **Rigid tests** assume every child sees, hears, and speaks the exact same way.
 
-Traditional literacy software is designed for a mythical "average child" — using rigid quizzes, countdown timers, speed pressures, and punitive one-size-fits-all grading. In reality, **no average child exists**. Children process orthography, phonology, and sensory stimuli along a wide spectrum.
+The truth is simple: **no two children learn to read the same way**. 
+* Some children understand sounds easily, but visual letters appear to flip or swim on the screen (dyslexia).
+* Some children lose focus or feel exhausted after just a few minutes (ADHD).
+* Some children know the answer in their mind, but struggle with the motor skills to type on a keyboard (dyspraxia).
+* And some children get overwhelmed by loud noises or sudden changes (sensory sensitivities / Autism).
 
-When early readers first enter the **world of words and letters**, early failure experiences often trigger reading anxiety and learned helplessness. By solving directly for children with dyslexia, ADHD, Autism, and dyspraxia, WordBloom creates a **vastly superior, anxiety-free reading experience for ALL children** — beginner readers, neurotypical students, and neurodivergent learners alike.
+When traditional apps treat these children as "slow" or "wrong," it crushes their confidence and makes them hate reading.
 
-Powered by a **Google Agent Development Kit (ADK)** multi-agent architecture and Google Cloud Vertex AI, WordBloom personalizes every session in real time across **6 dyslexia profiles**, **3 co-occurring conditions**, and **3 multi-modal interaction modes**, with every decision observable and explainable to educators in plain English.
+---
+
+### 🌸 What WordBloom Does
+**WordBloom is an intelligent, compassionate reading tutor that adapts to how each child naturally learns.**
+
+Instead of forcing a child to fit the software, WordBloom molds itself around the child:
+
+1. **Zero Anxiety, Zero Pressure**: 
+   * **No countdown timers** — children read at their own natural pace.
+   * **No red error marks or letter grades** — children earn blooming garden flowers (`🌸`) as they practice, celebrating progress instead of scores.
+2. **Three Ways to Answer**: 
+   Every child can answer the way that feels easiest for them:
+   * ⌨️ **Type it** on the keyboard.
+   * 🎙️ **Say it out loud** into the microphone.
+   * 🔲 **Tap letter tiles** on the screen if typing is too difficult.
+3. **Gentle Coaching, Not Punishment**: 
+   If a child mixes up mirror letters like `b` and `d`, WordBloom doesn't punish them. It gently points out which direction the letter faces (`b` faces right ➔, `d` faces left ⬅️), coaching them with kindness and patience.
+4. **Automatic Rest Breaks**: 
+   For children who tire quickly, WordBloom automatically limits sessions to 5 minutes and offers fun 30-second eye-rest and stretch breaks.
+5. **Calming Colors & Steady Letters**: 
+   Children can pick gentle color tints (soft yellow, blue, green, or pink) and special weighted letters that stop words from flipping or dancing on the screen.
+6. **Teachers Stay in Full Control**: 
+   Smart AI helpers draft helpful, plain-English progress summaries for the teacher. **No report is ever sent to parents without the teacher reviewing and approving it first.**
+
+---
+
+### 💡 The Core Message for Judges
+> **"Treating every child equally does NOT mean giving them the exact same test.**  
+> **It means giving every child the exact support, dignity, and pace they need to bloom."**
 
 ---
 

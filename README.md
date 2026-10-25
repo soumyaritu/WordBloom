@@ -26,8 +26,8 @@ When software forces children into a single rigid mold — punishing them with c
 ---
 
 ## 📌 Table of Contents
-* [1. The "One-Size-Fits-All" Flaw in Early Literacy](#1-the-one-size-fits-all-flaw-in-early-literacy)
-* [2. The WordBloom Solution — Universal Design for Learning](#2-the-wordbloom-solution--universal-design-for-learning)
+* [1. The Big Picture: Why Traditional Reading Apps Fail Kids](#1-the-big-picture-why-traditional-reading-apps-fail-kids)
+* [2. What WordBloom Does](#2-what-wordbloom-does)
 * [3. How WordBloom Serves Every Individual Learner](#3-how-wordbloom-serves-every-individual-learner)
 * [4. Core Pedagogical Innovations](#4-core-pedagogical-innovations)
 * [5. Multi-Agent Architecture (Google ADK)](#5-multi-agent-architecture-google-adk)
@@ -40,28 +40,45 @@ When software forces children into a single rigid mold — punishing them with c
 
 ---
 
-## 1. The "One-Size-Fits-All" Flaw in Early Literacy
+## 1. The Big Picture: Why Traditional Reading Apps Fail Kids
 
-Traditional literacy apps treat learning to read as a uniform conveyor belt:
-* **Rigid speed assumptions:** Children who process sounds carefully are penalized as "slow" by countdown timers.
-* **Single input modality:** Forcing early readers or children with dyspraxia to type on small keyboards adds physical motor frustration to sound decoding.
-* **Over-generalization:** Children with dyslexia are often treated as having "one single problem," ignoring that visual letter flipping is completely different from auditory sound-blending difficulties.
-* **Negative reinforcement:** Red error banners, buzzer sounds, and percentage scores crush a beginner's confidence.
+Learning to read is one of the biggest milestones in a child's life. But for millions of children, traditional reading apps are terrifying:
+* **Countdown timers** create panic and rushing.
+* **Loud red buzzers** make kids feel like failures when they make a mistake.
+* **Rigid tests** assume every child sees, hears, and speaks the exact same way.
+
+The truth is simple: **no two children learn to read the same way**. 
+* Some children understand sounds easily, but visual letters appear to flip or swim on the screen (*dyslexia*).
+* Some children lose focus or feel exhausted after just a few minutes (*ADHD*).
+* Some children know the answer in their mind, but struggle with the motor skills to type on a keyboard (*dyspraxia*).
+* And some children get overwhelmed by loud noises or sudden changes (*sensory sensitivities / Autism*).
+
+When traditional apps treat these children as "slow" or "wrong," it crushes their confidence and makes them hate reading.
 
 ---
 
-## 2. The WordBloom Solution — Universal Design for Learning
+## 2. What WordBloom Does
 
-Built on the foundation of **Universal Design for Learning (UDL)**, WordBloom transforms reading practice into an adaptive, zero-pressure journey:
+**WordBloom is an intelligent, compassionate reading tutor that adapts to how each child naturally learns.**
 
-1. **Adapts to the Child, Never the Reverse:** The software continuously molds its typography, pacing, input modality, and hints to fit the child's natural cognitive flow.
-2. **Inclusive Across the Entire Spectrum:**
-   * **Beginner & Standard Readers (e.g. Alex):** Enjoy distraction-free phonics progression, joyful animations, and confidence-building rewards.
-   * **Dyslexic Learners (e.g. Emma, Liam, James):** Benefit from precision accommodations tailored to their exact dyslexia profile (Phonological, Surface, Visual/Spatial, Double Deficit, Attentional).
-   * **Neurodivergent Learners:** Experience ADHD fatigue protection, Autism sensory shielding, and Dyspraxia motor accommodations.
-   * **Exploring Learners (e.g. Sofia/Sony):** Benefit from real-time agent assessment when reading differences have not yet been formally diagnosed ("Not Sure Yet").
-3. **Flower Garden Metaphor:** Replaces numerical grades with blooming garden flowers (`🌸`).
-4. **Human-in-the-Loop (HITL) Gate:** AI agents draft diagnostic observations, but **no report leaves the system without educator review and sign-off**.
+Instead of forcing a child to fit the software, WordBloom molds itself around the child:
+
+1. **Zero Anxiety, Zero Pressure**: 
+   * **No countdown timers** — children read at their own natural pace.
+   * **No red error marks or letter grades** — children earn blooming garden flowers (`🌸`) as they practice, celebrating progress instead of scores.
+2. **Three Ways to Answer**: 
+   Every child can answer the way that feels easiest for them:
+   * ⌨️ **Type it** on the keyboard.
+   * 🎙️ **Say it out loud** into the microphone.
+   * 🔲 **Tap letter tiles** on the screen if typing is too difficult.
+3. **Gentle Coaching, Not Punishment**: 
+   If a child mixes up mirror letters like `b` and `d`, WordBloom doesn't punish them. It gently points out which direction the letter faces (`b` faces right ➔, `d` faces left ⬅️), coaching them with kindness and patience.
+4. **Automatic Rest Breaks**: 
+   For children who tire quickly, WordBloom automatically limits sessions to 5 minutes and offers fun 30-second eye-rest and stretch breaks.
+5. **Calming Colors & Steady Letters**: 
+   Children can pick gentle color tints (soft yellow, blue, green, or pink) and special weighted letters that stop words from flipping or dancing on the screen.
+6. **Teachers Stay in Full Control**: 
+   Smart AI helpers draft helpful, plain-English progress summaries for the teacher. **No report is ever sent to parents without the teacher reviewing and approving it first.**
 
 ---
 
