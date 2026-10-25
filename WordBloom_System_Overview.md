@@ -47,7 +47,7 @@ Instead of forcing a child to fit the software, WordBloom molds itself around th
 
 ---
 
-### 💡 The Core Message for Judges
+### 💡 The Core Philosophy
 > **"Treating every child equally does NOT mean giving them the exact same test.**  
 > **It means giving every child the exact support, dignity, and pace they need to bloom."**
 

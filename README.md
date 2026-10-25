@@ -17,31 +17,11 @@
 > **"Treating every child equally does NOT mean giving them the exact same rigid test.  
 > It means giving every child the exact support, dignity, and pace they need to bloom."**
 
-Traditional reading software is engineered around an imaginary "average child". But developmental science proves that **no average child exists**. Every child enters the world of letters with distinct neurological processing, cognitive pacing, and sensory strengths.
-
-When software forces children into a single rigid mold — punishing them with countdown timers, loud error buzzers, and percentage grades — it creates acute reading anxiety and learned helplessness.
-
-**WordBloom is built for ALL children.** By solving directly for the most complex learning differences — dyslexia, ADHD, Autism, and dyspraxia — WordBloom naturally creates a **kinder, calmer, and vastly superior reading experience for every child**, whether they are a beginner reader, a standard learner, or a child with learning differences.
-
 ---
 
-## 📌 Table of Contents
-* [1. The Big Picture: Why Traditional Reading Apps Fail Kids](#1-the-big-picture-why-traditional-reading-apps-fail-kids)
-* [2. What WordBloom Does](#2-what-wordbloom-does)
-* [3. How WordBloom Serves Every Individual Learner](#3-how-wordbloom-serves-every-individual-learner)
-* [4. Core Pedagogical Innovations](#4-core-pedagogical-innovations)
-* [5. Multi-Agent Architecture (Google ADK)](#5-multi-agent-architecture-google-adk)
-* [6. The 6 Specialist Agents](#6-the-6-specialist-agents)
-* [7. Teacher Dashboard & Dyslexia Mirror Suite](#7-teacher-dashboard--dyslexia-mirror-suite)
-* [8. Sensory & Accessibility Features](#8-sensory--accessibility-features)
-* [9. Repository Structure](#9-repository-structure)
-* [10. Quick Start Guide](#10-quick-start-guide)
-* [11. Testing & Verification](#11-testing--verification)
+## 1. What is WordBloom?
 
----
-
-## 1. The Big Picture: Why Traditional Reading Apps Fail Kids
-
+### 🌟 The Big Picture
 Learning to read is one of the biggest milestones in a child's life. But for millions of children, traditional reading apps are terrifying:
 * **Countdown timers** create panic and rushing.
 * **Loud red buzzers** make kids feel like failures when they make a mistake.
@@ -57,8 +37,7 @@ When traditional apps treat these children as "slow" or "wrong," it crushes thei
 
 ---
 
-## 2. What WordBloom Does
-
+### 🌸 How WordBloom Helps Every Child
 **WordBloom is an intelligent, compassionate reading tutor that adapts to how each child naturally learns.**
 
 Instead of forcing a child to fit the software, WordBloom molds itself around the child:
@@ -82,7 +61,21 @@ Instead of forcing a child to fit the software, WordBloom molds itself around th
 
 ---
 
-## 3. How WordBloom Serves Every Individual Learner
+## 📌 Table of Contents
+* [1. What is WordBloom?](#1-what-is-wordbloom)
+* [2. How WordBloom Serves Every Individual Learner](#2-how-wordbloom-serves-every-individual-learner)
+* [3. Core Pedagogical Innovations](#3-core-pedagogical-innovations)
+* [4. Multi-Agent Architecture (Google ADK)](#4-multi-agent-architecture-google-adk)
+* [5. The 6 Specialist Agents](#5-the-6-specialist-agents)
+* [6. Teacher Dashboard & Dyslexia Mirror Suite](#6-teacher-dashboard--dyslexia-mirror-suite)
+* [7. Sensory & Accessibility Features](#7-sensory--accessibility-features)
+* [8. Repository Structure](#8-repository-structure)
+* [9. Quick Start Guide](#9-quick-start-guide)
+* [10. Testing & Verification](#10-testing--verification)
+
+---
+
+## 2. How WordBloom Serves Every Individual Learner
 
 | Learner Profile | Challenges in Traditional Software | WordBloom’s Individualized Adaptation |
 | :--- | :--- | :--- |
@@ -98,7 +91,7 @@ Instead of forcing a child to fit the software, WordBloom molds itself around th
 
 ---
 
-## 4. Core Pedagogical Innovations
+## 3. Core Pedagogical Innovations
 
 ### 🪞 A. Scaffolded Retry for Mirror Reversals (`b ↔ d`, `p ↔ q`)
 Visual-spatial orientation flips are fundamentally different from phonological mistakes:
@@ -123,7 +116,7 @@ A friendly `Skip this word for now · Next word ➔` button allows learners to m
 
 ---
 
-## 5. System & Multi-Agent Architecture (Google ADK)
+## 4. System & Multi-Agent Architecture (Google ADK)
 
 WordBloom utilizes a **Hybrid Multi-Agent Architecture** powered by Google Cloud Vertex AI and the Google Agent Development Kit (ADK).
 
@@ -203,7 +196,7 @@ graph TD
 
 ---
 
-## 6. The 6 Specialist Agents
+## 5. The 6 Specialist Agents
 
 | Agent | Responsibility | ADK Implementation |
 | :--- | :--- | :--- |
@@ -216,7 +209,7 @@ graph TD
 
 ---
 
-## 7. Teacher Dashboard & Dyslexia Mirror Suite
+## 6. Teacher Dashboard & Dyslexia Mirror Suite
 
 Located at `/teacher` and `/teacher/dashboard`:
 * **Live Garden Bloom Tracking:** Tracks completed flowers against personalized targets (e.g. 4 🌸 for Alex, 5 🌸 for Emma).
@@ -228,7 +221,7 @@ Located at `/teacher` and `/teacher/dashboard`:
 
 ---
 
-## 8. Sensory & Accessibility Features
+## 7. Sensory & Accessibility Features
 
 * **Zero Time Pressure:** Absolutely no countdown timers or speed badges are shown to children.
 * **ADHD Auto-Pacing:** Sessions auto-lock to 5 minutes / 5 blooms, with a mandatory 30-second rest break after 5 words.
@@ -239,7 +232,7 @@ Located at `/teacher` and `/teacher/dashboard`:
 
 ---
 
-## 9. Repository Structure
+## 8. Repository Structure
 
 ```
 WordBloom/
@@ -286,7 +279,7 @@ WordBloom/
 
 ---
 
-## 10. Quick Start Guide
+## 9. Quick Start Guide
 
 ### Prerequisites
 * **Python 3.10+** (Python 3.14 tested)
@@ -328,7 +321,7 @@ Visit **`http://localhost:3000`** in Google Chrome or Microsoft Edge (for full W
 
 ---
 
-## 11. Testing & Verification
+## 10. Testing & Verification
 
 ### Run Automated Multi-Agent Pipeline Test:
 ```bash
