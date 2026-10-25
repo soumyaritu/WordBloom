@@ -1,7 +1,7 @@
 // WordBloom API — connects to FastAPI backend
 // Change this to your backend URL if needed
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== "undefined" ? "/api/backend" : "http://127.0.0.1:8000")
 
 export async function startSession(childName: string, excludeWords: string[] = []) {
   const res = await fetch(`${API_URL}/session/start`, {
