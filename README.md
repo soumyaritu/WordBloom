@@ -3,6 +3,9 @@
 > ### *Every word. Every child. Every way.*  
 > **An adaptive reading learning system built for EVERY child — treating each learner individually and rejecting the myth of "one-size-fits-all". Powered by Google ADK (Agent Development Kit) and Google Cloud Vertex AI.**
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Google_Cloud_Run-10B981?style=for-the-badge&logo=google-cloud&logoColor=white)](https://wordbloom-frontend-820113329049.us-central1.run.app)
+[![Agent Runtime](https://img.shields.io/badge/Agent_Runtime-Vertex_AI-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/us-central1/agent-engines/1398722001920589824?project=soumyaaidevcamppro)
+
 [![Google ADK](https://img.shields.io/badge/Google_ADK-Multi--Agent_System-4285F4?logo=google&logoColor=white)](https://cloud.google.com/vertex-ai)
 [![Google Cloud Vertex AI](https://img.shields.io/badge/Vertex_AI-Gemini_2.5_Flash-34A853?logo=google-cloud&logoColor=white)](https://cloud.google.com/vertex-ai)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15.5_App_Router-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
