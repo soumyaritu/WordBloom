@@ -1325,8 +1325,8 @@ function GameContent() {
             )}
           </div>
 
-          {/* Encouragement message banner — clean, encouraging, neurodiverse-friendly (always shown on correct answers or when no hint active) */}
-          {feedback?.encouragement?.message && (Boolean(feedback.evaluation?.is_correct) || !visualHintB64) && (
+          {/* Encouragement message banner — clean, encouraging, neurodiverse-friendly */}
+          {feedback?.encouragement?.message && (
             <div
               role="status"
               aria-live="polite"

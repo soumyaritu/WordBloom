@@ -256,16 +256,39 @@ def is_correct_for_profile(correct_word, child_answer, dyslexia_type,
     if clean_answer in SILENT_VARIANTS.get(clean_target, []):
         return True
 
-    # 4. Adjacent letter transposition with identical character set
-    if len(clean_target) == len(clean_answer) and sorted(clean_target) == sorted(clean_answer):
-        diffs = sum(1 for x, y in zip(clean_target, clean_answer) if x != y)
-        if diffs <= 2:
-            return True
-
-    # 5. High-fidelity near match for long multisyllabic words (Stage 4, 6+ letters) with single character typo
+    # 4. High-fidelity near match for long multisyllabic words (Stage 4, 6+ letters) with single character typo
     if len(clean_target) >= 6 and abs(len(clean_target) - len(clean_answer)) <= 1 and partial_score >= 0.88:
         return True
 
+    return False
+
+
+VOWELS = set("aeiou")
+
+
+def _is_vowel_confusion(clean_target: str, clean_answer: str) -> bool:
+    """
+    Detects vowel substitution / confusion where consonants match but vowel differs.
+    e.g. 'dip' -> 'dap', 'dog' -> 'dug', 'bad' -> 'bed', 'pin' -> 'pen'
+    """
+    if not clean_target or not clean_answer or clean_target == clean_answer:
+        return False
+    if len(clean_target) == len(clean_answer):
+        diffs = [(t, a) for t, a in zip(clean_target, clean_answer) if t != a]
+        if diffs and all(t in VOWELS and a in VOWELS for t, a in diffs):
+            return True
+    return False
+
+
+def _is_transposition(clean_target: str, clean_answer: str) -> bool:
+    """
+    Detects adjacent letter transposition / anagram swap with identical letter set.
+    e.g. 'dip' -> 'dpi', 'chair' -> 'cahir', 'dog' -> 'dgo'
+    """
+    if not clean_target or not clean_answer or clean_target == clean_answer:
+        return False
+    if len(clean_target) == len(clean_answer) and len(clean_target) >= 2:
+        return sorted(clean_target) == sorted(clean_answer)
     return False
 
 
@@ -346,6 +369,8 @@ def evaluate_answer(
     clean_a = str(child_answer or "").lower().strip(" .,!?:;'\"")
     is_mirror_swap = (len(clean_t) == len(clean_a) and clean_a.translate(DYSLEXIC_MIRRORS) == clean_t)
     is_silent_variant = clean_a in SILENT_VARIANTS.get(clean_t, [])
+    is_transposition = _is_transposition(clean_t, clean_a)
+    is_vowel_confusion = _is_vowel_confusion(clean_t, clean_a)
 
     is_voice_match = False
     if str(input_mode or "").lower() == "voice":
@@ -372,6 +397,14 @@ def evaluate_answer(
         else:
             explanation = f"Mirror letter reversal detected (e.g. b↔d, p↔q) in '{correct_word}'. Look at the visual hint below to see which way the letter faces!"
             positive_observation = f"So close! You have the right sounds — look at the visual hint below to see which way the letter faces."
+    elif is_transposition:
+        pattern = "transposition"
+        explanation = f"Letter swap (transposition) detected: '{child_answer}' for '{correct_word}'. Look at the visual hint below to see the correct order of letters!"
+        positive_observation = f"You found all the letters in '{correct_word}'! Look at the visual hint below to see their exact order."
+    elif is_vowel_confusion:
+        pattern = "vowel_confusion"
+        explanation = f"Vowel sound confusion detected: '{child_answer}' for '{correct_word}'. Look at the visual hint below to spot the middle vowel sound!"
+        positive_observation = f"You got {letters_correct} of {len(correct_word)} letters right! Look at the visual hint below to see the vowel."
     elif is_silent_variant:
         pattern = "silent_letter"
         explanation = f"Phonetic attempt on tricky silent letter in '{correct_word}'."
@@ -398,7 +431,13 @@ def evaluate_answer(
             explanation = f"Attempted '{child_answer}' for '{correct_word}'."
             positive_observation = f"Stayed engaged and identified {letters_correct} letter{'s' if letters_correct != 1 else ''}!"
 
-    needs_visual_hint = (not is_correct) and (attempt_number >= 2 or is_mirror_swap)
+    needs_visual_hint = (not is_correct) and (
+        attempt_number >= 2
+        or is_mirror_swap
+        or is_transposition
+        or is_vowel_confusion
+        or str(input_mode or "").lower() in ("type", "tap")
+    )
 
     return {
         "correct":               is_correct,

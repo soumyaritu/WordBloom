@@ -580,6 +580,10 @@ def decide_adaptation(
     approach_change = None
     if error_pattern == "silent_letter" and dyslexia_type == "phonological":
         approach_change = "Focus next word on phonetic chunking to highlight the silent part"
+    elif error_pattern == "vowel_confusion":
+        approach_change = "Highlight middle vowel sounds with color-coded phonics"
+    elif error_pattern == "transposition":
+        approach_change = "Emphasize left-to-right letter sequence with visual anchor boxes"
 
     visual_hint_b64 = None
     audio_scaffold_b64 = None
