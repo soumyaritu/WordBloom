@@ -75,6 +75,15 @@ const FALLBACK_CHILDREN: ChildRow[] = [
   },
 ]
 
+function dedupeName(name: string): string {
+  if (!name) return ''
+  let cleaned = name.trim().replace(/\s+/g, ' ')
+  while (/\b([A-Za-z'.-]+)\s+\1\b/i.test(cleaned)) {
+    cleaned = cleaned.replace(/\b([A-Za-z'.-]+)\s+\1\b/gi, '$1')
+  }
+  return cleaned
+}
+
 function formatDyslexiaType(raw?: string): string {
   if (!raw) return 'Phonological'
   const lower = raw.toLowerCase()
@@ -108,12 +117,14 @@ function enrichChildrenWithLocalStorage(baseList: ChildRow[]): ChildRow[] {
 
       if (savedRaw) {
         const p = JSON.parse(savedRaw)
-        if (p.fullName && p.fullName.trim()) child.name = p.fullName.trim()
+        if (p.fullName && p.fullName.trim()) child.name = dedupeName(p.fullName.trim())
         if (p.dyslexiaType) child.dyslexia_type = formatDyslexiaType(p.dyslexiaType)
         if (p.readingLevel !== undefined) child.reading_stage = Number(p.readingLevel)
         if (p.inputMode) child.input_mode = p.inputMode
         if (Array.isArray(p.coOccurring)) child.conditions = p.coOccurring
         if (p.candyGoal !== undefined) child.candy_count = Number(p.candyGoal)
+      } else {
+        child.name = dedupeName(child.name)
       }
 
       const sessionRaw = localStorage.getItem(`wb_session_words_${lookupId}`)

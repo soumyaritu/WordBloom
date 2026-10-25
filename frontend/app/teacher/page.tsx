@@ -12,6 +12,15 @@ const DEFAULT_STUDENTS = [
   { id: 'sofia', name: 'Sony Mathew',  level: 1, type: 'Bloom Profile: Not sure yet' },
 ]
 
+function dedupeName(name: string): string {
+  if (!name) return ''
+  let cleaned = name.trim().replace(/\s+/g, ' ')
+  while (/\b([A-Za-z'.-]+)\s+\1\b/i.test(cleaned)) {
+    cleaned = cleaned.replace(/\b([A-Za-z'.-]+)\s+\1\b/gi, '$1')
+  }
+  return cleaned
+}
+
 function enrichTeacherStudents(baseList: any[]) {
   if (typeof window === 'undefined') return baseList
 
@@ -38,7 +47,7 @@ function enrichTeacherStudents(baseList: any[]) {
           : (parsed.dyslexiaType ? (parsed.dyslexiaType.charAt(0).toUpperCase() + parsed.dyslexiaType.slice(1)) : 'Phonological')
         result.push({
           id: c.id,
-          name: parsed.fullName || c.name,
+          name: dedupeName(parsed.fullName || c.name),
           level: parsed.readingLevel || c.level || 2,
           type: `${typeLabel} ${parsed.coOccurring?.length ? '· ' + parsed.coOccurring.join(', ').toUpperCase() : ''}`,
         })
@@ -46,9 +55,13 @@ function enrichTeacherStudents(baseList: any[]) {
       } catch (e) {}
     }
 
+    const fallbackName = c.name && c.name.toLowerCase() !== c.id
+      ? c.name
+      : (c.id === 'liam' ? "Liam O'Connor" : c.id === 'sofia' || c.id === 'sony' ? 'Sony Mathew' : c.id === 'emma' ? 'Emma Clarke' : c.id === 'james' ? 'James Patel' : c.id)
+
     result.push({
       id: c.id,
-      name: c.name || (c.id === 'liam' ? "Liam O'Connor" : c.id === 'sofia' || c.id === 'sony' ? 'Sony Mathew' : c.id === 'emma' ? 'Emma Clarke' : c.id === 'james' ? 'James Patel' : c.id),
+      name: dedupeName(fallbackName),
       level: c.level || (c.id === 'liam' ? 2 : c.id === 'emma' ? 3 : c.id === 'james' ? 2 : 1),
       type: c.type || (c.id === 'liam' ? 'Surface · DYSPRAXIA, ADHD' : c.id === 'emma' ? 'Phonological · ADHD' : c.id === 'james' ? 'Visual · Dyspraxia' : 'Bloom Profile: Not sure yet'),
     })
@@ -76,7 +89,7 @@ function enrichTeacherStudents(baseList: any[]) {
               : (parsed.dyslexiaType ? (parsed.dyslexiaType.charAt(0).toUpperCase() + parsed.dyslexiaType.slice(1)) : 'Phonological')
             result.push({
               id,
-              name: parsed.fullName || (id.charAt(0).toUpperCase() + id.slice(1)),
+              name: dedupeName(parsed.fullName || (id.charAt(0).toUpperCase() + id.slice(1))),
               level: Number(parsed.readingLevel) || 1,
               type: `${typeLabel} ${parsed.coOccurring?.length ? '· ' + parsed.coOccurring.join(', ').toUpperCase() : ''}`,
             })
@@ -130,9 +143,12 @@ function TeacherDashboardContent() {
   // Clean and adapt report text to always match target student
   const cleanReportText = (text: string, studentName: string): string => {
     if (!text) return ''
-    const firstName = studentName.split(' ')[0]
+    const cleanStudentName = dedupeName(studentName)
+    const firstName = cleanStudentName.split(' ')[0]
     return text
-      .replace(/\b(Emma Clarke|James Patel|Sofia Mensah|Liam O'Connor)\b/gi, studentName)
+      .replace(/\bJames Patel Patel\b/gi, 'James Patel')
+      .replace(/\bEmma Clarke Clarke\b/gi, 'Emma Clarke')
+      .replace(/\b(Emma Clarke|James Patel|Sofia Mensah|Liam O'Connor)\b/gi, cleanStudentName)
       .replace(/\b(Emma|James|Sofia|Child)\b/gi, firstName)
       .replace(/^[A-Za-z'.-]+(?=\s+(?:worked|demonstrated|showed|checked|completed|navigated|read))/i, firstName)
       .replace(/🔍\s*Diagnostic\s+Bloom\s+Assessment:/gi, '🌸 WordBloom Assessment:')
@@ -146,7 +162,7 @@ function TeacherDashboardContent() {
   // Sanitize report to always match the active student
   const sanitizeReport = (rep: any, targetStudent: any) => {
     if (!rep) return rep
-    const stdName = targetStudent?.name || (activeChildId === 'liam' ? "Liam O'Connor" : (activeChildId.charAt(0).toUpperCase() + activeChildId.slice(1)))
+    const stdName = dedupeName(targetStudent?.name || (activeChildId === 'liam' ? "Liam O'Connor" : (activeChildId.charAt(0).toUpperCase() + activeChildId.slice(1))))
     const sanitized = { ...rep, child_name: stdName }
     if (sanitized.report_text) {
       sanitized.report_text = cleanReportText(sanitized.report_text, stdName)
@@ -346,11 +362,15 @@ function TeacherDashboardContent() {
     }
   }
 
-  const activeStudent = students.find(s => s.id === activeChildId) || {
+  const rawActive = students.find(s => s.id === activeChildId) || {
     id: activeChildId,
     name: activeChildId.charAt(0).toUpperCase() + activeChildId.slice(1),
     level: 3,
     type: 'Dyslexia Profile'
+  }
+  const activeStudent = {
+    ...rawActive,
+    name: dedupeName(rawActive.name)
   }
 
   const rawChildType = (childProfile?.dyslexiaType || activeStudent?.type || '').toLowerCase()
@@ -550,7 +570,7 @@ function TeacherDashboardContent() {
                 </div>
                 <div>
                   <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--white)' }}>
-                    {activeStudent.name} · Session Report
+                    {dedupeName(activeStudent.name)} · Session Report
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--grey)', marginTop: 2 }}>
                     {report.session_date_display || 'Recent session'} · drafted by Report Agent
