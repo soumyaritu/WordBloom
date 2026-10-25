@@ -22,17 +22,82 @@ const FALLBACK_CHILDREN: ChildProfile[] = [
   { id: 'sofia', name: 'Sony Mathew',  avatar: '🌟', dyslexia_type: 'Phonological', reading_stage: 2, input_mode: 'voice' },
 ]
 
+function enrichChildProfiles(baseList: ChildProfile[]): ChildProfile[] {
+  if (typeof window === 'undefined') return baseList
+
+  const seenIds = new Set<string>()
+  const result: ChildProfile[] = []
+
+  baseList.forEach(c => {
+    let child = { ...c }
+    const lookupId = child.id.toLowerCase()
+    seenIds.add(lookupId)
+    if (lookupId === 'sofia') seenIds.add('sony')
+    if (lookupId === 'sony') seenIds.add('sofia')
+
+    try {
+      let savedRaw = localStorage.getItem(`wb_profile_${lookupId}`)
+      if (!savedRaw && lookupId === 'sofia') savedRaw = localStorage.getItem('wb_profile_sony')
+      if (!savedRaw && lookupId === 'sony') savedRaw = localStorage.getItem('wb_profile_sofia')
+
+      if (savedRaw) {
+        const p = JSON.parse(savedRaw)
+        if (p.fullName && p.fullName.trim()) child.name = p.fullName.trim()
+        if (p.readingLevel !== undefined) child.reading_stage = Number(p.readingLevel)
+        if (p.inputMode) child.input_mode = p.inputMode
+      }
+    } catch (e) {}
+
+    result.push(child)
+  })
+
+  // Discover newly added or custom children from localStorage
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith('wb_profile_')) {
+        const id = key.replace('wb_profile_', '').toLowerCase()
+        if (seenIds.has(id)) continue
+        if (id === 'sony' && seenIds.has('sofia')) continue
+        if (id === 'sofia' && seenIds.has('sony')) continue
+
+        seenIds.add(id)
+        const raw = localStorage.getItem(key)
+        if (raw) {
+          try {
+            const p = JSON.parse(raw)
+            result.push({
+              id,
+              name: p.fullName || (id.charAt(0).toUpperCase() + id.slice(1)),
+              avatar: id === 'emma' ? '👧' : id === 'liam' ? '👦' : id === 'james' ? '🚀' : id === 'sofia' || id === 'sony' ? '🌟' : '🎨',
+              dyslexia_type: p.dyslexiaType || 'Phonological',
+              reading_stage: Number(p.readingLevel) || 1,
+              input_mode: p.inputMode || 'voice',
+            })
+          } catch (e) {}
+        }
+      }
+    }
+  } catch (e) {}
+
+  return result
+}
+
 export default function ChildSelectPage() {
   const router = useRouter()
   const [children, setChildren] = useState<ChildProfile[]>(FALLBACK_CHILDREN)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // 1. Immediately enrich fallback children from localStorage
+    setChildren(enrichChildProfiles(FALLBACK_CHILDREN))
+
+    // 2. Fetch from /api/children and enrich
     fetch('/api/children')
       .then(res => res.json())
       .then(data => {
         if (data.children && data.children.length > 0) {
-          setChildren(data.children)
+          setChildren(enrichChildProfiles(data.children))
         }
       })
       .catch(err => {

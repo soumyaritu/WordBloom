@@ -140,14 +140,18 @@ async def get_profile(child_id: str):
 @app.get("/children")
 async def list_children():
     from pathlib import Path
+    import re
     skills_dir = Path(__file__).parent / "wordbloom_agent" / "skills"
     children = []
     if skills_dir.exists():
         for f in skills_dir.iterdir():
             if f.is_dir() and (f / "SKILL.md").exists() and f.name not in ["dyslexic-heroes", "word-bank"]:
+                raw = (f / "SKILL.md").read_text()
+                match = re.search(r"- Full name:\s*(.+)", raw, re.IGNORECASE)
+                full_name = match.group(1).strip() if match else f.name.capitalize()
                 children.append({
                     "id": f.name,
-                    "name": f.name.capitalize(),
+                    "name": full_name,
                 })
     return {"children": children}
 

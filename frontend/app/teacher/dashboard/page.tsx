@@ -75,6 +75,100 @@ const FALLBACK_CHILDREN: ChildRow[] = [
   },
 ]
 
+function formatDyslexiaType(raw?: string): string {
+  if (!raw) return 'Phonological'
+  const lower = raw.toLowerCase()
+  if (lower.includes('unknown') || lower.includes('not sure') || lower.includes('undetermined')) return 'Not sure yet'
+  if (lower.includes('non')) return 'Non-dyslexic'
+  if (lower.includes('surface')) return 'Surface'
+  if (lower.includes('visual')) return 'Visual / Spatial'
+  if (lower.includes('attentional')) return 'Attentional'
+  if (lower.includes('double')) return 'Double Deficit'
+  if (lower.includes('phono')) return 'Phonological'
+  return raw.charAt(0).toUpperCase() + raw.slice(1)
+}
+
+function enrichChildrenWithLocalStorage(baseList: ChildRow[]): ChildRow[] {
+  if (typeof window === 'undefined') return baseList
+
+  const seenIds = new Set<string>()
+  const result: ChildRow[] = []
+
+  baseList.forEach(c => {
+    let child = { ...c }
+    const lookupId = child.id.toLowerCase()
+    seenIds.add(lookupId)
+    if (lookupId === 'sofia') seenIds.add('sony')
+    if (lookupId === 'sony') seenIds.add('sofia')
+
+    try {
+      let savedRaw = localStorage.getItem(`wb_profile_${lookupId}`)
+      if (!savedRaw && lookupId === 'sofia') savedRaw = localStorage.getItem('wb_profile_sony')
+      if (!savedRaw && lookupId === 'sony') savedRaw = localStorage.getItem('wb_profile_sofia')
+
+      if (savedRaw) {
+        const p = JSON.parse(savedRaw)
+        if (p.fullName && p.fullName.trim()) child.name = p.fullName.trim()
+        if (p.dyslexiaType) child.dyslexia_type = formatDyslexiaType(p.dyslexiaType)
+        if (p.readingLevel !== undefined) child.reading_stage = Number(p.readingLevel)
+        if (p.inputMode) child.input_mode = p.inputMode
+        if (Array.isArray(p.coOccurring)) child.conditions = p.coOccurring
+        if (p.candyGoal !== undefined) child.candy_count = Number(p.candyGoal)
+      }
+
+      const sessionRaw = localStorage.getItem(`wb_session_words_${lookupId}`)
+      if (sessionRaw) {
+        const words = JSON.parse(sessionRaw)
+        if (Array.isArray(words) && words.length > 0) {
+          const correctCount = words.filter((w: any) => w.is_correct).length
+          child.candy_count = correctCount
+          child.last_session = 'Today'
+        }
+      }
+    } catch (e) {}
+
+    result.push(child)
+  })
+
+  // Discover newly added or custom children from localStorage
+  try {
+    const customKeys: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith('wb_profile_')) {
+        customKeys.push(key)
+      }
+    }
+
+    customKeys.forEach(key => {
+      const id = key.replace('wb_profile_', '').toLowerCase()
+      if (seenIds.has(id)) return
+      if (id === 'sony' && seenIds.has('sofia')) return
+      if (id === 'sofia' && seenIds.has('sony')) return
+
+      seenIds.add(id)
+      const raw = localStorage.getItem(key)
+      if (!raw) return
+      try {
+        const p = JSON.parse(raw)
+        result.push({
+          id,
+          name: p.fullName || (id.charAt(0).toUpperCase() + id.slice(1)),
+          avatar: id === 'emma' ? '👧' : id === 'liam' ? '👦' : id === 'james' ? '🚀' : id === 'sofia' || id === 'sony' ? '🌟' : '🎨',
+          dyslexia_type: formatDyslexiaType(p.dyslexiaType),
+          reading_stage: Number(p.readingLevel) || 1,
+          input_mode: p.inputMode || 'voice',
+          conditions: Array.isArray(p.coOccurring) ? p.coOccurring : [],
+          last_session: 'Today',
+          candy_count: Number(p.candyGoal) || 5,
+        })
+      } catch (e) {}
+    })
+  } catch (e) {}
+
+  return result
+}
+
 export default function TeacherDashboardPage() {
   const router = useRouter()
   const [teacherName, setTeacherName] = useState('Ms. Rachel Edwards')
@@ -97,30 +191,15 @@ export default function TeacherDashboardPage() {
       }
     }
 
-    // Load children list
+    // 1. Immediately enrich fallback children from localStorage to reflect user edits instantly
+    setChildren(enrichChildrenWithLocalStorage(FALLBACK_CHILDREN))
+
+    // 2. Fetch children list from API and enrich with localStorage
     fetch('/api/children')
       .then(res => res.json())
       .then(data => {
         if (data.children && data.children.length > 0) {
-          // Dynamically enrich with actual completed session words from this browser if available
-          const enriched = data.children.map((c: ChildRow) => {
-            try {
-              const sessionRaw = localStorage.getItem(`wb_session_words_${c.id}`)
-              if (sessionRaw) {
-                const words = JSON.parse(sessionRaw)
-                if (Array.isArray(words) && words.length > 0) {
-                  const correctCount = words.filter((w: any) => w.is_correct).length
-                  return {
-                    ...c,
-                    candy_count: correctCount,
-                    last_session: 'Today'
-                  }
-                }
-              }
-            } catch (e) {}
-            return c
-          })
-          setChildren(enriched)
+          setChildren(enrichChildrenWithLocalStorage(data.children))
         }
       })
       .catch(err => {

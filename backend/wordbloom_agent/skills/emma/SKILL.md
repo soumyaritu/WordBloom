@@ -1,12 +1,12 @@
 ---
 name: emma
-description: Emma Clarke's learning profile and dyslexia settings
+description: Emma Clarke-Modified's learning profile and dyslexia settings
 ---
 
-# Emma Clarke — Learning Profile
+# Emma Clarke-Modified — Learning Profile
 
 ## Identity
-- Full name: Emma Clarke
+- Full name: Emma Clarke-Modified
 - Parent email: parent@example.com
 - Age: 9
 - School year: Year 4

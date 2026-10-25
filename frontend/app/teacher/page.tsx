@@ -12,6 +12,83 @@ const DEFAULT_STUDENTS = [
   { id: 'sofia', name: 'Sony Mathew',  level: 1, type: 'Bloom Profile: Not sure yet' },
 ]
 
+function enrichTeacherStudents(baseList: any[]) {
+  if (typeof window === 'undefined') return baseList
+
+  const seenIds = new Set<string>()
+  const result: any[] = []
+
+  baseList.forEach(c => {
+    const lookupId = c.id.toLowerCase()
+    seenIds.add(lookupId)
+    if (lookupId === 'sofia') seenIds.add('sony')
+    if (lookupId === 'sony') seenIds.add('sofia')
+
+    let saved = localStorage.getItem(`wb_profile_${lookupId}`)
+    if (!saved && lookupId === 'sofia') saved = localStorage.getItem('wb_profile_sony')
+    if (!saved && lookupId === 'sony') saved = localStorage.getItem('wb_profile_sofia')
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        const typeLabel = parsed.dyslexiaType === 'non_dyslexic'
+          ? 'Non-dyslexic (General)'
+          : parsed.dyslexiaType === 'unknown' || parsed.dyslexiaType === 'not sure yet'
+          ? 'Bloom Profile: Not sure yet'
+          : (parsed.dyslexiaType ? (parsed.dyslexiaType.charAt(0).toUpperCase() + parsed.dyslexiaType.slice(1)) : 'Phonological')
+        result.push({
+          id: c.id,
+          name: parsed.fullName || c.name,
+          level: parsed.readingLevel || c.level || 2,
+          type: `${typeLabel} ${parsed.coOccurring?.length ? '· ' + parsed.coOccurring.join(', ').toUpperCase() : ''}`,
+        })
+        return
+      } catch (e) {}
+    }
+
+    result.push({
+      id: c.id,
+      name: c.name || (c.id === 'liam' ? "Liam O'Connor" : c.id === 'sofia' || c.id === 'sony' ? 'Sony Mathew' : c.id === 'emma' ? 'Emma Clarke' : c.id === 'james' ? 'James Patel' : c.id),
+      level: c.level || (c.id === 'liam' ? 2 : c.id === 'emma' ? 3 : c.id === 'james' ? 2 : 1),
+      type: c.type || (c.id === 'liam' ? 'Surface · DYSPRAXIA, ADHD' : c.id === 'emma' ? 'Phonological · ADHD' : c.id === 'james' ? 'Visual · Dyspraxia' : 'Bloom Profile: Not sure yet'),
+    })
+  })
+
+  // Discover newly added or custom children from localStorage
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith('wb_profile_')) {
+        const id = key.replace('wb_profile_', '').toLowerCase()
+        if (seenIds.has(id)) continue
+        if (id === 'sony' && seenIds.has('sofia')) continue
+        if (id === 'sofia' && seenIds.has('sony')) continue
+
+        seenIds.add(id)
+        const raw = localStorage.getItem(key)
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw)
+            const typeLabel = parsed.dyslexiaType === 'non_dyslexic'
+              ? 'Non-dyslexic (General)'
+              : parsed.dyslexiaType === 'unknown' || parsed.dyslexiaType === 'not sure yet'
+              ? 'Bloom Profile: Not sure yet'
+              : (parsed.dyslexiaType ? (parsed.dyslexiaType.charAt(0).toUpperCase() + parsed.dyslexiaType.slice(1)) : 'Phonological')
+            result.push({
+              id,
+              name: parsed.fullName || (id.charAt(0).toUpperCase() + id.slice(1)),
+              level: Number(parsed.readingLevel) || 1,
+              type: `${typeLabel} ${parsed.coOccurring?.length ? '· ' + parsed.coOccurring.join(', ').toUpperCase() : ''}`,
+            })
+          } catch (e) {}
+        }
+      }
+    }
+  } catch (e) {}
+
+  return result
+}
+
 function TeacherDashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -29,34 +106,15 @@ function TeacherDashboardContent() {
   // Fetch children list on mount
   useEffect(() => {
     document.body.className = ''
+    // 1. Immediately enrich with localStorage so modified names show immediately
+    setStudents(enrichTeacherStudents(DEFAULT_STUDENTS))
+
+    // 2. Fetch from /api/children and enrich
     fetch('/api/children')
       .then(res => res.json())
       .then(data => {
         if (data.children && data.children.length > 0) {
-          const loaded = data.children.map((c: any) => {
-            const saved = localStorage.getItem(`wb_profile_${c.id}`)
-            if (saved) {
-              const parsed = JSON.parse(saved)
-              const typeLabel = parsed.dyslexiaType === 'non_dyslexic'
-                ? 'Non-dyslexic (General)'
-                : parsed.dyslexiaType === 'unknown' || parsed.dyslexiaType === 'not sure yet'
-                ? 'Not sure yet'
-                : (parsed.dyslexiaType ? (parsed.dyslexiaType.charAt(0).toUpperCase() + parsed.dyslexiaType.slice(1)) : 'Phonological')
-              return {
-                id: c.id,
-                name: parsed.fullName || c.name,
-                level: parsed.readingLevel || 3,
-                type: `${typeLabel} ${parsed.coOccurring?.length ? '· ' + parsed.coOccurring.join(', ').toUpperCase() : ''}`,
-              }
-            }
-            return {
-              id: c.id,
-              name: c.id === 'liam' ? "Liam O'Connor" : c.id === 'sofia' ? 'Sony Mathew' : c.name + (c.id === 'emma' ? ' Clarke' : c.id === 'james' ? ' Patel' : ''),
-              level: c.id === 'liam' ? 2 : c.id === 'emma' ? 3 : c.id === 'james' ? 2 : 1,
-              type: c.id === 'liam' ? 'Surface · DYSPRAXIA, ADHD' : c.id === 'emma' ? 'Phonological · ADHD' : c.id === 'james' ? 'Visual · Dyspraxia' : 'Bloom Profile: Not sure yet',
-            }
-          })
-          setStudents(loaded)
+          setStudents(enrichTeacherStudents(data.children))
         }
       })
       .catch(() => {})

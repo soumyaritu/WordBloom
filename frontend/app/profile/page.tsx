@@ -218,7 +218,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
     try {
       await saveProfile(activeId, skillContent)
-      localStorage.setItem(`wb_profile_${activeId}`, JSON.stringify({
+      const profileData = {
         id: activeId,
         fullName,
         parentEmail,
@@ -233,7 +233,21 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
         candyGoal: hasADHD ? 5 : candyGoal,
         sessionLength: hasADHD ? 5 : sessionLength,
         breakAfter: hasADHD ? 5 : breakAfter,
-      }))
+      }
+      localStorage.setItem(`wb_profile_${activeId}`, JSON.stringify(profileData))
+      if (activeId === 'sofia' || activeId === 'sony') {
+        localStorage.setItem('wb_profile_sofia', JSON.stringify({ ...profileData, id: 'sofia' }))
+        localStorage.setItem('wb_profile_sony', JSON.stringify({ ...profileData, id: 'sony' }))
+      }
+      try {
+        const rawIds = localStorage.getItem('wb_custom_children_ids')
+        const idList: string[] = rawIds ? JSON.parse(rawIds) : []
+        if (!idList.includes(activeId)) {
+          idList.push(activeId)
+          localStorage.setItem('wb_custom_children_ids', JSON.stringify(idList))
+        }
+      } catch (e) {}
+
       if (document.cookie.includes('wb_teacher_session')) {
         router.push('/teacher/dashboard')
       } else {

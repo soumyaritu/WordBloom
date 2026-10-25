@@ -1,12 +1,12 @@
 ---
 name: james
-description: James Bond's learning profile and dyslexia settings
+description: James Patel's learning profile and dyslexia settings
 ---
 
-# James Bond — Learning Profile
+# James Patel — Learning Profile
 
 ## Identity
-- Full name: James Bond
+- Full name: James Patel
 - Parent email: parent@example.com
 - Age: 8
 - School year: Year 3

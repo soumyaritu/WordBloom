@@ -4,5 +4,12 @@
   "is_a2a": false,
   "language": "python",
   "agent_directory": "app",
-  "deployment_timestamp": "2026-10-25T20:07:34.320651+00:00"
+  "deployment_timestamp": "2026-10-25T21:03:00.082691+00:00",
+  "pending_operation": {
+    "operation_name": "projects/820113329049/locations/us-central1/reasoningEngines/1398722001920589824/operations/1496272404408696832",
+    "project": "soumyaaidevcamppro",
+    "location": "us-central1",
+    "deployment_target": "agent_runtime",
+    "started_at": "2026-10-25T21:12:57.530547+00:00"
+  }
 }
