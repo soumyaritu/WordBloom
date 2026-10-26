@@ -33,7 +33,7 @@ export default function ChildWelcomePage({
 
   const [displayName, setDisplayName] = useState(NAME_MAP[childId] || (childId.charAt(0).toUpperCase() + childId.slice(1)))
   const [avatar, setAvatar] = useState(AVATAR_MAP[childId] || '👧')
-  const [starting, setStarting] = useState(false)
+  const [isBlooming, setIsBlooming] = useState(false)
 
   useEffect(() => {
     // Check if child profile was stored in localStorage
@@ -112,8 +112,11 @@ export default function ChildWelcomePage({
   }, [childId, displayName])
 
   const handleStartGame = () => {
-    // 0ms delay: Instant navigation, no waiting for network
-    router.push(`/game?child=${childId}`)
+    // Joyful 1.2s blooming transition
+    setIsBlooming(true)
+    setTimeout(() => {
+      router.push(`/game?child=${childId}`)
+    }, 1200)
   }
 
   return (
@@ -130,6 +133,99 @@ export default function ChildWelcomePage({
       }}
     >
       <DecorativeBackground />
+
+      {/* Playful Garden Blooming Transition Overlay */}
+      {isBlooming && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'radial-gradient(circle at center, rgba(16, 185, 129, 0.28) 0%, rgba(6, 8, 15, 0.98) 75%)',
+            backdropFilter: 'blur(25px)',
+            WebkitBackdropFilter: 'blur(25px)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            padding: '2rem',
+            animation: 'fadeIn 0.25s ease-out forwards',
+          }}
+        >
+          {/* Animated Blooming Flower Icon */}
+          <div
+            style={{
+              fontSize: '5.5rem',
+              marginBottom: '1.5rem',
+              animation: 'bloomPulse 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) infinite',
+              filter: 'drop-shadow(0 0 30px rgba(236, 72, 153, 0.55))',
+            }}
+          >
+            🌸
+          </div>
+
+          <h2
+            style={{
+              fontSize: '2.25rem',
+              fontWeight: 900,
+              color: '#FFFFFF',
+              letterSpacing: '-0.02em',
+              marginBottom: '0.75rem',
+              textShadow: '0 4px 20px rgba(16, 185, 129, 0.4)',
+            }}
+          >
+            Getting your garden ready... 🌸
+          </h2>
+
+          <p
+            style={{
+              fontSize: '1.25rem',
+              fontWeight: 700,
+              color: '#A7F3D0',
+              marginBottom: '2rem',
+            }}
+          >
+            Blooming words for {displayName}! ✨
+          </p>
+
+          {/* Dancing Garden Flowers Row */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '1.25rem',
+              fontSize: '2.1rem',
+              padding: '12px 28px',
+              borderRadius: 40,
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+            }}
+          >
+            <span style={{ animation: 'bounce 0.8s infinite alternate ease-in-out', animationDelay: '0s' }}>🌸</span>
+            <span style={{ animation: 'bounce 0.8s infinite alternate ease-in-out', animationDelay: '0.15s' }}>🌼</span>
+            <span style={{ animation: 'bounce 0.8s infinite alternate ease-in-out', animationDelay: '0.3s' }}>🌻</span>
+            <span style={{ animation: 'bounce 0.8s infinite alternate ease-in-out', animationDelay: '0.45s' }}>🌷</span>
+            <span style={{ animation: 'bounce 0.8s infinite alternate ease-in-out', animationDelay: '0.6s' }}>🌸</span>
+          </div>
+
+          <style jsx>{`
+            @keyframes bloomPulse {
+              0% { transform: scale(0.85) rotate(-6deg); }
+              50% { transform: scale(1.18) rotate(6deg); }
+              100% { transform: scale(1) rotate(0deg); }
+            }
+            @keyframes bounce {
+              0% { transform: translateY(0); }
+              100% { transform: translateY(-8px); }
+            }
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+          `}</style>
+        </div>
+      )}
 
       <div
         style={{
