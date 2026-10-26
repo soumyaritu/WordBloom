@@ -3,6 +3,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { saveProfile, getProfile } from '../../lib/api'
 import TeacherBackground from '../../components/TeacherBackground'
+import { DYSLEXIA_INPUT_DEFAULTS, getInputModeRecommendation } from '../../config/inputDefaults'
 
 function ProfileForm() {
   const router = useRouter()
@@ -28,6 +29,7 @@ function ProfileForm() {
 
   // Input Mode — unselected by default for new child
   const [inputMode, setInputMode] = useState(isNew ? '' : 'voice')
+  const [inputModeTouched, setInputModeTouched] = useState(false)
 
   // Display Mode — unselected by default for new child
   const [displayMode, setDisplayMode] = useState(isNew ? '' : 'opendyslexic')
@@ -44,6 +46,7 @@ function ProfileForm() {
 
   const hasADHD = coOccurring.includes('adhd')
   const hasAutism = coOccurring.includes('autism')
+  const recommendation = getInputModeRecommendation(dyslexiaType)
 
   // Sync ADHD locks
   useEffect(() => {
@@ -126,10 +129,21 @@ function ProfileForm() {
 
   const handleSelectDyslexiaType = (typeId: string) => {
     setDyslexiaType(typeId)
+
+    // Auto-select input mode ONLY for new child and ONLY if teacher has not manually picked one
+    if (isNew && !inputModeTouched) {
+      const rec = DYSLEXIA_INPUT_DEFAULTS[typeId]
+      if (rec) {
+        setInputMode(rec)
+      }
+    }
+
     if (typeId === 'non_dyslexic') {
       setDisplayMode('standard')
       setColourOverlay('none')
-      setInputMode('type')
+      if (isNew && !inputModeTouched) {
+        setInputMode('type')
+      }
       if (!hasADHD) {
         setSessionLength(10)
         setBreakAfter(10)
@@ -575,8 +589,15 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
           {/* Section 5: How they answer (pick one) */}
           <section style={{ background: '#111827', padding: '1.75rem', borderRadius: 20, border: '1.5px solid #1F2937', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
-            <div style={{ fontSize: 13.5, textTransform: 'uppercase', letterSpacing: 1.8, color: '#10B981', fontWeight: 800, marginBottom: '1.25rem' }}>
-              SECTION 5: HOW THEY ANSWER (PICK ONE)
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ fontSize: 13.5, textTransform: 'uppercase', letterSpacing: 1.8, color: '#10B981', fontWeight: 800 }}>
+                SECTION 5: HOW THEY ANSWER (PICK ONE)
+              </div>
+              {isNew && recommendation.recommendedMode && (
+                <span style={{ fontSize: 13, color: '#10B981', fontWeight: 700, background: 'rgba(16, 185, 129, 0.12)', padding: '3px 10px', borderRadius: 20, border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                  Smart suggestion based on profile
+                </span>
+              )}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
               {[
@@ -585,25 +606,112 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
                 { id: 'tap',   icon: '🔲', name: 'Tap letters', desc: 'Letter tile selection' },
               ].map(mode => {
                 const isSelected = inputMode === mode.id
+                const isRecommended = isNew && recommendation.recommendedMode === mode.id
+
+                const labelParts = [mode.name]
+                if (isRecommended) labelParts.push('recommended')
+                if (isSelected) labelParts.push('selected')
+                const accessibilityLabel = labelParts.join(', ')
+
                 return (
                   <div
                     key={mode.id}
-                    onClick={() => setInputMode(mode.id)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={accessibilityLabel}
+                    aria-selected={isSelected}
+                    onClick={() => {
+                      setInputModeTouched(true)
+                      setInputMode(mode.id)
+                    }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        setInputModeTouched(true)
+                        setInputMode(mode.id)
+                      }
+                    }}
                     style={{
+                      position: 'relative',
                       padding: '20px 18px', borderRadius: 16, cursor: 'pointer', textAlign: 'center',
-                      border: isSelected ? '2px solid #10B981' : '1.5px solid #1F2937',
-                      background: isSelected ? 'rgba(16, 185, 129, 0.1)' : '#0F172A',
+                      border: isSelected ? '2px solid #10B981' : (isRecommended ? '1.5px solid rgba(16, 185, 129, 0.5)' : '1.5px solid #1F2937'),
+                      background: isSelected ? 'rgba(16, 185, 129, 0.12)' : '#0F172A',
                       transition: 'all 0.2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      minHeight: 180,
                     }}
                   >
-                    <div style={{ fontSize: 34, marginBottom: 8 }}>{mode.icon}</div>
-                    <div style={{ fontSize: 16.5, fontWeight: 800, color: isSelected ? '#34D399' : '#F9FAFB' }}>
-                      {mode.name}
+                    {isRecommended && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: -10,
+                          background: 'linear-gradient(135deg, #10B981, #059669)',
+                          color: '#FFFFFF',
+                          fontSize: 11.5,
+                          fontWeight: 800,
+                          padding: '3px 10px',
+                          borderRadius: 20,
+                          textTransform: 'uppercase',
+                          letterSpacing: 0.6,
+                          boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
+                        }}
+                      >
+                        ★ Recommended
+                      </div>
+                    )}
+                    <div>
+                      <div style={{ fontSize: 34, marginBottom: 8, marginTop: isRecommended ? 6 : 0 }}>{mode.icon}</div>
+                      <div style={{ fontSize: 16.5, fontWeight: 800, color: isSelected ? '#34D399' : '#F9FAFB' }}>
+                        {mode.name}
+                      </div>
+                      <div style={{ fontSize: 14, color: '#9CA3AF', marginTop: 5 }}>{mode.desc}</div>
                     </div>
-                    <div style={{ fontSize: 14, color: '#9CA3AF', marginTop: 5 }}>{mode.desc}</div>
+
+                    {isRecommended && (
+                      <div
+                        style={{
+                          marginTop: 12,
+                          padding: '8px 10px',
+                          background: 'rgba(16, 185, 129, 0.08)',
+                          border: '1px solid rgba(16, 185, 129, 0.25)',
+                          borderRadius: 10,
+                          fontSize: 12.5,
+                          color: '#A7F3D0',
+                          lineHeight: 1.4,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {recommendation.reason}
+                      </div>
+                    )}
                   </div>
                 )
               })}
+            </div>
+
+            {/* Under Section 5 note */}
+            <div
+              style={{
+                marginTop: '1.25rem',
+                fontSize: 14,
+                color: '#9CA3AF',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'rgba(15, 23, 42, 0.6)',
+                padding: '10px 14px',
+                borderRadius: 12,
+                border: '1px solid rgba(31, 41, 55, 0.8)',
+              }}
+            >
+              <span style={{ fontSize: 16 }}>🌱</span>
+              <span>
+                WordBloom will adjust as it learns how {fullName.trim() ? fullName.split(' ')[0] : 'the child'} answers.
+              </span>
             </div>
           </section>
 
