@@ -51,18 +51,8 @@ export default function ChildWelcomePage({
     // Set currentChild cookie for child session
     document.cookie = `currentChild=${encodeURIComponent(displayName)}; path=/; max-age=86400; SameSite=Lax`
 
-    // Ultra-fast pre-initialization: prepare session in localStorage immediately
-    const existingRaw = localStorage.getItem('wb_session')
-    let shouldPrepare = true
-    if (existingRaw) {
-      try {
-        const s = JSON.parse(existingRaw)
-        const sChild = (s?.profile?.child_id || s?.profile?.child_name || '').toLowerCase()
-        if (sChild.includes(childId) || (childId === 'sofia' && sChild.includes('sony'))) {
-          shouldPrepare = false
-        }
-      } catch (e) {}
-    }
+    // Always initialize a fresh new session with 0 blooms when starting
+    const shouldPrepare = true
 
     if (shouldPrepare) {
       const instantSession = {

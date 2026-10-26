@@ -209,6 +209,7 @@ function GameContent() {
   const typeInputRef = useRef<HTMLInputElement>(null)
   const recognitionRef = useRef<any>(null)
   const silenceTimerRef = useRef<any>(null)
+  const isSubmittingRef = useRef<boolean>(false)
   const startTime = useRef(Date.now())
 
   const playSpeechFallback = (chunksOrText: string, targetWord?: string) => {
@@ -372,17 +373,21 @@ function GameContent() {
 
           if (silenceTimerRef.current) {
             clearTimeout(silenceTimerRef.current)
+            silenceTimerRef.current = null
           }
 
           if (final) {
-            try { recognition.stop() } catch (err) {}
-            setIsListening(false)
-            setMicStatusMsg(`Heard: "${final}"`)
-            handleSubmit(final)
+            if (!isSubmittingRef.current && !pendingWord && !loading) {
+              try { recognition.stop() } catch (err) {}
+              setIsListening(false)
+              setMicStatusMsg(`Heard: "${final}"`)
+              handleSubmit(final)
+            }
           } else {
             // Rapid auto-submit if speaker pauses after candidate (eliminates 4s Chrome silence wait)
             silenceTimerRef.current = setTimeout(() => {
-              if (candidate) {
+              silenceTimerRef.current = null
+              if (candidate && !isSubmittingRef.current && !pendingWord && !loading) {
                 try { recognition.stop() } catch (err) {}
                 setIsListening(false)
                 setMicStatusMsg(`Heard: "${candidate}"`)
@@ -426,9 +431,10 @@ function GameContent() {
       const sessionChild = (s?.profile?.child_name || '').toLowerCase()
       const sessionChildId = (s?.profile?.child_id || '').toLowerCase()
 
-      // Check if session in localStorage is already for the requested child
+      // Check if session in localStorage is already for the requested child and not already finished
+      const isCompleted = Boolean(s?.goalAchieved || (s?.stats?.words_correct && s.stats.words_correct >= (s?.profile?.candy_goal || 5)))
       const isMatchingChild = Boolean(
-        s && (
+        s && !isCompleted && (
           !childParam ||
           sessionChildId === targetChildId ||
           sessionChild.includes(targetChildId) ||
@@ -617,6 +623,7 @@ function GameContent() {
     if (nextStats?.words_correct !== undefined) {
       setCandiesWon(nextStats.words_correct)
     }
+    isSubmittingRef.current = false
     setPendingWord(null)
     setFeedback(null)
     setVisualHintB64(null)
@@ -673,6 +680,9 @@ function GameContent() {
       : (inputMode === 'tap' ? tappedLetters.join('') : answer)
     if (!userAnswer.trim()) return
 
+    // Prevent duplicate concurrent submissions (rapid enter, double-click, speech race)
+    if (isSubmittingRef.current || loading || pendingWord) return
+    isSubmittingRef.current = true
     setLoading(true)
     const elapsed = (Date.now() - startTime.current) / 1000
     startTime.current = Date.now()
@@ -757,15 +767,18 @@ function GameContent() {
       } catch (e) {}
 
       // Update session stats and candies immediately so candy counter lights up in real-time
+      let targetCorrect = candiesWon
       if (typeof result.session_stats?.words_correct === 'number') {
-        setCandiesWon(result.session_stats.words_correct)
+        targetCorrect = result.session_stats.words_correct
+        setCandiesWon(targetCorrect)
       } else if (isCorrect) {
-        setCandiesWon(prev => prev + 1)
+        targetCorrect = Math.min(candiesWon + 1, totalWords)
+        setCandiesWon(targetCorrect)
       }
 
       // Trigger Candy Pop & Sparkle Micro-Animation on newly earned candy
       if (isCorrect) {
-        const newlyEarned = Math.min(totalWords - 1, Math.max(0, (result.session_stats?.words_correct ?? (correctCount + 1)) - 1))
+        const newlyEarned = Math.min(totalWords - 1, Math.max(0, targetCorrect - 1))
         setJustEarnedIndex(newlyEarned)
         setTimeout(() => setJustEarnedIndex(null), 1400)
       }
@@ -787,7 +800,7 @@ function GameContent() {
 
       // Candy goal is ONLY achieved on a correct answer where the target candy count is reached.
       // An incorrect word must NEVER trigger the goal reached celebration!
-      const currentCandies = result.session_stats?.words_correct ?? (isCorrect ? correctCount + 1 : correctCount)
+      const currentCandies = targetCorrect
       const isGoalReached = isCorrect && (Boolean(result.adaptation?.goal_reached) || currentCandies >= totalWords)
 
       if (isGoalReached) {
@@ -843,6 +856,9 @@ function GameContent() {
       console.error(e)
     } finally {
       setLoading(false)
+      setTimeout(() => {
+        isSubmittingRef.current = false
+      }, 350)
     }
   }
 
@@ -1636,7 +1652,9 @@ function GameContent() {
                 onKeyDown={e => {
                   if (e.key === 'Enter') {
                     e.preventDefault()
-                    handleSubmit()
+                    if (!loading && !isSubmittingRef.current && !pendingWord && answer.trim()) {
+                      handleSubmit()
+                    }
                   }
                 }}
                 onBlur={e => {
@@ -1662,8 +1680,8 @@ function GameContent() {
                 }}
               />
               <button
-                onClick={() => handleSubmit()}
-                disabled={loading || !answer.trim()}
+                onClick={() => { if (!loading && !isSubmittingRef.current && !pendingWord && answer.trim()) handleSubmit() }}
+                disabled={loading || isSubmittingRef.current || Boolean(pendingWord) || !answer.trim()}
                 aria-label="Check typed answer"
                 style={{
                   padding: '16px 28px', background: 'var(--bloom)',
@@ -1761,7 +1779,9 @@ function GameContent() {
                   onKeyDown={e => {
                     if (e.key === 'Enter') {
                       e.preventDefault()
-                      if (answer.trim()) handleSubmit(answer)
+                      if (!loading && !isSubmittingRef.current && !pendingWord && answer.trim()) {
+                        handleSubmit(answer)
+                      }
                     }
                   }}
                   placeholder="Or type spoken word..."
@@ -1774,8 +1794,8 @@ function GameContent() {
                 />
                 <button
                   type="button"
-                  onClick={() => { if (answer.trim()) handleSubmit(answer) }}
-                  disabled={loading || !answer.trim()}
+                  onClick={() => { if (!loading && !isSubmittingRef.current && !pendingWord && answer.trim()) handleSubmit(answer) }}
+                  disabled={loading || isSubmittingRef.current || Boolean(pendingWord) || !answer.trim()}
                   style={{
                     padding: '8px 16px', background: 'var(--bloom)', color: '#fff',
                     borderRadius: 20, border: 'none', fontSize: 13, fontWeight: 700,
@@ -1965,8 +1985,8 @@ function GameContent() {
 
                 <button
                   type="button"
-                  onClick={() => handleSubmit()}
-                  disabled={loading || tappedLetters.length === 0}
+                  onClick={() => { if (!loading && !isSubmittingRef.current && !pendingWord && tappedLetters.length > 0) handleSubmit() }}
+                  disabled={loading || isSubmittingRef.current || Boolean(pendingWord) || tappedLetters.length === 0}
                   aria-label="Check tapped word answer"
                   style={{
                     width: '100%', minHeight: 56, padding: '16px 32px', background: 'var(--bloom)',

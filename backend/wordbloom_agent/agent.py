@@ -315,15 +315,17 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             conditions             = conditions,
         )
 
-        # Update session stats
-        session["words_attempted"].append(word)
+        # Update session stats (guaranteeing each word is only bloomed once)
+        clean_word_str = str(word or "").lower().strip()
+        session["words_attempted"].append(clean_word_str)
         if evaluation.get("is_correct"):
-            session["words_correct"].append(word)
-            session["consecutive_correct"] += 1
-            session["consecutive_wrong"]    = 0
-            session["word_attempts"][word]  = 0
+            if clean_word_str not in session["words_correct"]:
+                session["words_correct"].append(clean_word_str)
+                session["consecutive_correct"] += 1
+            session["consecutive_wrong"]   = 0
+            session["word_attempts"][word] = 0
         else:
-            session["words_incorrect"].append(word)
+            session["words_incorrect"].append(clean_word_str)
             session["consecutive_wrong"]   += 1
             session["consecutive_correct"]  = 0
 
@@ -351,6 +353,9 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
         if needs_visual_hint:
             session["words_with_hints"].add(word)
 
+        unique_correct_count = len(set([str(w).lower().strip() for w in session["words_correct"]]))
+        unique_done_count = len(set([str(w).lower().strip() for w in session["words_attempted"]]))
+
         adaptation = decide_adaptation(
             is_correct           = is_correct_ans,
             partial_score        = evaluation.get("partial_score", 0),
@@ -359,7 +364,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             error_pattern        = evaluation.get("error_pattern", ""),
             dyslexia_type        = profile.get("dyslexia_type", "phonological"),
             co_occurring         = profile.get("co_occurring", []),
-            words_done           = len(set(session["words_attempted"])),
+            words_done           = unique_done_count,
             break_after          = profile.get("break_after", 10),
             session_length_mins  = profile.get("session_length", 10),
             time_elapsed_mins    = elapsed,
@@ -367,7 +372,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             consecutive_wrong    = session["consecutive_wrong"],
             current_level        = profile.get("reading_level", 1),
             candy_goal           = profile.get("candy_goal", 5 if "adhd" in cond_lower else 10),
-            words_correct        = len(session["words_correct"]),
+            words_correct        = unique_correct_count,
             needs_visual_hint    = needs_visual_hint,
             word                 = word,
             input_mode           = input_mode,
@@ -390,8 +395,8 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             word                 = word,
             encouragement_style  = profile.get("encouragement_style", "warm"),
             co_occurring         = profile.get("co_occurring", []),
-            words_done_today     = len(session["words_attempted"]),
-            words_correct_today  = len(session["words_correct"]),
+            words_done_today     = unique_done_count,
+            words_correct_today  = unique_correct_count,
             session_streak       = session["consecutive_correct"],
             input_mode           = input_mode,
             used_hint            = used_hint,
@@ -463,10 +468,10 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             "meaning_icon":       adaptation.get("meaning_icon"),
             "meaning_desc":       adaptation.get("meaning_desc"),
             "session_stats": {
-                "words_done":     len(session["words_attempted"]),
-                "words_correct":  len(session["words_correct"]),
+                "words_done":     unique_done_count,
+                "words_correct":  unique_correct_count,
                 "candy_goal":     adaptation.get("candy_goal", profile.get("candy_goal", 5)),
-                "accuracy":       round(len(session["words_correct"]) / max(len(session["words_attempted"]), 1) * 100),
+                "accuracy":       round(unique_correct_count / max(unique_done_count, 1) * 100),
                 "breaks_taken":   session["breaks_taken"],
                 "time_elapsed":   round(elapsed, 1),
             },
