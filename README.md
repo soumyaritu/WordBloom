@@ -85,7 +85,7 @@ Instead of forcing a child to fit the software, WordBloom molds itself around th
 * [2. How WordBloom Serves Every Individual Learner](#2-how-wordbloom-serves-every-individual-learner)
 * [3. Core Pedagogical Innovations](#3-core-pedagogical-innovations)
 * [4. Multi-Agent Architecture (Google ADK)](#4-multi-agent-architecture-google-adk)
-* [5. The 6 Specialist Agents](#5-the-6-specialist-agents)
+* [5. The 6-Agent Architecture (The Technical Core)](#5-the-6-agent-architecture-the-technical-core)
 * [6. Teacher Dashboard & Dyslexia Mirror Suite](#6-teacher-dashboard--dyslexia-mirror-suite)
 * [7. Sensory & Accessibility Features](#7-sensory--accessibility-features)
 * [8. Repository Structure](#8-repository-structure)
@@ -215,16 +215,78 @@ graph TD
 
 ---
 
-## 5. The 6 Specialist Agents
+## 5. The 6-Agent Architecture (The Technical Core)
 
-| Agent | Responsibility | ADK Implementation |
-| :--- | :--- | :--- |
-| **👤 ProfileAgent** | Reads child's markdown `SKILL.md` profile, access preferences, and condition flags. | `load_child_profile()` via SkillToolset |
-| **📖 WordSelectorAgent** | Dynamically generates next practice word matching child stage & error patterns with Gemini 2.5 Flash. | `select_next_word()` + `STAGE_FALLBACKS` |
-| **🔍 EvaluatorAgent** | Nuanced profile-aware candy scoring, mirror swap detection, acoustic voice matching. | `evaluate_answer()` |
-| **⚡ AdapterAgent** | Adjusts reading level, scaffolding hints, or triggers rest breaks in real time. | `decide_adaptation()` |
-| **💚 EncouragementAgent** | Produces specific, non-patronizing, growth-mindset praise (never generic *"Good job!"*). | `generate_encouragement()` |
-| **📋 ReportAgent** | Drafts comprehensive teacher session summary with **Approval Gate**. | `generate_session_report()` (`approval_required: true`) |
+WordBloom is built with the **Google Agent Development Kit (ADK)** and orchestrated via **Gemini 2.5 Flash on Google Cloud Vertex AI**. Rather than relying on a single monolithic prompt, WordBloom breaks cognitive reading assistance into **6 specialized, cooperating agents**:
+
+```
+                       ┌─────────────────────────┐
+                       │    Root Orchestrator    │
+                       │   (agent.py / FastAPI)  │
+                       └────────────┬────────────┘
+                                    │
+       ┌──────────────┬─────────────┼─────────────┬──────────────┬──────────────┐
+       │              │             │             │              │              │
+       ▼              ▼             ▼             ▼              ▼              ▼
+ ┌───────────┐  ┌───────────┐ ┌───────────┐ ┌───────────┐  ┌───────────┐  ┌───────────┐
+ │  Profile  │  │   Word    │ │ Evaluator │ │  Adapter  │  │Encourage- │  │  Report   │
+ │   Agent   │  │ Selector  │ │   Agent   │ │   Agent   │  │ment Agent │  │   Agent   │
+ └─────┬─────┘  └─────┬─────┘ └─────┬─────┘ └─────┬─────┘  └─────┬─────┘  └─────┬─────┘
+       │              │             │             │              │              │
+       ▼              ▼             ▼             ▼              ▼              ▼
+  SKILL.md       Gemini 2.5    Phonemic      Scaffolding    Growth         Human-in-
+  Child Profile  Phonics Gen   Diagnosis     & Pacing       Praise         the-Loop Gate
+```
+
+### 1. 👤 ProfileAgent (`profile_agent.py`)
+* **Role**: Dynamic personalization grounding.
+* **How it works**: Uses Google ADK `SkillToolset` to dynamically ingest markdown child learning profiles (`SKILL.md`).
+* **Capabilities**:
+  * Reads 6 dyslexia types, co-occurring condition flags (ADHD, Autism, Dyspraxia), reading stage (1–4), preferred input mode, font preference, and color overlays.
+  * Injects exact child constraints into the session context before any word generation begins.
+  * Ensures zero hallucinated parameters or mismatched cognitive difficulty.
+
+### 2. 📖 WordSelectorAgent (`word_selector_agent.py`)
+* **Role**: Adaptive curriculum selection and phonics generation.
+* **How it works**: Uses **Gemini 2.5 Flash on Google Cloud Vertex AI** to dynamically generate words aligned with the child's exact reading stage, error history, and dyslexia profile.
+* **Capabilities**:
+  * **Stage 1**: Simple CVC words (consonant-vowel-consonant, e.g., *cat*, *sun*, *pig*).
+  * **Stage 2**: Digraphs and consonant blends (*ship*, *frog*, *clap*).
+  * **Stage 3**: Silent letters and vowel teams (*knight*, *boat*, *rain*).
+  * **Stage 4**: Multisyllabic and morphological patterns (*butterfly*, *garden*, *window*).
+  * **Intelligent Deduplication**: Strictly prevents repetitive loops by tracking session history and practicing unmastered phonemes.
+
+### 3. 🔍 EvaluatorAgent (`evaluator_agent.py`)
+* **Role**: Profile-aware cognitive diagnosis (not just binary right/wrong).
+* **How it works**: Compares learner input against target word using phonemic distance and diagnostic error pattern rules.
+* **Capabilities**:
+  * **Mirror Reversals (`b ↔ d`, `p ↔ q`)**: Recognizes visual-spatial flips (*"bog"* for *"dog"* or *"dat"* for *"bat"* is diagnosed as a visual orientation mistake, not a spelling failure).
+  * **Acoustic Tolerance for Voice Input**: Multi-alternative candidate ranking (`maxAlternatives = 5`), elongation tolerance (`hop ↔ hope`, `cut ↔ cute`), and spoken homophone mapping (*sun/son*, *sea/see*, *right/write*).
+  * **Phonological Error Clustering**: Pinpoints whether difficulty stems from initial blends, medial vowel teams, or silent letter patterns.
+
+### 4. ⚡ AdapterAgent (`adapter_agent.py`)
+* **Role**: Dynamic real-time micro-scaffolding and cognitive pacing.
+* **How it works**: Intercepts the evaluation and decides the immediate next pedagogical accommodation.
+* **Capabilities**:
+  * **Scaffold Generation**: Delivers UK synthetic phonics audio hints, visual letter chunking (`sh-i-p`), or orientation cues (`b` faces right ➔, `d` faces left ⬅️).
+  * **ADHD Pacing Enforcement**: Enforces a 5-minute maximum session and triggers 30-second restorative eye/stretch breaks every 5 words.
+  * **Dynamic Leveling**: Steps up reading stage after sustained mastery or steps down to protect child confidence after repeated struggles.
+
+### 5. 💚 EncouragementAgent (`encouragement_agent.py`)
+* **Role**: Evidence-based, neurodiversity-informed emotional reinforcement.
+* **How it works**: Generates warm, factual, growth-mindset praise using Gemini 2.5 Flash.
+* **Capabilities**:
+  * **Zero Vague Fluff**: Never uses patronizing or hollow phrases like *"Good job!"* or *"You're so smart!"*.
+  * **Specific Mastery Praise**: Emphasizes the exact phonetic accomplishment (*"You heard the 'sh' blend right away!"* or *"You spotted the silent 'k' in knight!"*).
+  * **Autism & Sensory Tuning**: Strictly factual, calm observations with zero exclamation overload when sensory flags are active.
+
+### 6. 📋 ReportAgent (`report_agent.py`) & The Approval Gate
+* **Role**: Pedagogical synthesis, clinical reporting, and human governance.
+* **How it works**: Analyzes full session metrics (accuracy, error patterns, response latency, self-corrections) and drafts an educator summary.
+* **Capabilities**:
+  * Highlights specific phonetic strengths and exact challenge areas in plain English.
+  * Flags emerging patterns (e.g., *"Visual fatigue noted after word 4; consider switching to yellow overlay"*).
+  * **Human-in-the-Loop Safety Gate**: The report is generated with `approval_required: true`. **Zero data or summaries are sent to parents or external records without the educator manually reviewing and clicking "Approve Report" in the Teacher Dashboard.**
 
 ---
 
