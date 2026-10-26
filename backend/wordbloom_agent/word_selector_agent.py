@@ -115,10 +115,13 @@ def _instant_select_word(
     if consecutive_wrong >= 2:
         lvl = max(1, lvl - 1)
 
+    mastered_set = {str(w).lower().strip() for w in (mastered_words or []) if str(w).strip()}
     done_set = {str(w).lower().strip() for w in (words_done_this_session or []) if str(w).strip()}
     candidates = STAGE_FALLBACKS.get(lvl, STAGE_FALLBACKS[1])
 
-    available = [item for item in candidates if item["word"].lower() not in done_set]
+    available = [item for item in candidates if item["word"].lower() not in done_set and item["word"].lower() not in mastered_set]
+    if not available:
+        available = [item for item in candidates if item["word"].lower() not in done_set]
     if not available:
         # If all stage candidates done, try any stage not yet done
         for other_lvl in [1, 2, 3, 4]:
@@ -154,6 +157,7 @@ def select_next_word(
     consecutive_correct: int = 0,
     consecutive_wrong: int = 0,
     adaptation_action: str = "continue",
+    is_first_word: bool = False,
 ) -> dict:
     """
     Selects or generates the optimal next word dynamically using Gemini 2.5 Flash.
@@ -166,6 +170,21 @@ def select_next_word(
     lvl = max(1, min(4, int(reading_level or 1)))
     done_list = [str(w).lower().strip() for w in (words_done_this_session or []) if str(w).strip()]
     cond_list = [str(c).lower().strip() for c in (co_occurring or []) if str(c).strip() and str(c).lower() != "none"]
+
+    # Ultra-fast path for session start: delivers welcoming first word in <1ms without delay
+    if is_first_word or (not done_list and not error_pattern and adaptation_action == "continue"):
+        first_pick = _instant_select_word(
+            reading_level=lvl,
+            struggling_words=struggling_words,
+            mastered_words=mastered_words,
+            words_done_this_session=done_list,
+            last_answer_correct=last_answer_correct,
+            consecutive_wrong=consecutive_wrong,
+            dyslexia_type=dyslexia_type,
+            error_pattern=error_pattern,
+        )
+        print(f"   ⚡ Instant welcoming first word selected: '{first_pick['word']}' (Stage {lvl})")
+        return first_pick
 
     prompt = f"""You are the Word Selector Agent for WordBloom, an adaptive reading system for children.
 Generate the optimal next reading practice word for this student:
@@ -216,7 +235,7 @@ Return ONLY a valid JSON object matching this schema:
             response_mime_type="application/json",
             max_output_tokens=160,
             temperature=0.7,
-            thinking_config=types.ThinkingConfig(thinking_budget=0),
+            http_options={"timeout": 2500},
         )
         response = client.models.generate_content(
             model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),

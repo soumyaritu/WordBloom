@@ -20,8 +20,33 @@ Pipeline:
 """
 
 import os
+import sys
 import uuid
 import asyncio
+
+# Protect against Errno 5 Input/output error if detached from tty
+class SafeStream:
+    def __init__(self, target):
+        self._target = target
+    def write(self, data):
+        try:
+            return self._target.write(data)
+        except (OSError, BrokenPipeError):
+            pass
+    def flush(self):
+        try:
+            return self._target.flush()
+        except (OSError, BrokenPipeError):
+            pass
+    def isatty(self):
+        try:
+            return self._target.isatty()
+        except Exception:
+            return False
+
+sys.stdout = SafeStream(sys.stdout)
+sys.stderr = SafeStream(sys.stderr)
+
 import vertexai
 from google import genai
 from google.adk.agents import Agent
@@ -179,6 +204,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             consecutive_correct     = 0,
             consecutive_wrong       = 0,
             adaptation_action       = "continue",
+            is_first_word           = True,
         )
         print(f"   ✅ First word: {first_word.get('word')}")
 

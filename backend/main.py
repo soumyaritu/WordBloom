@@ -6,7 +6,32 @@ FastAPI server — entry point for the frontend.
 Every word. Every child. Every way.
 """
 
+import sys
 import uvicorn
+
+# Protect against Errno 5 Input/output error if terminal closes or disconnects
+class SafeStream:
+    def __init__(self, target):
+        self._target = target
+    def write(self, data):
+        try:
+            return self._target.write(data)
+        except (OSError, BrokenPipeError):
+            pass
+    def flush(self):
+        try:
+            return self._target.flush()
+        except (OSError, BrokenPipeError):
+            pass
+    def isatty(self):
+        try:
+            return self._target.isatty()
+        except Exception:
+            return False
+
+sys.stdout = SafeStream(sys.stdout)
+sys.stderr = SafeStream(sys.stderr)
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from wordbloom_agent.agent import run_session_pipeline, _sessions

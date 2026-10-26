@@ -6,10 +6,22 @@ const AGENT_RUNTIME_BASE = process.env.ADK_BACKEND_ORIGIN ||
 
 const LOCAL_BACKEND_BASE = process.env.LOCAL_BACKEND_URL || "http://127.0.0.1:8000"
 
+let cachedToken: string | null = null
+let hasCheckedMetadata = false
+
 async function getGoogleAuthToken(): Promise<string | null> {
   // 1. Check if token is explicitly injected in env
   if (process.env.GOOGLE_AUTH_TOKEN) {
     return process.env.GOOGLE_AUTH_TOKEN
+  }
+  if (hasCheckedMetadata) {
+    return cachedToken
+  }
+
+  // If running locally (not in GCP Cloud Run/VM), skip metadata server immediately
+  if (!process.env.K_SERVICE && !process.env.GAE_SERVICE && process.env.NODE_ENV !== 'production') {
+    hasCheckedMetadata = true
+    return null
   }
 
   // 2. In Google Cloud Run, get token from Compute Metadata server
@@ -18,17 +30,20 @@ async function getGoogleAuthToken(): Promise<string | null> {
       "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token",
       {
         headers: { "Metadata-Flavor": "Google" },
-        signal: AbortSignal.timeout(1500),
+        signal: AbortSignal.timeout(500),
       }
     )
     if (metaRes.ok) {
       const data = await metaRes.json()
-      return data.access_token || null
+      cachedToken = data.access_token || null
+      hasCheckedMetadata = true
+      return cachedToken
     }
   } catch {
     // Local environment or metadata server not reachable
   }
 
+  hasCheckedMetadata = true
   return null
 }
 

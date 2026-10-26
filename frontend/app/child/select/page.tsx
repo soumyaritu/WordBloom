@@ -147,7 +147,7 @@ export default function ChildSelectPage() {
           alignItems: 'center',
         }}
       >
-        {/* Top Navigation: Back Button */}
+        {/* Top Navigation: Home Button */}
         <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', marginBottom: '1.5rem' }}>
           <Link
             href="/"
@@ -168,7 +168,8 @@ export default function ChildSelectPage() {
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
             }}
           >
-            ← Back
+            <span role="img" aria-label="home" style={{ fontSize: '1.2rem' }}>🏠</span>
+            <span>Home</span>
           </Link>
         </div>
 

@@ -83,7 +83,7 @@ export default function TeacherLoginPage() {
           alignItems: 'center',
         }}
       >
-        {/* Back Button */}
+        {/* Home Button */}
         <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', marginBottom: '1.25rem' }}>
           <Link
             href="/"
@@ -92,19 +92,20 @@ export default function TeacherLoginPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              padding: '8px 18px',
+              padding: '8px 20px',
               borderRadius: 50,
               background: 'rgba(255, 255, 255, 0.22)',
               backdropFilter: 'blur(10px)',
               border: '1.5px solid rgba(255, 255, 255, 0.45)',
               color: '#FFFFFF',
-              fontSize: '0.9rem',
+              fontSize: '0.95rem',
               fontWeight: 800,
               textDecoration: 'none',
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
             }}
           >
-            ← Back to Home
+            <span role="img" aria-label="home" style={{ fontSize: '1.1rem' }}>🏠</span>
+            <span>Home</span>
           </Link>
         </div>
 

@@ -303,6 +303,9 @@ export default function TeacherDashboardPage() {
               href="/"
               className="wb-btn"
               style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
                 padding: '9px 18px',
                 borderRadius: 40,
                 background: 'rgba(255, 255, 255, 0.22)',
@@ -313,7 +316,8 @@ export default function TeacherDashboardPage() {
                 textDecoration: 'none',
               }}
             >
-              Portal Home
+              <span role="img" aria-label="home" style={{ fontSize: '1rem' }}>🏠</span>
+              <span>Home</span>
             </Link>
 
             <button
