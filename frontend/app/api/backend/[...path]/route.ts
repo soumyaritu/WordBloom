@@ -47,6 +47,189 @@ async function getGoogleAuthToken(): Promise<string | null> {
   return null
 }
 
+const DEFAULT_START_PROFILES: Record<string, any> = {
+  emma: {
+    child_id: "emma",
+    child_name: "Emma Clarke",
+    parent_email: "parent@example.com",
+    age: 9,
+    school_year: "Year 4",
+    dyslexia_type: "phonological",
+    severity: "moderate",
+    conditions: ["adhd"],
+    co_occurring: ["adhd"],
+    input_mode: "voice",
+    display_mode: "opendyslexic",
+    colour_overlay: "yellow",
+    show_timer: false,
+    score_display: "stars",
+    session_length: 5,
+    candy_goal: 5,
+    break_after: 5,
+    approach: "audio_first",
+    encouragement_style: "specific",
+    reading_stage: 1,
+    reading_level: 1,
+    mastered_words: ["cat", "dog", "run", "play", "help"],
+    struggling_words: ["through", "knight", "enough"],
+    pattern_difficulty: "silent letters",
+    first_word: {
+      word: "sun",
+      difficulty: "easy",
+      category: "CVC",
+      phonics_rule: "Short 'u' sound",
+      audio_hint: "sun",
+      visual_hint: "s·u·n",
+      sentence: "The warm sun is shining bright.",
+      why_chosen: "Selected for Stage 1 phonics practice matching child's profile."
+    }
+  },
+  liam: {
+    child_id: "liam",
+    child_name: "Liam O'Connor",
+    parent_email: "parent@example.com",
+    age: 8,
+    school_year: "Year 3",
+    dyslexia_type: "surface",
+    severity: "mild",
+    conditions: [],
+    co_occurring: [],
+    input_mode: "tap",
+    display_mode: "standard",
+    colour_overlay: "none",
+    show_timer: false,
+    score_display: "stars",
+    session_length: 10,
+    candy_goal: 10,
+    break_after: 10,
+    approach: "phonics",
+    encouragement_style: "warm",
+    reading_stage: 2,
+    reading_level: 2,
+    mastered_words: ["big", "red", "cup"],
+    struggling_words: ["said", "yacht"],
+    pattern_difficulty: "irregular spelling",
+    first_word: {
+      word: "frog",
+      difficulty: "medium",
+      category: "blends",
+      phonics_rule: "Initial blend 'fr'",
+      audio_hint: "frog",
+      visual_hint: "f·r·o·g",
+      sentence: "The green frog jumped in the pond.",
+      why_chosen: "Selected for Stage 2 blends practice matching child's profile."
+    }
+  },
+  james: {
+    child_id: "james",
+    child_name: "James Patel",
+    parent_email: "parent@example.com",
+    age: 10,
+    school_year: "Year 5",
+    dyslexia_type: "visual/spatial",
+    severity: "moderate",
+    conditions: ["dyspraxia"],
+    co_occurring: ["dyspraxia"],
+    input_mode: "tap",
+    display_mode: "opendyslexic",
+    colour_overlay: "blue",
+    show_timer: false,
+    score_display: "stars",
+    session_length: 10,
+    candy_goal: 10,
+    break_after: 10,
+    approach: "phonics",
+    encouragement_style: "warm",
+    reading_stage: 2,
+    reading_level: 2,
+    mastered_words: ["stop", "jump"],
+    struggling_words: ["dog", "beach"],
+    pattern_difficulty: "b/d reversal",
+    first_word: {
+      word: "star",
+      difficulty: "medium",
+      category: "blends",
+      phonics_rule: "Initial blend 'st'",
+      audio_hint: "star",
+      visual_hint: "s·t·a·r",
+      sentence: "Look up at the bright twinkling star.",
+      why_chosen: "Selected for Stage 2 practice avoiding mirror letter confusion."
+    }
+  },
+  sofia: {
+    child_id: "sofia",
+    child_name: "Sony Mathew",
+    parent_email: "parent@example.com",
+    age: 9,
+    school_year: "Year 4",
+    dyslexia_type: "phonological",
+    severity: "moderate",
+    conditions: ["adhd"],
+    co_occurring: ["adhd"],
+    input_mode: "voice",
+    display_mode: "opendyslexic",
+    colour_overlay: "green",
+    show_timer: false,
+    score_display: "stars",
+    session_length: 5,
+    candy_goal: 5,
+    break_after: 5,
+    approach: "audio_first",
+    encouragement_style: "specific",
+    reading_stage: 2,
+    reading_level: 2,
+    mastered_words: ["van", "pen"],
+    struggling_words: ["light", "through"],
+    pattern_difficulty: "silent gh",
+    first_word: {
+      word: "drum",
+      difficulty: "medium",
+      category: "blends",
+      phonics_rule: "Initial blend 'dr'",
+      audio_hint: "drum",
+      visual_hint: "d·r·u·m",
+      sentence: "Beat the rhythm on the drum.",
+      why_chosen: "Selected for Stage 2 phonics practice."
+    }
+  },
+  sony: {
+    child_id: "sony",
+    child_name: "Sony Mathew",
+    parent_email: "parent@example.com",
+    age: 9,
+    school_year: "Year 4",
+    dyslexia_type: "phonological",
+    severity: "moderate",
+    conditions: ["adhd"],
+    co_occurring: ["adhd"],
+    input_mode: "voice",
+    display_mode: "opendyslexic",
+    colour_overlay: "green",
+    show_timer: false,
+    score_display: "stars",
+    session_length: 5,
+    candy_goal: 5,
+    break_after: 5,
+    approach: "audio_first",
+    encouragement_style: "specific",
+    reading_stage: 2,
+    reading_level: 2,
+    mastered_words: ["van", "pen"],
+    struggling_words: ["light", "through"],
+    pattern_difficulty: "silent gh",
+    first_word: {
+      word: "drum",
+      difficulty: "medium",
+      category: "blends",
+      phonics_rule: "Initial blend 'dr'",
+      audio_hint: "drum",
+      visual_hint: "d·r·u·m",
+      sentence: "Beat the rhythm on the drum.",
+      why_chosen: "Selected for Stage 2 phonics practice."
+    }
+  }
+}
+
 async function handleProxy(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params
   const targetPath = (path || []).join('/')
@@ -68,6 +251,44 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
 
   const method = req.method
   const body = method !== 'GET' && method !== 'HEAD' ? await req.text() : undefined
+
+  // Ultra-fast path for session/start: never block the user beyond 350ms
+  if (targetPath === 'session/start' && method === 'POST') {
+    let childId = 'emma'
+    try {
+      const parsed = body ? JSON.parse(body) : {}
+      childId = (parsed.child_name || parsed.child_id || 'emma').toLowerCase().trim()
+      if (childId.includes(' ')) childId = childId.split(' ')[0]
+    } catch (e) {}
+
+    const profileData = DEFAULT_START_PROFILES[childId] || DEFAULT_START_PROFILES.emma
+    const fastResponse = {
+      session_id: `session_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      profile: profileData,
+      first_word: profileData.first_word,
+      success: true,
+    }
+
+    try {
+      const upstreamRes = await fetch(targetUrl, {
+        method,
+        headers,
+        body,
+        signal: AbortSignal.timeout(350),
+      })
+      if (upstreamRes.ok) {
+        const data = await upstreamRes.text()
+        return new NextResponse(data, {
+          status: upstreamRes.status,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+    } catch {
+      // Upstream took >350ms or is unreachable; return fastResponse immediately
+    }
+
+    return NextResponse.json(fastResponse)
+  }
 
   try {
     const upstreamRes = await fetch(targetUrl, {

@@ -50,29 +50,70 @@ export default function ChildWelcomePage({
 
     // Set currentChild cookie for child session
     document.cookie = `currentChild=${encodeURIComponent(displayName)}; path=/; max-age=86400; SameSite=Lax`
+
+    // Ultra-fast pre-initialization: prepare session in localStorage immediately
+    const existingRaw = localStorage.getItem('wb_session')
+    let shouldPrepare = true
+    if (existingRaw) {
+      try {
+        const s = JSON.parse(existingRaw)
+        const sChild = (s?.profile?.child_id || s?.profile?.child_name || '').toLowerCase()
+        if (sChild.includes(childId) || (childId === 'sofia' && sChild.includes('sony'))) {
+          shouldPrepare = false
+        }
+      } catch (e) {}
+    }
+
+    if (shouldPrepare) {
+      const instantSession = {
+        session_id: `session_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        profile: {
+          child_id: childId,
+          child_name: displayName,
+          reading_level: childId === 'emma' ? 1 : 2,
+          reading_stage: childId === 'emma' ? 1 : 2,
+          dyslexia_type: childId === 'liam' ? 'surface' : (childId === 'james' ? 'visual/spatial' : 'phonological'),
+          input_mode: (childId === 'liam' || childId === 'james') ? 'tap' : 'voice',
+          display_mode: childId === 'liam' ? 'standard' : 'opendyslexic',
+          colour_overlay: childId === 'emma' ? 'yellow' : (childId === 'james' ? 'blue' : (childId === 'sofia' || childId === 'sony' ? 'green' : 'none')),
+          session_length: (childId === 'emma' || childId === 'sofia' || childId === 'sony') ? 5 : 10,
+          candy_goal: (childId === 'emma' || childId === 'sofia' || childId === 'sony') ? 5 : 10,
+          break_after: (childId === 'emma' || childId === 'sofia' || childId === 'sony') ? 5 : 10,
+        },
+        current_word: childId === 'emma' ? {
+          word: 'sun', difficulty: 'easy', category: 'CVC', audio_hint: 'sun', visual_hint: 's·u·n', sentence: 'The warm sun is shining bright.', why_chosen: 'Stage 1 practice'
+        } : (childId === 'james' ? {
+          word: 'star', difficulty: 'medium', category: 'blends', audio_hint: 'star', visual_hint: 's·t·a·r', sentence: 'Look up at the bright twinkling star.', why_chosen: 'Stage 2 practice'
+        } : {
+          word: 'frog', difficulty: 'medium', category: 'blends', audio_hint: 'frog', visual_hint: 'f·r·o·g', sentence: 'The green frog jumped in the pond.', why_chosen: 'Stage 2 practice'
+        }),
+        words_done: [],
+        words_correct: [],
+        start_time: Date.now(),
+        stats: { words_done: 0, words_correct: 0, accuracy: 0 },
+      }
+      localStorage.setItem('wb_session', JSON.stringify(instantSession))
+    }
+
+    // Prefetch official backend session asynchronously in background
+    startSession(childId).then(data => {
+      if (data?.session_id) {
+        localStorage.setItem('wb_session', JSON.stringify({
+          session_id:   data.session_id,
+          profile:      { ...data.profile, child_id: childId },
+          current_word: data.first_word,
+          words_done:   [],
+          words_correct: [],
+          start_time:   Date.now(),
+          stats: { words_done: 0, words_correct: 0, accuracy: 0 },
+        }))
+      }
+    }).catch(() => {})
   }, [childId, displayName])
 
-  const handleStartGame = async () => {
-    setStarting(true)
-    try {
-      const data = await startSession(childId)
-      // Save session in localStorage for existing game engine
-      localStorage.setItem('wb_session', JSON.stringify({
-        session_id:   data.session_id,
-        profile:      { ...data.profile, child_id: childId },
-        current_word: data.first_word,
-        words_done:   [],
-        words_correct: [],
-        start_time:   Date.now(),
-        stats: { words_done: 0, words_correct: 0, accuracy: 0 },
-      }))
-
-      router.push(`/game?child=${childId}`)
-    } catch (err) {
-      console.error('Error starting reading session:', err)
-      // Fallback: still navigate to game page with child query
-      router.push(`/game?child=${childId}`)
-    }
+  const handleStartGame = () => {
+    // 0ms delay: Instant navigation, no waiting for network
+    router.push(`/game?child=${childId}`)
   }
 
   return (
@@ -196,7 +237,6 @@ export default function ChildWelcomePage({
           {/* Large floral green-to-pink gradient “🌸 Start Blooming!” button */}
           <button
             onClick={handleStartGame}
-            disabled={starting}
             className="wb-btn"
             style={{
               padding: '1.1rem 3.25rem',
@@ -207,15 +247,14 @@ export default function ChildWelcomePage({
               background: 'linear-gradient(135deg, #10b981 0%, #059669 45%, #ec4899 100%)',
               color: '#FFFFFF',
               boxShadow: '0 12px 30px rgba(16, 185, 129, 0.45)',
-              cursor: starting ? 'not-allowed' : 'pointer',
-              opacity: starting ? 0.75 : 1,
+              cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
               gap: 12,
               marginBottom: '2.5rem',
             }}
           >
-            {starting ? 'Getting your garden ready... 🌸' : '🌸 Start Blooming!'}
+            🌸 Start Blooming!
           </button>
 
           {/* Row of 5 blooming flower emojis at the bottom */}

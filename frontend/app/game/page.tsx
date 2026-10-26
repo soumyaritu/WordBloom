@@ -70,12 +70,120 @@ function formatCategoryBadge(category?: string, readingLevel?: number): string {
   return `${cat} Words`
 }
 
+function getInitialInstantSession(childParam: string) {
+  if (typeof window === 'undefined') return null
+  const cId = (childParam || 'emma').toLowerCase().trim()
+  try {
+    const raw = localStorage.getItem('wb_session')
+    if (raw) {
+      const s = JSON.parse(raw)
+      const targetChildId = cId || s?.profile?.child_id || 'emma'
+      const sessionChild = (s?.profile?.child_name || '').toLowerCase()
+      const sessionChildId = (s?.profile?.child_id || '').toLowerCase()
+      const isMatchingChild = Boolean(
+        sessionChildId === targetChildId ||
+        sessionChild.includes(targetChildId) ||
+        (targetChildId === 'sofia' && sessionChild.includes('sony')) ||
+        (targetChildId === 'sony' && sessionChild.includes('sony'))
+      )
+      if (isMatchingChild && s?.current_word) {
+        return s
+      }
+    }
+  } catch (e) {}
+
+  // Instant pre-computed session so the game card renders in 0ms without delay
+  const instantProfiles: Record<string, any> = {
+    emma: {
+      child_id: 'emma',
+      child_name: 'Emma Clarke',
+      reading_level: 1,
+      reading_stage: 1,
+      dyslexia_type: 'phonological',
+      input_mode: 'voice',
+      display_mode: 'opendyslexic',
+      colour_overlay: 'yellow',
+      session_length: 5,
+      candy_goal: 5,
+      break_after: 5,
+      first_word: { word: 'sun', difficulty: 'easy', category: 'CVC', audio_hint: 'sun', visual_hint: 's·u·n', sentence: 'The warm sun is shining bright.', why_chosen: 'Stage 1 practice' },
+    },
+    liam: {
+      child_id: 'liam',
+      child_name: "Liam O'Connor",
+      reading_level: 2,
+      reading_stage: 2,
+      dyslexia_type: 'surface',
+      input_mode: 'tap',
+      display_mode: 'standard',
+      colour_overlay: 'none',
+      session_length: 10,
+      candy_goal: 10,
+      break_after: 10,
+      first_word: { word: 'frog', difficulty: 'medium', category: 'blends', audio_hint: 'frog', visual_hint: 'f·r·o·g', sentence: 'The green frog jumped in the pond.', why_chosen: 'Stage 2 practice' },
+    },
+    james: {
+      child_id: 'james',
+      child_name: 'James Patel',
+      reading_level: 2,
+      reading_stage: 2,
+      dyslexia_type: 'visual/spatial',
+      input_mode: 'tap',
+      display_mode: 'opendyslexic',
+      colour_overlay: 'blue',
+      session_length: 10,
+      candy_goal: 10,
+      break_after: 10,
+      first_word: { word: 'star', difficulty: 'medium', category: 'blends', audio_hint: 'star', visual_hint: 's·t·a·r', sentence: 'Look up at the bright twinkling star.', why_chosen: 'Stage 2 practice' },
+    },
+    sofia: {
+      child_id: 'sofia',
+      child_name: 'Sony Mathew',
+      reading_level: 2,
+      reading_stage: 2,
+      dyslexia_type: 'phonological',
+      input_mode: 'voice',
+      display_mode: 'opendyslexic',
+      colour_overlay: 'green',
+      session_length: 5,
+      candy_goal: 5,
+      break_after: 5,
+      first_word: { word: 'drum', difficulty: 'medium', category: 'blends', audio_hint: 'drum', visual_hint: 'd·r·u·m', sentence: 'Beat the rhythm on the drum.', why_chosen: 'Stage 2 practice' },
+    },
+    sony: {
+      child_id: 'sony',
+      child_name: 'Sony Mathew',
+      reading_level: 2,
+      reading_stage: 2,
+      dyslexia_type: 'phonological',
+      input_mode: 'voice',
+      display_mode: 'opendyslexic',
+      colour_overlay: 'green',
+      session_length: 5,
+      candy_goal: 5,
+      break_after: 5,
+      first_word: { word: 'drum', difficulty: 'medium', category: 'blends', audio_hint: 'drum', visual_hint: 'd·r·u·m', sentence: 'Beat the rhythm on the drum.', why_chosen: 'Stage 2 practice' },
+    },
+  }
+
+  const p = instantProfiles[cId] || instantProfiles.emma
+  return {
+    session_id: `session_${Date.now()}`,
+    profile: p,
+    current_word: p.first_word,
+    words_done: [],
+    words_correct: [],
+    start_time: Date.now(),
+    stats: { words_done: 0, words_correct: 0, accuracy: 0 },
+  }
+}
+
 function GameContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const childParam = (searchParams.get('child') || '').toLowerCase().trim()
-  const [session,       setSession]       = useState<any>(null)
-  const [activeWord,    setActiveWord]    = useState<any>(null)
+  const [session,       setSession]       = useState<any>(() => getInitialInstantSession(childParam))
+  const [activeWord,    setActiveWord]    = useState<any>(() => getInitialInstantSession(childParam)?.current_word || null)
   const [pendingWord,   setPendingWord]   = useState<any>(null)
   const [answer,        setAnswer]        = useState('')
   const [tappedLetters, setTappedLetters] = useState<string[]>([])
@@ -85,14 +193,14 @@ function GameContent() {
   const [feedback,      setFeedback]      = useState<any>(null)
   const [showBreak,     setShowBreak]     = useState(false)
   const [goalAchieved,  setGoalAchieved]  = useState(false)
-  const [inputMode,     setInputMode]     = useState('type')
+  const [inputMode,     setInputMode]     = useState<string>(() => getInitialInstantSession(childParam)?.profile?.input_mode || 'voice')
   const [visualHintB64,   setVisualHintB64]   = useState<string | null>(null)
   const [audioScaffoldB64, setAudioScaffoldB64] = useState<string | null>(null)
   const [phonicsChunks,   setPhonicsChunks]   = useState<string | null>(null)
   const [phonicsSpoken,   setPhonicsSpoken]   = useState<string | null>(null)
   const [meaningIcon,     setMeaningIcon]     = useState<string | null>(null)
   const [meaningDesc,     setMeaningDesc]     = useState<string | null>(null)
-  const [candiesWon,      setCandiesWon]      = useState<number>(0)
+  const [candiesWon,      setCandiesWon]      = useState<number>(() => getInitialInstantSession(childParam)?.stats?.words_correct || 0)
   const [isListening,     setIsListening]     = useState<boolean>(false)
   const [interimSpoken,   setInterimSpoken]   = useState<string>('')
   const [micStatusMsg,    setMicStatusMsg]    = useState<string>('')
