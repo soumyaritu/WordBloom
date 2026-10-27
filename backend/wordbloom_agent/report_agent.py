@@ -75,7 +75,7 @@ def _instant_report(
             rec_profile = "Surface"
             rec_detail = "difficulty recognizing irregular whole-word shapes and silent letters"
             rec_reason = f"When reading and spelling, {first_name} struggled recognizing irregular whole-word shapes and silent letters. Visual spotlighting and word silhouettes strengthen orthographic memory."
-        elif any("vowel" in p or "omission" in p or "phonetic" in p or "blend" in p for p in patterns):
+        elif any("vowel_confusion" in p for p in patterns):
             rec_profile = "Phonological"
             rec_detail = "vowel sound confusions and phoneme discrimination difficulties"
             if mode_clean in ["voice", "speech", "say"]:
@@ -85,18 +85,25 @@ def _instant_report(
             else:
                 rec_reason = f"When typing words, {first_name} demonstrated vowel substitution patterns (e.g. confusing short vowel sounds like 'a' for 'i'). Targeted vowel phonics and color-coded sound chunking will strengthen their letter-sound mapping."
         elif accuracy >= 80:
-            rec_profile = "Non-dyslexic (General)"
+            rec_profile = "Non-dyslexic (Standard Mode)"
             rec_detail = f"strong natural fluency ({accuracy}% accuracy) without characteristic dyslexic errors"
-            rec_reason = f"{first_name} displayed natural decoding pace and high accuracy ({accuracy}%) without perceptual distortions."
-        else:
+            rec_reason = f"{first_name} displayed natural decoding pace and high accuracy ({accuracy}%) without perceptual distortions. Standard typography and pacing are recommended."
+        elif any("vowel" in p or "omission" in p or "phonetic" in p or "blend" in p for p in patterns):
             rec_profile = "Phonological"
-            rec_detail = "early phonics and sound-letter decoding needs"
+            rec_detail = "vowel sound confusions and phoneme discrimination difficulties"
             if mode_clean in ["voice", "speech", "say"]:
-                rec_reason = f"At Stage {reading_level}, {first_name} benefits from spoken sound-by-sound chunking and guided speech practice to develop phonological awareness."
+                rec_reason = f"When speaking words, {first_name} showed difficulty segmenting individual phonemes and distinguishing vowel sounds. Spoken sound chunking and audio models provide direct vowel pronunciation support."
             elif mode_clean in ["tap", "tiles"]:
-                rec_reason = f"At Stage {reading_level}, {first_name} benefits from tactile letter-tile sequencing to connect visual letters with word sounds."
+                rec_reason = f"When selecting letter tiles, {first_name} made phonetic vowel substitutions. Color-coded vowel tiles and sound chunks will reinforce how letter tiles correspond to word sounds."
             else:
-                rec_reason = f"At Stage {reading_level}, {first_name} demonstrated emerging spelling patterns when typing. Sound-by-sound phonics chunking and word families will strengthen their letter-sound accuracy."
+                rec_reason = f"When typing words, {first_name} demonstrated vowel substitution patterns (e.g. confusing short vowel sounds like 'a' for 'i'). Targeted vowel phonics and color-coded sound chunking will strengthen their letter-sound mapping."
+        else:
+            rec_profile = "Non-dyslexic (Standard Mode)" if accuracy >= 70 else "Phonological"
+            rec_detail = f"natural decoding pace ({accuracy}% accuracy)" if accuracy >= 70 else "early phonics and sound-letter decoding needs"
+            if accuracy >= 70:
+                rec_reason = f"{first_name} read comfortably without characteristic perceptual dyslexia patterns. Standard curriculum is recommended."
+            else:
+                rec_reason = f"At Stage {reading_level}, {first_name} benefits from sound-by-sound phonics chunking and guided practice to develop phonological decoding."
 
         report_text = (
             f"🌸 WordBloom Assessment: {first_name} completed {len(words_attempted)} words today with {accuracy}% accuracy. "

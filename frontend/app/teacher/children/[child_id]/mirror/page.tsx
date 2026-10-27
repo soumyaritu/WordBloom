@@ -27,7 +27,7 @@ interface ChildProfile {
   school_year: string
 }
 
-type DyslexiaType = 'visual_spatial' | 'phonological' | 'surface' | 'attentional' | 'double_deficit'
+type DyslexiaType = 'visual_spatial' | 'phonological' | 'surface' | 'attentional' | 'double_deficit' | 'non_dyslexic'
 
 const DYSLEXIA_TYPES: { id: DyslexiaType; label: string; desc: string }[] = [
   { id: 'visual_spatial', label: 'Visual / Spatial', desc: 'Letters appear to flip (b↔d) or rotate' },
@@ -35,6 +35,7 @@ const DYSLEXIA_TYPES: { id: DyslexiaType; label: string; desc: string }[] = [
   { id: 'surface',        label: 'Surface',          desc: 'Whole-word visual blur & shape unrecognition' },
   { id: 'attentional',    label: 'Attentional',      desc: 'Letters drift between word boundaries' },
   { id: 'double_deficit', label: 'Double Deficit',   desc: 'Letters flip and shake simultaneously' },
+  { id: 'non_dyslexic',   label: 'Standard Reader',  desc: 'Natural reading without perceptual dyslexia distortions' },
 ]
 
 const KNOWN_CHUNKS: Record<string, string[]> = {
@@ -109,6 +110,7 @@ function normalizeDyslexiaType(raw: string): DyslexiaType {
   if (s.includes('surface')) return 'surface'
   if (s.includes('attent')) return 'attentional'
   if (s.includes('double')) return 'double_deficit'
+  if (s.includes('non') || s.includes('standard') || s.includes('normal') || s.includes('general') || s === 'none') return 'non_dyslexic'
   return 'phonological'
 }
 
@@ -138,9 +140,14 @@ export default function DyslexiaMirrorPage({
       { target: 'chair', child_answer: 'cahir', is_correct: false, sentence: 'Sit down on the wooden chair.' },
     ],
     sofia: [
-      { target: 'gnome',   child_answer: 'nome', is_correct: false, sentence: 'A friendly garden gnome stood by the flowers.' },
+      { target: 'dog',     child_answer: 'dog',  is_correct: true,  sentence: 'The dog ran happily across the green lawn.' },
+      { target: 'cat',     child_answer: 'cat',  is_correct: true,  sentence: 'The friendly cat purred softly in the morning sun.' },
       { target: 'through', child_answer: 'thru', is_correct: false, sentence: 'They walked through the bright forest.' },
-      { target: 'light',   child_answer: 'lite', is_correct: false, sentence: 'The morning light shone in the window.' },
+    ],
+    sony: [
+      { target: 'dog',     child_answer: 'dog',  is_correct: true,  sentence: 'The dog ran happily across the green lawn.' },
+      { target: 'cat',     child_answer: 'cat',  is_correct: true,  sentence: 'The friendly cat purred softly in the morning sun.' },
+      { target: 'through', child_answer: 'thru', is_correct: false, sentence: 'They walked through the bright forest.' },
     ],
   }
 
@@ -246,22 +253,25 @@ export default function DyslexiaMirrorPage({
 
           const reportKeys = [
             `wb_report_${childId}`,
-            `wb_report_sony`,
-            `wb_report_sofia`,
-            `wb_report`,
-          ]
+            childId === 'sofia' || childId === 'sony' ? 'wb_report_sony' : null,
+            childId === 'sofia' || childId === 'sony' ? 'wb_report_sofia' : null,
+            'wb_report',
+          ].filter(Boolean) as string[]
+
           for (const rk of reportKeys) {
             const repRaw = localStorage.getItem(rk)
             if (repRaw) {
               try {
                 const rep = JSON.parse(repRaw)
-                if (rep.recommended_profile) {
+                const repChild = (rep.child_id || rep.child_name || '').toLowerCase()
+                const matchesChild = !repChild || repChild.includes(childId) || ((childId === 'sofia' || childId === 'sony') && (repChild.includes('sofia') || repChild.includes('sony') || repChild.includes('mathew')))
+                if (matchesChild && rep.recommended_profile) {
                   detectedRec = rep.recommended_profile
                 }
-                if (rep.recommendation_reason) {
+                if (matchesChild && rep.recommendation_reason) {
                   setRecommendationReason(rep.recommendation_reason)
                 }
-                if (sessionWords.length === 0) {
+                if (matchesChild && sessionWords.length === 0) {
                   if (Array.isArray(rep.words) && rep.words.length > 0) {
                     sessionWords = rep.words
                   } else if (Array.isArray(rep.words_to_revisit) && rep.words_to_revisit.length > 0) {
@@ -301,6 +311,55 @@ export default function DyslexiaMirrorPage({
           }
         }
 
+        // If detectedRec is still null, analyze sessionWords dynamically using WordBloom pattern study!
+        if (!detectedRec && sessionWords.length > 0) {
+          const wrongItems = sessionWords.filter(w => w && !w.is_correct)
+          if (wrongItems.length === 0 && sessionWords.length >= 2) {
+            detectedRec = 'Non-dyslexic (Standard Mode)'
+            setRecommendationReason('High reading accuracy with 0 characteristic perceptual dyslexia errors across assessment words.')
+          } else {
+            let hasReversals = false
+            let hasTranspositions = false
+            let hasSilentLetters = false
+            let hasPhonological = false
+
+            for (const item of wrongItems) {
+              const pat = ((item as any).error_pattern || (item as any).pattern || '').toLowerCase()
+              const tgt = (item.target || '').toLowerCase()
+              const ans = (item.child_answer || '').toLowerCase()
+              if (pat.includes('reversal') || (tgt.includes('d') && ans.includes('b')) || (tgt.includes('b') && ans.includes('d')) || (tgt.includes('p') && ans.includes('q'))) {
+                hasReversals = true
+              }
+              if (pat.includes('transposition') || pat.includes('attentional')) {
+                hasTranspositions = true
+              }
+              if (pat.includes('silent') || ['knight', 'through', 'gnome', 'wrote'].includes(tgt)) {
+                hasSilentLetters = true
+              }
+              if (pat.includes('vowel') || pat.includes('phon')) {
+                hasPhonological = true
+              }
+            }
+
+            if (hasReversals) {
+              detectedRec = 'Visual / Spatial'
+              setRecommendationReason('Identified letter orientation / symmetry confusion (e.g. b/d reversals).')
+            } else if (hasTranspositions) {
+              detectedRec = 'Attentional'
+              setRecommendationReason('Identified letter sequence migration and crowding across word boundaries.')
+            } else if (hasSilentLetters) {
+              detectedRec = 'Surface'
+              setRecommendationReason('Identified whole-word orthographic memory barrier on silent letters / irregular words.')
+            } else if (hasPhonological) {
+              detectedRec = 'Phonological'
+              setRecommendationReason('Identified letter-sound correspondence and vowel substitution patterns.')
+            } else if (wrongItems.length <= 1) {
+              detectedRec = 'Non-dyslexic (Standard Mode)'
+              setRecommendationReason('High overall reading accuracy with no systematic perceptual dyslexia distortions.')
+            }
+          }
+        }
+
         if (detectedRec && isMounted) {
           setRecommendedProfile(detectedRec)
         }
@@ -320,13 +379,13 @@ export default function DyslexiaMirrorPage({
           }
         }
 
-        // Filter to wrong answers safely or display session words
+        // Filter to wrong answers safely or display session words with correct state preserved
         let filteredWrong = sessionWords.filter(w => w && typeof w === 'object' && w.target && !w.is_correct)
         if (filteredWrong.length === 0 && sessionWords.length > 0) {
-          filteredWrong = sessionWords.map(w => ({ ...w, is_correct: false }))
+          filteredWrong = sessionWords.map(w => ({ ...w }))
         }
         if (filteredWrong.length === 0) {
-          filteredWrong = DEFAULT_INITIAL_WORDS[childId] || DEFAULT_INITIAL_WORDS.emma
+          filteredWrong = DEFAULT_INITIAL_WORDS[childId] || DEFAULT_INITIAL_WORDS.sony || DEFAULT_INITIAL_WORDS.emma
         }
 
         if (isMounted) {
@@ -350,8 +409,8 @@ export default function DyslexiaMirrorPage({
   const firstName = childName.split(' ')[0]
   const activeWord = wrongWords[activeWordIndex] || wrongWords[0] || initialWords[0]
   const rawType = (profile?.dyslexia_type || '').toLowerCase().trim()
-  const isNonDyslexic = rawType.includes('non') || rawType === 'none' || rawType === 'general' || rawType === 'standard' || rawType === 'normal'
   const isNotSure = rawType.includes('unknown') || rawType.includes('not sure') || rawType.includes('undetermined')
+  const isProfileNonDyslexic = !isNotSure && (rawType.includes('non') || rawType === 'none' || rawType === 'general' || rawType === 'standard' || rawType === 'normal')
 
   // Recommendations per dyslexia type
   const getRecommendations = (type: DyslexiaType) => {
@@ -433,6 +492,21 @@ export default function DyslexiaMirrorPage({
             break_after: 5,
           },
         }
+      case 'non_dyslexic':
+        return {
+          label: 'Standard Reader',
+          bullets: [
+            '✦ Standard typography (system / Inter fonts without weighted distortion)',
+            '✦ Clean natural background contrast (no colour overlay tint required)',
+            '✦ Standard pacing and grade-level reading progression',
+          ],
+          patchData: {
+            dyslexia_type: 'non_dyslexic',
+            display_mode: 'standard',
+            colour_overlay: 'none',
+            font: 'standard',
+          },
+        }
     }
   }
 
@@ -478,6 +552,14 @@ export default function DyslexiaMirrorPage({
   const renderSimulatedWord = (word: string) => {
     const safeWord = word || ''
     const letters = safeWord.split('')
+
+    if (selectedType === 'non_dyslexic') {
+      return (
+        <span style={{ display: 'inline-block', color: '#F9FAFB' }}>
+          {safeWord}
+        </span>
+      )
+    }
 
     if (selectedType === 'surface') {
       return (
@@ -554,6 +636,7 @@ export default function DyslexiaMirrorPage({
       case 'surface':        return 'rgba(209, 250, 229, 0.10)' // Green
       case 'attentional':    return 'rgba(254, 243, 199, 0.12)' // Yellow
       case 'double_deficit': return 'rgba(219, 234, 254, 0.12)' // Blue
+      case 'non_dyslexic':   return 'rgba(255, 255, 255, 0.02)' // Clean neutral
     }
   }
 
@@ -724,116 +807,95 @@ export default function DyslexiaMirrorPage({
           </div>
         </div>
 
-        {/* Non-dyslexic profile state vs Dyslexia Mirror Suite */}
-        {isNonDyslexic && !previewNonDyslexic ? (
+        {/* Standard Reading Banner (for children in Standard Mode) */}
+        {isProfileNonDyslexic && (
           <div style={{
-            background: '#111827',
-            border: '1.5px solid rgba(16,185,129,0.35)',
-            borderRadius: 18,
-            padding: '3.5rem 2rem',
-            textAlign: 'center',
-            maxWidth: 680,
-            margin: '2rem auto',
-            boxShadow: '0 12px 35px rgba(0,0,0,0.4)',
+            background: 'rgba(16, 185, 129, 0.1)', border: '1.5px solid rgba(16, 185, 129, 0.35)',
+            borderRadius: 16, padding: '16px 20px', marginBottom: '1.5rem',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14,
           }}>
-            <div style={{ fontSize: '3.5rem', marginBottom: '1.25rem' }}>🌱</div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, color: '#F9FAFB', marginBottom: '0.75rem' }}>
-              {firstName} is configured in Standard Reading Mode
-            </h2>
-            <p style={{ color: '#9CA3AF', fontSize: 15, maxWidth: 500, margin: '0 auto 2rem', lineHeight: 1.6 }}>
-              The Dyslexia Mirror is a specialized insight tool for perceptual dyslexia differences (letter flipping, sound vibrations, or visual word drift). Because {firstName}&apos;s profile is <strong>Non-dyslexic (Standard Mode)</strong>, standard typography and natural pacing are used without perceptual dyslexia accommodations.
-            </p>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => setPreviewNonDyslexic(true)}
-                style={{
-                  background: 'linear-gradient(135deg, #10B981, #059669)',
-                  color: '#06080F', padding: '12px 24px', borderRadius: 50,
-                  fontSize: 14, fontWeight: 800, border: 'none', cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(16,185,129,0.35)',
-                }}
-              >
-                👁️ Preview Simulator Anyway
-              </button>
-              <Link
-                href={`/teacher/children/${childId}`}
-                style={{
-                  background: '#1F2937', color: '#F9FAFB', border: '1px solid #374151', padding: '12px 24px', borderRadius: 50,
-                  fontSize: 14, fontWeight: 600, textDecoration: 'none',
-                }}
-              >
-                ← Back to {firstName}&apos;s Profile
-              </Link>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 26 }}>🌱</span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.8, color: '#34D399' }}>
+                  Standard Reading Profile Active
+                </div>
+                <div style={{ fontSize: 14, color: '#E5E7EB', marginTop: 2 }}>
+                  {firstName} reads without perceptual dyslexia accommodations. Below, you can see how {firstName} sees words in Standard Reader mode, or simulate how a learner with dyslexia would see them.
+                </div>
+              </div>
             </div>
           </div>
-        ) : (
-          <>
-            {/* WordBloom Assessment Mirror Banner (for Not Sure Yet) */}
-            {isNotSure && (
-              <div style={{
-                background: 'rgba(59, 130, 246, 0.12)', border: '1.5px solid rgba(59, 130, 246, 0.45)',
-                borderRadius: 16, padding: '18px 22px', marginBottom: '1.5rem',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
-                boxShadow: '0 8px 24px rgba(59, 130, 246, 0.15)',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: '50%',
-                    background: 'rgba(59, 130, 246, 0.25)', border: '1.5px solid #60A5FA',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
-                  }}>
-                    🌸
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.8, color: '#93C5FD' }}>
-                      WordBloom Assessment · {firstName}&apos;s Bloom Profile: Not Sure Yet 🌸
-                    </div>
-                    <div style={{ fontSize: 14, color: '#F9FAFB', marginTop: 4, maxWidth: 660, lineHeight: 1.5 }}>
-                      {firstName} does not have an assigned profile yet. WordBloom Assessment observes reading engagement and letter patterns to help discover the most supportive learning environment.
-                      {recommendedProfile && (
-                        <div style={{ marginTop: 8 }}>
-                          <div style={{ color: '#38BDF8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                            <span>🌸 WordBloom Recommended Profile:</span>
-                            <span style={{ background: 'rgba(56, 189, 248, 0.2)', padding: '2px 8px', borderRadius: 6 }}>{recommendedProfile}</span>
-                          </div>
-                          <div style={{ fontSize: 13, color: '#E2E8F0', lineHeight: 1.4, background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(59, 130, 246, 0.25)', padding: '6px 12px', borderRadius: 8, marginTop: 4 }}>
-                            <span style={{ color: '#93C5FD', fontWeight: 700 }}>💡 Why WordBloom recommends this: </span>
-                            {recommendationReason || (
-                              recommendedProfile === 'Visual/Spatial' || recommendedProfile === 'Visual / Spatial'
-                                ? `${firstName} hesitated on letters that mirror or rotate (e.g., b↔d). OpenDyslexic weighted letter bases reduce spatial flipping.`
-                                : recommendedProfile === 'Surface'
-                                ? `${firstName} struggled recognizing irregular whole-word shapes and silent letters. Visual spotlighting and word silhouettes strengthen orthographic memory.`
-                                : `When typing words, ${firstName} demonstrated phonetic spelling patterns and sound-letter substitutions. Targeted sound-by-sound chunking and word-family practice will strengthen letter-sound mapping.`
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={handleApplyRecommendations}
-                  disabled={savingProfile}
-                  style={{
-                    background: 'linear-gradient(135deg, #10B981, #059669)',
-                    color: '#06080F', padding: '12px 22px', borderRadius: 50,
-                    fontSize: 14, fontWeight: 800, border: 'none', cursor: 'pointer',
-                    boxShadow: '0 4px 14px rgba(16,185,129,0.35)',
-                    display: 'flex', alignItems: 'center', gap: 8,
-                  }}
-                >
-                  <span>🌸</span>
-                  <span>{savingProfile ? 'Updating...' : `Set Profile to ${currentRecs.label}`}</span>
-                </button>
-              </div>
-            )}
+        )}
 
-            {/* Top Controls Bar (Dyslexia Profile Selector + Animation Toggle) */}
-            <div style={{
-              background: '#111827', border: '1px solid #1F2937', borderRadius: 16,
-              padding: '16px 20px', marginBottom: '1.75rem',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
-            }}>
+        {/* WordBloom Assessment Mirror Banner (for Not Sure Yet) */}
+        {isNotSure && (
+          <div style={{
+            background: 'rgba(59, 130, 246, 0.12)', border: '1.5px solid rgba(59, 130, 246, 0.45)',
+            borderRadius: 16, padding: '18px 22px', marginBottom: '1.5rem',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
+            boxShadow: '0 8px 24px rgba(59, 130, 246, 0.15)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: '50%',
+                background: 'rgba(59, 130, 246, 0.25)', border: '1.5px solid #60A5FA',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
+              }}>
+                🌸
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.8, color: '#93C5FD' }}>
+                  WordBloom Assessment · {firstName}&apos;s Bloom Profile: Not Sure Yet 🌸
+                </div>
+                <div style={{ fontSize: 14, color: '#F9FAFB', marginTop: 4, maxWidth: 660, lineHeight: 1.5 }}>
+                  {firstName} does not have an assigned profile yet. WordBloom Assessment observes reading engagement and letter patterns to help discover the most supportive learning environment.
+                  {recommendedProfile && (
+                    <div style={{ marginTop: 8 }}>
+                      <div style={{ color: '#38BDF8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                        <span>🌸 WordBloom Recommended Profile:</span>
+                        <span style={{ background: 'rgba(56, 189, 248, 0.2)', padding: '2px 8px', borderRadius: 6 }}>{recommendedProfile}</span>
+                      </div>
+                      <div style={{ fontSize: 13, color: '#E2E8F0', lineHeight: 1.4, background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(59, 130, 246, 0.25)', padding: '6px 12px', borderRadius: 8, marginTop: 4 }}>
+                        <span style={{ color: '#93C5FD', fontWeight: 700 }}>💡 Why WordBloom recommends this: </span>
+                        {recommendationReason || (
+                          recommendedProfile.includes('Non') || recommendedProfile.includes('Standard')
+                            ? `${firstName} demonstrated strong letter-sound recognition with high accuracy and no systematic dyslexia distortions.`
+                            : recommendedProfile === 'Visual/Spatial' || recommendedProfile === 'Visual / Spatial'
+                            ? `${firstName} hesitated on letters that mirror or rotate (e.g., b↔d). OpenDyslexic weighted letter bases reduce spatial flipping.`
+                            : recommendedProfile === 'Surface'
+                            ? `${firstName} struggled recognizing irregular whole-word shapes and silent letters. Visual spotlighting and word silhouettes strengthen orthographic memory.`
+                            : `When typing words, ${firstName} demonstrated phonetic spelling patterns and sound-letter substitutions. Targeted sound-by-sound chunking and word-family practice will strengthen letter-sound mapping.`
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={handleApplyRecommendations}
+              disabled={savingProfile}
+              style={{
+                background: 'linear-gradient(135deg, #10B981, #059669)',
+                color: '#06080F', padding: '12px 22px', borderRadius: 50,
+                fontSize: 14, fontWeight: 800, border: 'none', cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(16,185,129,0.35)',
+                display: 'flex', alignItems: 'center', gap: 8,
+              }}
+            >
+              <span>🌸</span>
+              <span>{savingProfile ? 'Updating...' : `Set Profile to ${currentRecs.label}`}</span>
+            </button>
+          </div>
+        )}
+
+        {/* Top Controls Bar (Dyslexia Profile Selector + Animation Toggle) */}
+        <div style={{
+          background: '#111827', border: '1px solid #1F2937', borderRadius: 16,
+          padding: '16px 20px', marginBottom: '1.75rem',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
+        }}>
           <div>
             <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: '#9CA3AF', fontWeight: 700, marginBottom: 8 }}>
               Simulate Dyslexia Profile:
@@ -899,11 +961,11 @@ export default function DyslexiaMirrorPage({
           </div>
         </div>
 
-        {/* Wrong Answer Words Selector */}
+        {/* Word Selector */}
         <div style={{ marginBottom: '1.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
             <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: '#9CA3AF', fontWeight: 700 }}>
-              Recent Session Wrong Answers ({wrongWords.length}):
+              Recent Session Words ({wrongWords.length}):
             </div>
             {loading && (
               <span style={{ fontSize: 12.5, color: '#10B981', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -923,7 +985,7 @@ export default function DyslexiaMirrorPage({
                 No session data yet for {firstName}. Run a session first.
               </div>
               <p style={{ color: '#9CA3AF', fontSize: 14, maxWidth: 440, margin: '0 auto 1.5rem', lineHeight: 1.5 }}>
-                When {firstName} attempts word exercises in WordBloom, any misidentified words will automatically appear here for interactive perceptual diagnosis.
+                When {firstName} attempts word exercises in WordBloom, words will automatically appear here for interactive perceptual diagnosis.
               </p>
               <button
                 onClick={() => router.push(`/teacher?child=${childId}`)}
@@ -940,26 +1002,36 @@ export default function DyslexiaMirrorPage({
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               {wrongWords.map((item, idx) => {
                 const isSelected = idx === activeWordIndex
+                const isCorrect = item.is_correct === true
                 return (
                   <button
                     key={`${item.target}-${idx}`}
                     onClick={() => setActiveWordIndex(idx)}
                     style={{
-                      background: isSelected ? 'rgba(239, 68, 68, 0.12)' : '#111827',
-                      border: `${isSelected ? '2px' : '1px'} solid ${isSelected ? '#EF4444' : '#1F2937'}`,
+                      background: isSelected ? (isCorrect ? 'rgba(16,185,129,0.15)' : 'rgba(239, 68, 68, 0.12)') : '#111827',
+                      border: `${isSelected ? '2px' : '1px'} solid ${isSelected ? (isCorrect ? '#10B981' : '#EF4444') : '#1F2937'}`,
                       padding: '10px 16px', borderRadius: 12,
                       cursor: 'pointer', textAlign: 'left',
-                      boxShadow: isSelected ? '0 0 12px rgba(239,68,68,0.25)' : 'none',
+                      boxShadow: isSelected ? (isCorrect ? '0 0 12px rgba(16,185,129,0.25)' : '0 0 12px rgba(239,68,68,0.25)') : 'none',
                       transition: 'all 0.15s ease',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 14 }}>❌</span>
+                      <span style={{ fontSize: 14 }}>{isCorrect ? '✅' : '❌'}</span>
                       <strong style={{ fontSize: 16, color: '#F9FAFB' }}>{item.target}</strong>
-                      <span style={{ color: '#9CA3AF', fontSize: 13 }}>→</span>
-                      <span style={{ color: '#FCA5A5', fontSize: 13, fontWeight: 600 }}>
-                        {firstName} wrote &quot;{item.child_answer}&quot;
-                      </span>
+                      {!isCorrect && (
+                        <>
+                          <span style={{ color: '#9CA3AF', fontSize: 13 }}>→</span>
+                          <span style={{ color: '#FCA5A5', fontSize: 13, fontWeight: 600 }}>
+                            {firstName} wrote &quot;{item.child_answer}&quot;
+                          </span>
+                        </>
+                      )}
+                      {isCorrect && (
+                        <span style={{ color: '#6EE7B7', fontSize: 13, fontWeight: 600 }}>
+                          Mastered
+                        </span>
+                      )}
                     </div>
                   </button>
                 )
@@ -979,7 +1051,7 @@ export default function DyslexiaMirrorPage({
             {/* LEFT PANEL: Without WordBloom */}
             <div style={{
               background: '#111827',
-              border: '1.5px solid rgba(239, 68, 68, 0.35)',
+              border: `1.5px solid ${selectedType === 'non_dyslexic' ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'}`,
               borderRadius: 18,
               padding: '1.75rem',
               position: 'relative',
@@ -988,11 +1060,13 @@ export default function DyslexiaMirrorPage({
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
                 <span style={{
-                  background: 'rgba(239,68,68,0.15)', color: '#F87171',
-                  border: '1px solid rgba(239,68,68,0.3)', borderRadius: 20,
+                  background: selectedType === 'non_dyslexic' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+                  color: selectedType === 'non_dyslexic' ? '#34D399' : '#F87171',
+                  border: `1px solid ${selectedType === 'non_dyslexic' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                  borderRadius: 20,
                   padding: '4px 12px', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5,
                 }}>
-                  ❌ Without WordBloom — What {firstName} sees
+                  {selectedType === 'non_dyslexic' ? `🌱 Standard Reader — What ${firstName} sees` : `❌ Without WordBloom — What ${firstName} sees`}
                 </span>
                 <span style={{ fontSize: 12, color: '#9CA3AF' }}>
                   {DYSLEXIA_TYPES.find(t => t.id === selectedType)?.label}
@@ -1039,7 +1113,7 @@ export default function DyslexiaMirrorPage({
                     return (
                       <span key={idx} style={{ marginRight: 6, display: 'inline-block' }}>
                         {isTarget ? (
-                          <strong style={{ color: '#F87171' }}>
+                          <strong style={{ color: selectedType === 'non_dyslexic' ? '#34D399' : '#F87171' }}>
                             {renderSimulatedWord(w)}
                           </strong>
                         ) : selectedType === 'attentional' && animationOn ? (
@@ -1057,15 +1131,16 @@ export default function DyslexiaMirrorPage({
 
               {/* Perceptual Explanation */}
               <div style={{
-                background: 'rgba(239,68,68,0.08)',
-                border: '1px solid rgba(239,68,68,0.2)',
+                background: selectedType === 'non_dyslexic' ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+                border: `1px solid ${selectedType === 'non_dyslexic' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`,
                 borderRadius: 12,
                 padding: '12px 14px',
                 fontSize: 13,
-                color: '#FECACA',
+                color: selectedType === 'non_dyslexic' ? '#A7F3D0' : '#FECACA',
                 lineHeight: 1.5,
               }}>
-                <strong>Perceptual Barrier:</strong>{' '}
+                <strong>{selectedType === 'non_dyslexic' ? 'Perceptual Assessment:' : 'Perceptual Barrier:'}</strong>{' '}
+                {selectedType === 'non_dyslexic' && 'No perceptual dyslexia barriers detected. Consonants and vowels remain stable, distinct, and legible without ocular flipping, drifting, or vibrations.'}
                 {selectedType === 'visual_spatial' && `Visual-spatial symmetry leads to letter flipping along the vertical axis (e.g., "${activeWord.target}" misperceived with flipped consonants).`}
                 {selectedType === 'phonological' && `Auditory-visual mapping barrier causes phoneme hesitation; letter symbols vibrate during phonological decoding.`}
                 {selectedType === 'surface' && `Whole-word orthographic memory is impaired; the overall word contour is visually indistinct and unrecognisable.`}
@@ -1090,10 +1165,10 @@ export default function DyslexiaMirrorPage({
                   border: '1px solid rgba(16,185,129,0.3)', borderRadius: 20,
                   padding: '4px 12px', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5,
                 }}>
-                  ✅ With WordBloom — How we help
+                  {selectedType === 'non_dyslexic' ? '✅ With WordBloom — Standard Curriculum' : '✅ With WordBloom — How we help'}
                 </span>
                 <span style={{ fontSize: 12, color: '#10B981', fontWeight: 600 }}>
-                  Adaptations Active
+                  {selectedType === 'non_dyslexic' ? 'Standard Mode Active' : 'Adaptations Active'}
                 </span>
               </div>
 
@@ -1109,34 +1184,40 @@ export default function DyslexiaMirrorPage({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontFamily: 'OpenDyslexic, sans-serif',
+                fontFamily: selectedType === 'non_dyslexic' ? 'system-ui, -apple-system, sans-serif' : 'OpenDyslexic, sans-serif',
                 letterSpacing: selectedType === 'surface' ? '0.08em' : 'normal',
                 boxShadow: selectedType === 'attentional' ? '0 0 20px rgba(254,243,199,0.15)' : 'none',
               }}>
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-                  {phonicsChunks.map((chunk, cIdx) => {
-                    const colorToken = chunkColors[cIdx % chunkColors.length]
-                    return (
-                      <span
-                        key={cIdx}
-                        style={{
-                          background: colorToken.bg,
-                          border: `1.5px solid ${colorToken.border}`,
-                          color: colorToken.text,
-                          padding: '4px 10px',
-                          borderRadius: 10,
-                          fontSize: 48,
-                          fontWeight: 700,
-                          fontFamily: 'OpenDyslexic, sans-serif',
-                          letterSpacing: '0.04em',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                        }}
-                      >
-                        {chunk}
-                      </span>
-                    )
-                  })}
-                </div>
+                {selectedType === 'non_dyslexic' ? (
+                  <span style={{ fontSize: 52, fontWeight: 700, color: '#F9FAFB', letterSpacing: '0.02em' }}>
+                    {targetWord}
+                  </span>
+                ) : (
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    {phonicsChunks.map((chunk, cIdx) => {
+                      const colorToken = chunkColors[cIdx % chunkColors.length]
+                      return (
+                        <span
+                          key={cIdx}
+                          style={{
+                            background: colorToken.bg,
+                            border: `1.5px solid ${colorToken.border}`,
+                            color: colorToken.text,
+                            padding: '4px 10px',
+                            borderRadius: 10,
+                            fontSize: 48,
+                            fontWeight: 700,
+                            fontFamily: 'OpenDyslexic, sans-serif',
+                            letterSpacing: '0.04em',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                          }}
+                        >
+                          {chunk}
+                        </span>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Sentence Context Box (With WordBloom) */}
@@ -1146,7 +1227,7 @@ export default function DyslexiaMirrorPage({
                 borderRadius: 12,
                 padding: '14px 16px',
                 marginBottom: '1.25rem',
-                fontFamily: 'OpenDyslexic, sans-serif',
+                fontFamily: selectedType === 'non_dyslexic' ? 'system-ui, -apple-system, sans-serif' : 'OpenDyslexic, sans-serif',
               }}>
                 <div style={{ fontSize: 12.5, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6, fontWeight: 700, fontFamily: 'system-ui, sans-serif' }}>
                   Scaffolded Sentence Context:
@@ -1174,7 +1255,6 @@ export default function DyslexiaMirrorPage({
                       )
                     }
                     if (selectedType === 'attentional') {
-                      // Spotlight mode: surrounding words masked/dimmed
                       return (
                         <span key={idx} style={{ opacity: 0.35, filter: 'blur(0.3px)', marginRight: 6 }}>
                           {w}
@@ -1197,6 +1277,7 @@ export default function DyslexiaMirrorPage({
                 lineHeight: 1.5,
               }}>
                 <strong>WordBloom Accommodation:</strong>{' '}
+                {selectedType === 'non_dyslexic' && 'Standard Reader Mode recommended: standard typography, clean high-contrast readability, and age-appropriate vocabulary progression without distortion filters.'}
                 {selectedType === 'visual_spatial' && 'OpenDyslexic weighted gravity font prevents letter flipping + Yellow overlay reduces ocular jitter.'}
                 {selectedType === 'phonological' && 'Phonics chunking segments words into clear sound units + Blue overlay stabilizes auditory-visual attention.'}
                 {selectedType === 'surface' && 'OpenDyslexic font accentuates unique letter silhouettes + 0.08em letter spacing + Green overlay.'}
@@ -1254,8 +1335,6 @@ export default function DyslexiaMirrorPage({
             ))}
           </div>
         </div>
-          </>
-        )}
       </div>
       </div>
     </main>

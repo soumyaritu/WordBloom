@@ -266,6 +266,72 @@ function TeacherDashboardContent() {
           const stdFirst = (targetStudent?.name || 'Sony Mathew').split(' ')[0]
           const isUnknown = (targetStudent?.type || '').toLowerCase().includes('not sure') || (childProfile?.dyslexiaType || '').toLowerCase().includes('unknown')
 
+          // Infer assessment recommendation accurately from session patterns
+          let inferredRec: { recProfile: string; recReason: string } | null = null
+          if (isUnknown) {
+            let hasReversals = false
+            let hasTranspositions = false
+            let hasSilentLetters = false
+            let hasVowels = false
+
+            for (const item of wordsArr) {
+              if (item && !item.is_correct) {
+                const pat = ((item.error_pattern || item.pattern || '') as string).toLowerCase()
+                const tgt = ((item.target || item.word || '') as string).toLowerCase()
+                const ans = ((item.child_answer || item.answer || '') as string).toLowerCase()
+                if (pat.includes('reversal') || (tgt.includes('d') && ans.includes('b')) || (tgt.includes('b') && ans.includes('d')) || (tgt.includes('p') && ans.includes('q'))) {
+                  hasReversals = true
+                }
+                if (pat.includes('transposition') || pat.includes('attentional')) {
+                  hasTranspositions = true
+                }
+                if (pat.includes('silent') || ['knight', 'through', 'gnome', 'wrote'].includes(tgt)) {
+                  hasSilentLetters = true
+                }
+                if (pat.includes('vowel') || pat.includes('phon')) {
+                  hasVowels = true
+                }
+              }
+            }
+
+            if (hasReversals) {
+              inferredRec = {
+                recProfile: 'Visual / Spatial',
+                recReason: `${stdFirst} hesitated on letters that mirror or rotate (e.g., b↔d). OpenDyslexic weighted letter bases reduce spatial flipping.`,
+              }
+            } else if (hasTranspositions) {
+              inferredRec = {
+                recProfile: 'Attentional',
+                recReason: `${stdFirst} showed letter sequence drifting between word boundaries. Spotlight focus masking isolates words to prevent visual migration.`,
+              }
+            } else if (hasSilentLetters) {
+              inferredRec = {
+                recProfile: 'Surface',
+                recReason: `${stdFirst} struggled recognizing irregular whole-word shapes and silent letters. Visual spotlighting and word silhouettes strengthen orthographic memory.`,
+              }
+            } else if (acc >= 80 && incorrect.length === 0) {
+              inferredRec = {
+                recProfile: 'Non-dyslexic (Standard Mode)',
+                recReason: `${stdFirst} displayed natural decoding pace and high accuracy (${acc}%) without characteristic dyslexic errors. Standard typography and curriculum are recommended.`,
+              }
+            } else if (hasVowels) {
+              inferredRec = {
+                recProfile: 'Phonological',
+                recReason: `${stdFirst} showed difficulty distinguishing vowel sounds and letter-sound correspondence. Targeted phonics chunking provides direct phoneme reinforcement.`,
+              }
+            } else if (acc >= 70 && incorrect.length <= 1) {
+              inferredRec = {
+                recProfile: 'Non-dyslexic (Standard Mode)',
+                recReason: `${stdFirst} read comfortably without characteristic perceptual dyslexia patterns. Standard curriculum is recommended.`,
+              }
+            } else {
+              inferredRec = {
+                recProfile: 'Phonological',
+                recReason: `When typing words, ${stdFirst} demonstrated phonetic spelling patterns and sound-letter substitutions. Targeted sound-by-sound chunking and word-family practice will strengthen letter-sound mapping.`,
+              }
+            }
+          }
+
           const syntheticReport = {
             child_name: targetStudent?.name || 'Sony Mathew',
             session_date: new Date().toISOString().split('T')[0],
@@ -280,10 +346,10 @@ function TeacherDashboardContent() {
             adapter_actions: ['continue'],
             breaks_taken: 0,
             report_text: isUnknown
-              ? `🌸 WordBloom Assessment: ${stdFirst} completed ${attempted.length} words today with ${acc}% accuracy. Evaluator Agent observed letter sound mapping and visual alignment patterns. WordBloom Recommended Profile: Phonological.`
+              ? `🌸 WordBloom Assessment: ${stdFirst} completed ${attempted.length} words today with ${acc}% accuracy. Evaluator Agent observed letter sound mapping and visual alignment patterns. WordBloom Recommended Profile: ${inferredRec?.recProfile || 'Phonological'}.`
               : `${stdFirst} completed a focused WordBloom practice session with ${acc}% accuracy across ${attempted.length} words.`,
-            recommended_profile: isUnknown ? 'Phonological' : null,
-            recommendation_reason: isUnknown ? `When typing words, ${stdFirst} demonstrated phonetic spelling patterns and sound-letter substitutions. Targeted sound-by-sound chunking and word-family practice will strengthen letter-sound mapping.` : null,
+            recommended_profile: isUnknown ? inferredRec?.recProfile : null,
+            recommendation_reason: isUnknown ? inferredRec?.recReason : null,
             is_assessment: isUnknown,
             approval_required: true,
             approved: false,
@@ -307,6 +373,71 @@ function TeacherDashboardContent() {
           const stdFirst = (targetStudent?.name || 'Sony Mathew').split(' ')[0]
           const isUnknown = (targetStudent?.type || '').toLowerCase().includes('not sure') || (childProfile?.dyslexiaType || '').toLowerCase().includes('unknown')
 
+          let apiInferredRec: { recProfile: string; recReason: string } | null = null
+          if (isUnknown) {
+            let hasReversals = false
+            let hasTranspositions = false
+            let hasSilentLetters = false
+            let hasVowels = false
+
+            for (const item of data.words) {
+              if (item && !item.is_correct) {
+                const pat = ((item.error_pattern || item.pattern || '') as string).toLowerCase()
+                const tgt = ((item.target || item.word || '') as string).toLowerCase()
+                const ans = ((item.child_answer || item.answer || '') as string).toLowerCase()
+                if (pat.includes('reversal') || (tgt.includes('d') && ans.includes('b')) || (tgt.includes('b') && ans.includes('d')) || (tgt.includes('p') && ans.includes('q'))) {
+                  hasReversals = true
+                }
+                if (pat.includes('transposition') || pat.includes('attentional')) {
+                  hasTranspositions = true
+                }
+                if (pat.includes('silent') || ['knight', 'through', 'gnome', 'wrote'].includes(tgt)) {
+                  hasSilentLetters = true
+                }
+                if (pat.includes('vowel') || pat.includes('phon')) {
+                  hasVowels = true
+                }
+              }
+            }
+
+            if (hasReversals) {
+              apiInferredRec = {
+                recProfile: 'Visual / Spatial',
+                recReason: `${stdFirst} hesitated on letters that mirror or rotate (e.g., b↔d). OpenDyslexic weighted letter bases reduce spatial flipping.`,
+              }
+            } else if (hasTranspositions) {
+              apiInferredRec = {
+                recProfile: 'Attentional',
+                recReason: `${stdFirst} showed letter sequence drifting between word boundaries. Spotlight focus masking isolates words to prevent visual migration.`,
+              }
+            } else if (hasSilentLetters) {
+              apiInferredRec = {
+                recProfile: 'Surface',
+                recReason: `${stdFirst} struggled recognizing irregular whole-word shapes and silent letters. Visual spotlighting and word silhouettes strengthen orthographic memory.`,
+              }
+            } else if (acc >= 80 && incorrect.length === 0) {
+              apiInferredRec = {
+                recProfile: 'Non-dyslexic (Standard Mode)',
+                recReason: `${stdFirst} displayed natural decoding pace and high accuracy (${acc}%) without characteristic dyslexic errors. Standard typography and curriculum are recommended.`,
+              }
+            } else if (hasVowels) {
+              apiInferredRec = {
+                recProfile: 'Phonological',
+                recReason: `${stdFirst} showed difficulty distinguishing vowel sounds and letter-sound correspondence. Targeted phonics chunking provides direct phoneme reinforcement.`,
+              }
+            } else if (acc >= 70 && incorrect.length <= 1) {
+              apiInferredRec = {
+                recProfile: 'Non-dyslexic (Standard Mode)',
+                recReason: `${stdFirst} read comfortably without characteristic perceptual dyslexia patterns. Standard curriculum is recommended.`,
+              }
+            } else {
+              apiInferredRec = {
+                recProfile: 'Phonological',
+                recReason: `When typing words, ${stdFirst} demonstrated phonetic spelling patterns and sound-letter substitutions. Targeted sound-by-sound chunking and word-family practice will strengthen letter-sound mapping.`,
+              }
+            }
+          }
+
           const apiReport = {
             child_name: targetStudent?.name || data.child_name || 'Sony Mathew',
             session_date: data.session_date || new Date().toISOString().split('T')[0],
@@ -321,10 +452,10 @@ function TeacherDashboardContent() {
             adapter_actions: ['continue'],
             breaks_taken: 0,
             report_text: isUnknown
-              ? `🌸 WordBloom Assessment: ${stdFirst} completed ${attempted.length} words with ${acc}% accuracy. Evaluator Agent observed letter sound mapping and visual alignment patterns. WordBloom Recommended Profile: Phonological.`
+              ? `🌸 WordBloom Assessment: ${stdFirst} completed ${attempted.length} words with ${acc}% accuracy. Evaluator Agent observed letter sound mapping and visual alignment patterns. WordBloom Recommended Profile: ${apiInferredRec?.recProfile || 'Phonological'}.`
               : `${stdFirst} completed a focused WordBloom practice session with ${acc}% accuracy across ${attempted.length} words.`,
-            recommended_profile: isUnknown ? 'Phonological' : null,
-            recommendation_reason: isUnknown ? `When typing words, ${stdFirst} demonstrated phonetic spelling patterns and sound-letter substitutions. Targeted sound-by-sound chunking and word-family practice will strengthen letter-sound mapping.` : null,
+            recommended_profile: isUnknown ? apiInferredRec?.recProfile : null,
+            recommendation_reason: isUnknown ? apiInferredRec?.recReason : null,
             is_assessment: isUnknown,
             approval_required: true,
             approved: false,
@@ -379,9 +510,9 @@ function TeacherDashboardContent() {
   }
 
   const rawChildType = (childProfile?.dyslexiaType || activeStudent?.type || '').toLowerCase()
-  const isNonDyslexic = Boolean(
+  const isNotSure = rawChildType.includes('unknown') || rawChildType.includes('not sure') || rawChildType.includes('undetermined')
+  const isNonDyslexic = !isNotSure && Boolean(
     rawChildType.includes('non') ||
-    rawChildType === 'none' ||
     rawChildType === 'general' ||
     rawChildType === 'standard' ||
     rawChildType === 'normal'
@@ -577,7 +708,7 @@ function TeacherDashboardContent() {
                 </div>
               </div>
 
-              {!isNonDyslexic && (
+              {(!isNonDyslexic || isNotSure || Boolean(report?.recommended_profile)) && (
                 <Link
                   href={`/teacher/children/${activeChildId}/mirror`}
                   style={{
@@ -658,7 +789,7 @@ function TeacherDashboardContent() {
                           )
                         })}
                       </div>
-                      {!isNonDyslexic && (
+                      {(!isNonDyslexic || isNotSure || Boolean(report?.recommended_profile)) && (
                         <div style={{ marginTop: 10 }}>
                           <Link
                             href={`/teacher/children/${activeChildId}/mirror`}
@@ -700,17 +831,31 @@ function TeacherDashboardContent() {
                       </div>
                     </div>
                   </div>
-                  <Link
-                    href={`/profile?child=${activeChildId}`}
-                    style={{
-                      background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)',
-                      color: '#fff', padding: '9px 20px', borderRadius: 20,
-                      fontSize: 13.5, fontWeight: 800, textDecoration: 'none',
-                      boxShadow: '0 4px 12px rgba(59,130,246,0.3)',
-                    }}
-                  >
-                    Update Profile ✏️
-                  </Link>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <Link
+                      href={`/teacher/children/${activeChildId}/mirror`}
+                      style={{
+                        background: 'rgba(56, 189, 248, 0.15)', border: '1.5px solid rgba(56, 189, 248, 0.45)',
+                        color: '#38BDF8', padding: '9px 18px', borderRadius: 20,
+                        fontSize: 13.5, fontWeight: 800, textDecoration: 'none',
+                        display: 'inline-flex', alignItems: 'center', gap: 6,
+                        boxShadow: '0 4px 12px rgba(56,189,248,0.2)',
+                      }}
+                    >
+                      <span>🔍 Inspect in Mirror</span>
+                    </Link>
+                    <Link
+                      href={`/profile?child=${activeChildId}`}
+                      style={{
+                        background: 'linear-gradient(135deg, #10B981, #059669)',
+                        color: '#06080F', padding: '9px 20px', borderRadius: 20,
+                        fontSize: 13.5, fontWeight: 800, textDecoration: 'none',
+                        boxShadow: '0 4px 12px rgba(16,185,129,0.3)',
+                      }}
+                    >
+                      Update Profile ✏️
+                    </Link>
+                  </div>
                 </div>
 
                 {/* Pedagogical Rationale: Why WordBloom recommends this */}
@@ -720,7 +865,9 @@ function TeacherDashboardContent() {
                 }}>
                   <span style={{ fontWeight: 700, color: '#93C5FD' }}>💡 Why WordBloom recommends this: </span>
                   {report.recommendation_reason || (
-                    report.recommended_profile === 'Visual/Spatial' || report.recommended_profile === 'Visual / Spatial'
+                    report.recommended_profile?.toLowerCase().includes('non') || report.recommended_profile?.toLowerCase().includes('standard')
+                      ? `${activeStudent.name.split(' ')[0]} displayed natural decoding pace and high accuracy without characteristic dyslexic errors. Standard typography and curriculum are recommended.`
+                      : report.recommended_profile === 'Visual/Spatial' || report.recommended_profile === 'Visual / Spatial'
                       ? `${activeStudent.name.split(' ')[0]} hesitated on letters that mirror or rotate (e.g., b↔d). OpenDyslexic weighted letter bases reduce spatial flipping.`
                       : report.recommended_profile === 'Surface'
                       ? `${activeStudent.name.split(' ')[0]} struggled recognizing irregular whole-word shapes and silent letters. Visual spotlighting and word silhouettes strengthen orthographic memory.`
@@ -827,7 +974,13 @@ function TeacherDashboardContent() {
                 {childProfile?.fullName || activeStudent.name}
               </h3>
               <div style={{ fontSize: 15, color: '#9CA3AF', marginTop: 4, fontWeight: 600 }}>
-                Stage {childProfile?.readingLevel || activeStudent.level} · {childProfile?.dyslexiaType === 'non_dyslexic' ? 'NON-DYSLEXIC (GENERAL)' : (childProfile?.dyslexiaType ? childProfile.dyslexiaType.toUpperCase() : activeStudent.type)}
+                Stage {childProfile?.readingLevel || activeStudent.level} · {
+                  childProfile?.dyslexiaType === 'non_dyslexic'
+                    ? 'NON-DYSLEXIC (GENERAL)'
+                    : childProfile?.dyslexiaType === 'unknown' || childProfile?.dyslexiaType === 'not sure yet' || childProfile?.dyslexiaType === 'not sure'
+                    ? 'BLOOM PROFILE: NOT SURE YET'
+                    : (childProfile?.dyslexiaType ? childProfile.dyslexiaType.toUpperCase() : activeStudent.type)
+                }
               </div>
             </div>
           </div>

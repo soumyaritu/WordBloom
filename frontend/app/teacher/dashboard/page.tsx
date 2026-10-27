@@ -53,13 +53,13 @@ const FALLBACK_CHILDREN: ChildRow[] = [
   },
   {
     id: 'sofia',
-    name: 'Sofia Mensah',
+    name: 'Sony Mathew',
     avatar: '🌟',
-    dyslexia_type: 'Surface',
-    reading_stage: 4,
-    input_mode: 'voice',
+    dyslexia_type: 'Not sure yet',
+    reading_stage: 1,
+    input_mode: 'type',
     conditions: [],
-    last_session: 'Oct 15',
+    last_session: 'Today',
     candy_count: 5,
   },
   {

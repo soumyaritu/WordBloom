@@ -767,6 +767,7 @@ function GameContent() {
           target: currentWordTarget,
           child_answer: userAnswer,
           is_correct: isCorrect,
+          error_pattern: result.evaluation?.error_pattern || result.evaluation?.pattern || null,
           sentence: activeWord?.sentence || `The ${currentWordTarget} appeared on screen.`,
         }
         childIds.forEach(cid => {
