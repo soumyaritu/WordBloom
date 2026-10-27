@@ -1691,7 +1691,7 @@ function GameContent() {
                   display: 'flex', alignItems: 'center', gap: 8,
                 }}
               >
-                {loading ? '✨ Checking...' : 'Check'}
+                {loading ? '🌸 Blooming...' : 'Check'}
               </button>
             </div>
           )}
@@ -1998,7 +1998,7 @@ function GameContent() {
                     transition: 'all 0.2s ease', touchAction: 'manipulation',
                   }}
                 >
-                  {loading ? '✨ Checking word...' : 'Check Word'}
+                  {loading ? '🌸 Blooming...' : 'Check Word'}
                 </button>
               </div>
             )
@@ -2045,8 +2045,8 @@ function GameContent() {
               boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
             }}
           >
-            <span style={{ color: loading ? 'var(--warn)' : 'var(--bloom)', fontSize: 15 }}>●</span>
-            <span>{loading ? 'Checking your answer...' : '✨ Learn at your own pace · No time pressure'}</span>
+            <span style={{ color: loading ? 'var(--bloom)' : 'var(--bloom)', fontSize: 15 }}>●</span>
+            <span>{loading ? '🌸 Blooming your flower...' : '✨ Learn at your own pace · No time pressure'}</span>
           </div>
         </>
     </div>
