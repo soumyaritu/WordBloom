@@ -85,7 +85,7 @@ export default function LandingPage() {
             textShadow: '0 2px 6px rgba(0,0,0,0.2)',
           }}
         >
-          Adaptive AI reading adventures personalized for every curious mind.
+          An adaptive early word learning companion helping every child bloom at their own pace.
           <br />
           Select your portal to begin!
         </p>

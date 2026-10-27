@@ -189,6 +189,7 @@ function GameContent() {
   const [tappedLetters, setTappedLetters] = useState<string[]>([])
   const [showFullKeyboard, setShowFullKeyboard] = useState<boolean>(false)
   const [loading,       setLoading]       = useState(false)
+  const [endingSession, setEndingSession] = useState(false)
   const [restarting,    setRestarting]    = useState(false)
   const [feedback,      setFeedback]      = useState<any>(null)
   const [showBreak,     setShowBreak]     = useState(false)
@@ -930,7 +931,8 @@ function GameContent() {
   }
 
   const handleEndSession = async () => {
-    setLoading(true)
+    if (endingSession) return
+    setEndingSession(true)
     const childFullName = session?.profile?.child_name || "Emma Clarke"
     const rawChildParam = (childParam || session?.profile?.child_id || '').toLowerCase()
     const firstWordId = childFullName.toLowerCase().split(' ')[0]
@@ -960,6 +962,7 @@ function GameContent() {
     } catch (e) {
       console.error('Silent report finalize error on end session:', e)
     } finally {
+      setEndingSession(false)
       // Clean up game session so student starts fresh next time
       localStorage.removeItem('wb_session')
       // Student navigation: go back to student selection / login page (NEVER teacher dashboard)
@@ -1118,12 +1121,14 @@ function GameContent() {
 
         <button
           onClick={handleEndSession}
+          disabled={endingSession}
           aria-label="Finish and save learning session"
           style={{
             background: '#1E293B', color: '#FFFFFF',
             fontSize: 15.5, minHeight: 46, padding: '9px 20px',
             border: '1.5px solid rgba(255, 255, 255, 0.35)', borderRadius: 24,
-            fontWeight: 800, cursor: 'pointer',
+            fontWeight: 800, cursor: endingSession ? 'wait' : 'pointer',
+            opacity: endingSession ? 0.7 : 1,
             display: 'flex', alignItems: 'center', gap: 6,
             boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
             transition: 'all 0.2s ease',
@@ -1131,8 +1136,8 @@ function GameContent() {
             whiteSpace: 'nowrap',
           }}
         >
-          <span style={{ fontSize: 18 }}>🚪</span>
-          <span style={{ fontWeight: 800, color: '#FFFFFF' }}>Finish</span>
+          <span style={{ fontSize: 18 }}>{endingSession ? '⏳' : '🚪'}</span>
+          <span style={{ fontWeight: 800, color: '#FFFFFF' }}>{endingSession ? 'Saving...' : 'Finish'}</span>
         </button>
       </div>
 
