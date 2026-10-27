@@ -1,7 +1,7 @@
 # 🌸 WordBloom
 
 > ### *Every word. Every child. Every way.*  
-> **An adaptive reading learning system built for EVERY child — treating each learner individually and rejecting the myth of "one-size-fits-all". Powered by Google ADK (Agent Development Kit) and Google Cloud Vertex AI.**
+> **An adaptive early word learning companion built for EVERY child — helping young learners discover, sound out, and understand words at their own pace. Powered by Google ADK (Agent Development Kit) and Google Cloud Vertex AI.**
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-Google_Cloud_Run-10B981?style=for-the-badge&logo=google-cloud&logoColor=white)](https://wordbloom-frontend-820113329049.us-central1.run.app)
 [![Agent Runtime](https://img.shields.io/badge/Agent_Runtime-Vertex_AI-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/us-central1/agent-engines/1398722001920589824?project=soumyaaidevcamppro)
@@ -46,47 +46,46 @@ WordBloom is fully deployed and accessible on Google Cloud:
 ---
 
 ## 1. What is WordBloom?
-WordBloom is an agentic reading companion built on the Google Agent Development Kit (ADK) and powered by Gemini 2.5 Flash on Google Cloud Vertex AI.
 
-Instead of a static question bank, WordBloom uses a team of 6 specialized AI agents that observe how the child responds in real time and dynamically reshape the cognitive load of every single word.
+WordBloom is an **adaptive early word learning companion** built on the Google Agent Development Kit (ADK) and powered by Gemini 2.5 Flash on Google Cloud Vertex AI.
 
-### 🌟 The Big Picture
-Learning to read is one of the biggest milestones in a child's life. But for millions of children, traditional reading apps are terrifying:
-* **Countdown timers** create panic and rushing.
-* **Loud red buzzers** make kids feel like failures when they make a mistake.
-* **Rigid tests** assume every child sees, hears, and speaks the exact same way.
-
-The truth is simple: **no two children learn to read the same way**. 
-* Some children understand sounds easily, but visual letters appear to flip or swim on the screen (*dyslexia*).
-* Some children lose focus or feel exhausted after just a few minutes (*ADHD*).
-* Some children know the answer in their mind, but struggle with the motor skills to type on a keyboard (*dyspraxia*).
-* And some children get overwhelmed by loud noises or sudden changes (*sensory sensitivities / Autism*).
-
-When traditional apps treat these children as "slow" or "wrong," it crushes their confidence and makes them hate reading.
+Designed specifically for young learners taking their first steps in literacy, WordBloom helps children **discover, sound out, recognize, and understand words** at their own pace. Instead of a rigid question bank, WordBloom uses a team of 6 specialized AI agents that observe how the child interacts in real time and dynamically reshape the learning journey for every single word.
 
 ---
 
-### 🌸 How WordBloom Helps Every Child
-**WordBloom is an intelligent, compassionate reading tutor that adapts to how each child naturally learns.**
+### ⚠️ The Problem: Traditional Literacy Software Fails Early Learners
 
-Instead of forcing a child to fit the software, WordBloom molds itself around the child:
+Learning to recognize and understand words is one of the most critical developmental milestones in a child's life. But for millions of children — especially those with dyslexia, ADHD, dyspraxia, or sensory sensitivities — traditional reading apps create anxiety, defeat, and tears:
 
-1. **Zero Anxiety, Zero Pressure**: 
-   * **No countdown timers** — children read at their own natural pace.
-   * **No red error marks or letter grades** — children earn blooming garden flowers (`🌸`) as they practice, celebrating progress instead of scores.
-2. **Three Ways to Answer**: 
-   Every child can answer the way that feels easiest for them:
-   * ⌨️ **Type it** on the keyboard.
-   * 🎙️ **Say it out loud** into the microphone.
-   * 🔲 **Tap letter tiles** on the screen if typing is too difficult.
-3. **Gentle Coaching, Not Punishment**: 
-   If a child mixes up mirror letters like `b` and `d`, WordBloom doesn't punish them. It gently points out which direction the letter faces (`b` faces right ➔, `d` faces left ⬅️), coaching them with kindness and patience.
-4. **Automatic Rest Breaks**: 
-   For children who tire quickly, WordBloom automatically limits sessions to 5 minutes and offers fun 30-second eye-rest and stretch breaks.
-5. **Calming Colors & Steady Letters**: 
-   Children can pick gentle color tints (soft yellow, blue, green, or pink) and special weighted letters that stop words from flipping or dancing on the screen.
-6. **Teachers Stay in Full Control**: 
-   Smart AI helpers draft helpful, plain-English progress summaries for the teacher. **No report is ever sent to parents without the teacher reviewing and approving it first.**
+1. **Panic-Inducing Timers**: Countdown clocks pressure children before their brain can finish processing sounds and letters.
+2. **Punitive "Right vs. Wrong" Buzzers**: Red error marks treat natural visual-spatial confusion (like mixing up mirror letters `b` and `d`) as failures, rather than perceptual orientation differences.
+3. **Rigid Physical Barriers**: Requiring fine-motor keyboard typing blocks children with dyspraxia who know the answer in their mind but physically struggle to type.
+4. **Flawed Speech Recognition**: Standard speech tools are trained on adult voices and fail on children's natural speech pitch and trailing breath sounds.
+5. **Vague or Overwhelming Praise**: Loud sounds or hollow praise (*"Good job!"*) can trigger sensory overload in autistic children or feel patronizing.
+6. **The Confidence Trap**: When apps repeatedly tell young children they are "wrong," kids internalize the belief that they "can't read" before their literacy journey has even begun.
+
+---
+
+### 💡 The Solution: WordBloom's Adaptive Early Learning Companion
+
+**WordBloom acts as a patient, encouraging learning companion that molds itself around the child, meeting each early learner exactly where they are:**
+
+1. **Step-by-Step Word Discovery**: Focuses on bite-sized, sequential phonics stages — from simple 3-letter CVC words (*sun*, *cat*, *dog*), to blends (*frog*, *ship*), silent letters (*knight*), and multisyllabic words (*butterfly*).
+2. **Three Equal Ways to Answer**: Children choose how they want to show their understanding:
+   * ⌨️ **Type it** on the keyboard (with auto-focus recovery).
+   * 🎙️ **Say it out loud** into the microphone (with pediatric acoustic tolerance).
+   * 🔲 **Tap letter tiles** on screen (eliminating fine-motor keyboard fatigue for dyspraxia).
+3. **Zero Anxiety, Zero Pressure**:
+   * **No countdown timers** — children take all the time they need.
+   * **No red buzzer marks or grades** — children earn blooming garden flowers (`🌸`), celebrating practice and progress.
+4. **Gentle Orientation Coaching**: If a child mirrors `b` and `d`, WordBloom doesn't punish them. It gently shows letter direction (`b` faces right ➔, `d` faces left ⬅️) so the child learns the visual difference with confidence.
+5. **Automatic Sensory & Focus Safeguards**:
+   * **ADHD Auto-Pacing**: Sessions automatically lock to 5 minutes / 5 blooms, with gentle 30-second eye-rest breaks.
+   * **Autism Sensory Shield**: Sounds auto-muted by default; praise is calm, direct, and factual.
+   * **Calming Overlays**: Soft color tints (yellow, blue, green, pink) and weighted OpenDyslexic typography prevent letters from dancing or vibrating.
+6. **Dual-Layer Safety & Teacher Control**:
+   * **Google Cloud Model Armor**: Every AI encouragement is scanned in real time to ensure 100% child safety.
+   * **Educator Approval Gate**: AI drafts progress summaries, but **zero reports are sent to parents without the teacher reviewing and approving first**.
 
 ---
 
