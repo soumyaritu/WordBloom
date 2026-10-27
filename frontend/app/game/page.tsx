@@ -1691,7 +1691,7 @@ function GameContent() {
                   display: 'flex', alignItems: 'center', gap: 8,
                 }}
               >
-                {loading ? '🌸 Blooming...' : 'Check'}
+                {loading ? '🌸 Blooming your flower...' : 'Check'}
               </button>
             </div>
           )}
@@ -1746,7 +1746,7 @@ function GameContent() {
 
               <p style={{ marginTop: 12, fontSize: 15, color: isListening ? '#F87171' : 'var(--white)', fontWeight: 700 }}>
                 {loading
-                  ? 'Evaluating spoken word...'
+                  ? '🌸 Blooming your flower...'
                   : isListening
                   ? '🔴 Listening... speak now!'
                   : visualHintB64
@@ -1998,7 +1998,7 @@ function GameContent() {
                     transition: 'all 0.2s ease', touchAction: 'manipulation',
                   }}
                 >
-                  {loading ? '🌸 Blooming...' : 'Check Word'}
+                  {loading ? '🌸 Blooming your flower...' : 'Check Word'}
                 </button>
               </div>
             )
