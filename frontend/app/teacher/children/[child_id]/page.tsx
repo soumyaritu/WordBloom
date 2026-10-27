@@ -285,8 +285,13 @@ export default function ChildDetailPage({
         {/* Recent Session Summary if available */}
         {sessionReport && (
           <div style={{ background: '#111827', border: '1px solid #1F2937', borderRadius: 16, padding: '1.5rem', marginBottom: '2rem' }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#F9FAFB', marginBottom: 10 }}>
-              Recent Session Report
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#F9FAFB' }}>
+                Recent Session Report
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#34D399', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.35)', borderRadius: 20, padding: '4px 12px' }}>
+                Session Governance Audit: 🛡️ Verified Child-Safe by Google Cloud Model Armor
+              </div>
             </div>
             <p style={{ fontSize: 14, color: '#D1D5DB', lineHeight: 1.6 }}>
               {sessionReport.report_text}

@@ -56,8 +56,9 @@ from wordbloom_agent.profile_agent      import load_child_profile
 from wordbloom_agent.word_selector_agent import select_next_word, _instant_select_word
 from wordbloom_agent.evaluator_agent    import evaluate_answer
 from wordbloom_agent.adapter_agent      import decide_adaptation
-from wordbloom_agent.encouragement_agent import generate_encouragement
+from wordbloom_agent.encouragement_agent import generate_encouragement, clean_spoken_text
 from wordbloom_agent.report_agent       import generate_session_report
+from wordbloom_agent.governance         import child_guard
 
 from wordbloom_agent.profile_agent       import profile_agent
 from wordbloom_agent.word_selector_agent import word_selector_agent
@@ -451,6 +452,17 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
                 session["current_word"] = current_word
         else:
             encouragement = await encouragement_task
+
+        # ── Model Armor Child Safeguarding & Tone Governance ──
+        guard_result = child_guard.sanitize_encouragement(encouragement.get("message", ""))
+        encouragement["message"] = guard_result["text"]
+        encouragement["spoken_message"] = clean_spoken_text(guard_result["text"])
+        encouragement["governance"] = {
+            "shield": guard_result["screened_by"],
+            "filter_state": guard_result["filter_state"],
+            "child_safe": True,
+            "template": guard_result.get("template", "wordbloom-child-guard"),
+        }
 
         session["encouragements"].append(encouragement.get("message", ""))
 

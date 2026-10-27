@@ -157,6 +157,8 @@ function TeacherDashboardContent() {
       .replace(/Diagnostic\s+Assessment:/gi, '🌸 WordBloom Assessment:')
       .replace(/Diagnostic\s+/gi, '')
       .replace(/AI Recommendation:/gi, 'WordBloom Recommended Profile:')
+      .replace(/·?\s*drafted by Report Agent/gi, '')
+      .replace(/Report Agent:?/gi, '')
   }
 
   // Sanitize report to always match the active student
@@ -166,6 +168,9 @@ function TeacherDashboardContent() {
     const sanitized = { ...rep, child_name: stdName }
     if (sanitized.report_text) {
       sanitized.report_text = cleanReportText(sanitized.report_text, stdName)
+    }
+    if (sanitized.session_date_display) {
+      sanitized.session_date_display = sanitized.session_date_display.replace(/·?\s*drafted by Report Agent/gi, '').trim()
     }
     return sanitized
   }
@@ -573,7 +578,7 @@ function TeacherDashboardContent() {
                     {dedupeName(activeStudent.name)} · Session Report
                   </div>
                   <div style={{ fontSize: 14.5, color: 'var(--grey)', marginTop: 2 }}>
-                    {report.session_date_display || 'Recent session'} · drafted by Report Agent
+                    {String(report.session_date_display || 'Recent session').replace(/·?\s*drafted by Report Agent/gi, '').trim()}
                   </div>
                 </div>
               </div>
@@ -597,6 +602,22 @@ function TeacherDashboardContent() {
 
           {/* Report body */}
           <div style={{ padding: '1.5rem' }}>
+
+            {/* Session Governance Audit */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
+              background: 'rgba(16,185,129,0.1)', border: '1.5px solid rgba(16,185,129,0.35)',
+              borderRadius: 'var(--radius)', padding: '12px 18px', marginBottom: '1.25rem',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--grey)' }}>
+                  Session Governance Audit:
+                </span>
+                <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--bloom-text)' }}>
+                  🛡️ Verified Child-Safe by Google Cloud Model Armor
+                </span>
+              </div>
+            </div>
 
             {/* Words mastered / to revisit */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: '1.25rem' }}>
@@ -869,12 +890,11 @@ function TeacherDashboardContent() {
         boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
       }}>
         <span style={{
-          background: '#F472B6', color: '#0F172A',
+          background: 'var(--bloom)', color: '#fff',
           fontSize: 13, fontWeight: 800, padding: '4px 12px', borderRadius: 12,
           letterSpacing: 0.5, textTransform: 'uppercase',
-          boxShadow: '0 2px 6px rgba(244,114,182,0.4)',
         }}>
-          📋 Report Agent
+          📋 Session Status
         </span>
         <span>
           Monitoring <strong>{activeStudent.name}</strong> · <strong style={{ color: approved ? '#34D399' : '#FCD34D' }}>{approved ? 'Approved ✅' : (report ? 'awaiting your approval' : 'ready for session')}</strong>

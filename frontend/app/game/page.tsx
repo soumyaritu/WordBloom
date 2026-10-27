@@ -1504,7 +1504,7 @@ function GameContent() {
                 border: `1.5px solid ${visualHintB64 ? 'rgba(59, 130, 246, 0.45)' : (feedback.evaluation?.candy_earned || feedback.evaluation?.is_correct) ? 'rgba(16,185,129,0.4)' : 'rgba(251,191,36,0.4)'}`,
                 borderRadius: 'var(--radius)', padding: '16px 20px',
                 fontSize: 16, lineHeight: 1.6, fontWeight: 500,
-                color: visualHintB64 ? '#93C5FD' : (feedback.evaluation?.candy_earned || feedback.evaluation?.is_correct) ? '#34D399' : '#FBBF24',
+                color: visualHintB64 ? 'var(--accent, #3B82F6)' : (feedback.evaluation?.candy_earned || feedback.evaluation?.is_correct) ? 'var(--bloom-text)' : 'var(--warn-text)',
                 marginBottom: '1.25rem',
                 display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
                 boxShadow: visualHintB64 ? '0 4px 16px rgba(59,130,246,0.18)' : (feedback.evaluation?.candy_earned || feedback.evaluation?.is_correct) ? '0 4px 16px rgba(16,185,129,0.15)' : 'none',
@@ -1514,7 +1514,7 @@ function GameContent() {
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                   <span style={{
                     fontWeight: 800, fontSize: 15,
-                    color: (feedback.evaluation?.candy_earned || feedback.evaluation?.is_correct) ? 'var(--bloom-text)' : '#FDE68A'
+                    color: (feedback.evaluation?.candy_earned || feedback.evaluation?.is_correct) ? 'var(--bloom-text)' : 'var(--warn-text, #B45309)'
                   }}>
                     {(feedback.evaluation?.candy_earned || feedback.evaluation?.is_correct)
                       ? '🌟 You nailed it!'

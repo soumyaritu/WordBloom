@@ -6,6 +6,9 @@
 [![Live Demo](https://img.shields.io/badge/Live_Demo-Google_Cloud_Run-10B981?style=for-the-badge&logo=google-cloud&logoColor=white)](https://wordbloom-frontend-820113329049.us-central1.run.app)
 [![Agent Runtime](https://img.shields.io/badge/Agent_Runtime-Vertex_AI-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/us-central1/agent-engines/1398722001920589824?project=soumyaaidevcamppro)
 
+[![Model Armor](https://img.shields.io/badge/Google_Cloud-Model_Armor_Protected-10B981?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/security)
+[![AI Governance](https://img.shields.io/badge/Governance-Dual--Layer_Safety-4285F4?style=for-the-badge)](#6-enterprise-ai-governance--child-safeguarding-google-cloud-model-armor)
+
 [![Google ADK](https://img.shields.io/badge/Google_ADK-Multi--Agent_System-4285F4?logo=google&logoColor=white)](https://cloud.google.com/vertex-ai)
 [![Google Cloud Vertex AI](https://img.shields.io/badge/Vertex_AI-Gemini_2.5_Flash-34A853?logo=google-cloud&logoColor=white)](https://cloud.google.com/vertex-ai)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15.5_App_Router-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
@@ -39,6 +42,9 @@ WordBloom is fully deployed and accessible on Google Cloud:
 ---
 
 ## 1. What is WordBloom?
+WordBloom is an agentic reading companion built on the Google Agent Development Kit (ADK) and powered by Gemini 2.5 Flash on Google Cloud Vertex AI.
+
+Instead of a static question bank, WordBloom uses a team of 6 specialized AI agents that observe how the child responds in real time and dynamically reshape the cognitive load of every single word.
 
 ### 🌟 The Big Picture
 Learning to read is one of the biggest milestones in a child's life. But for millions of children, traditional reading apps are terrifying:
@@ -86,11 +92,12 @@ Instead of forcing a child to fit the software, WordBloom molds itself around th
 * [3. Core Pedagogical Innovations](#3-core-pedagogical-innovations)
 * [4. Multi-Agent Architecture (Google ADK)](#4-multi-agent-architecture-google-adk)
 * [5. The 6-Agent Architecture (The Technical Core)](#5-the-6-agent-architecture-the-technical-core)
-* [6. Teacher Dashboard & Dyslexia Mirror Suite](#6-teacher-dashboard--dyslexia-mirror-suite)
-* [7. Sensory & Accessibility Features](#7-sensory--accessibility-features)
-* [8. Repository Structure](#8-repository-structure)
-* [9. Quick Start Guide](#9-quick-start-guide)
-* [10. Testing & Verification](#10-testing--verification)
+* [6. Enterprise AI Governance & Child Safeguarding (Google Cloud Model Armor)](#6-enterprise-ai-governance--child-safeguarding-google-cloud-model-armor)
+* [7. Teacher Dashboard & Dyslexia Mirror Suite](#7-teacher-dashboard--dyslexia-mirror-suite)
+* [8. Sensory & Accessibility Features](#8-sensory--accessibility-features)
+* [9. Repository Structure](#9-repository-structure)
+* [10. Quick Start Guide](#10-quick-start-guide)
+* [11. Testing & Verification](#11-testing--verification)
 
 ---
 
@@ -202,11 +209,14 @@ graph TD
     F --> G["⚡ Adapter Agent"]
     G --> H1["💚 Encouragement Agent"]
     G --> H2["📖 Word Selector Agent"]
-    H1 --> I["Return Next Word + Feedback"]
+    H1 --> MA["🛡️ Google Cloud Model Armor (SanitizeModelResponse)"]
+    MA -->|"Verified Child-Safe"| I["Return Next Word + Verified Feedback"]
+    MA -->|"Flagged Harsh/Negative"| HEAL["Auto-Heal: Pre-vetted Uplifting Praise"]
+    HEAL --> I
     H2 --> I
     I --> J["POST /session/end"]
     J --> K["📋 Report Agent"]
-    K --> L["🔒 Teacher Approval Gate"]
+    K --> L["🔒 Human-in-the-Loop Teacher Approval Gate"]
 ```
 
 ### ⚡ Sequential Core + Concurrent Optimization:
@@ -290,10 +300,56 @@ WordBloom is built with the **Google Agent Development Kit (ADK)** and orchestra
 
 ---
 
-## 6. Teacher Dashboard & Dyslexia Mirror Suite
+## 6. Enterprise AI Governance & Child Safeguarding (Google Cloud Model Armor)
+
+Assistive AI for neurodivergent children cannot afford hallucinations, harshness, or sarcasm. A single demoralizing comment (*"Oh, you finally figured it out..."*) can destroy a dyslexic child's confidence.
+
+WordBloom implements **Defense-in-Depth Governance** by pairing Google Cloud's newly released **Model Armor** with a strict **Human-in-the-Loop Approval Gate**:
+
+```
+[ Evaluator / Adapter ]
+           │
+           ▼
+[ EncouragementAgent ]
+           │ (generates personalized praise)
+           ▼
+[ 🛡️ Google Cloud Model Armor ]  <─── Regional Endpoint: modelarmor.us-central1.rep.googleapis.com
+  • Template: wordbloom-child-guard
+  • RAI Filters: Hate Speech, Harassment, Toxicity, Dangerous Tone
+  • Confidence Level: MEDIUM_AND_ABOVE
+           │
+     ┌─────┴─────────────────────────┐
+     ▼                               ▼
+[ NO_MATCH_FOUND: Clean ]      [ MATCH_FOUND: Intercepted ]
+Praise delivered directly       Auto-healed with pre-vetted positive reinforcement
+     │                               │
+     └───────────────┬───────────────┘
+                     ▼
+        [ Child Game Screen ]
+```
+
+### Core Governance Pillars:
+
+1. **Semantic Tone & Safety Shielding (`SanitizeModelResponse`)**:
+   * Evaluates encouragement output against Google Cloud Model Armor filters.
+   * Goes beyond naive word-blocklists by using Google's semantic classifiers to catch subtle sarcasm, condescension, and negative bias.
+   * **Automated Healing (`governance.py`)**: If Model Armor detects a policy violation, the response is instantly intercepted and replaced with safe, encouraging growth-mindset praise without stalling the session.
+
+2. **Immutable Audit Trails for School Districts**:
+   * Every scan operation is logged directly to **Google Cloud Logging** and **Security Command Center**.
+   * Provides educational authorities with verifiable proof of **COPPA, FERPA, and GDPR-K** compliance.
+
+3. **Human-in-the-Loop Approval Gate**:
+   * Diagnostic progress reports drafted by the system are held in quarantine.
+   * **Zero reports are sent to parents or permanent records** until the educator reviews, edits, and certifies them in the Teacher Dashboard.
+
+---
+
+## 7. Teacher Dashboard & Dyslexia Mirror Suite
 
 Located at `/teacher` and `/teacher/dashboard`:
 * **Live Garden Bloom Tracking:** Tracks completed flowers against personalized targets (e.g. 4 🌸 for Alex, 5 🌸 for Emma).
+* **Session Governance Audit:** Directly displays verified child-safety certification from Google Cloud Model Armor on every session report.
 * **The Dyslexia Mirror (`/teacher/children/[child_id]/mirror`):** An interactive perceptual simulator enabling teachers and parents to experience reading through the child's perspective:
   * **Letter Rotation & Flipping:** Visualizes mirror reversals (`b ↔ d`).
   * **Ocular Jitter & Visual Drift:** Demonstrates how unweighted fonts appear to drift or float.
@@ -302,7 +358,7 @@ Located at `/teacher` and `/teacher/dashboard`:
 
 ---
 
-## 7. Sensory & Accessibility Features
+## 8. Sensory & Accessibility Features
 
 * **Zero Time Pressure:** Absolutely no countdown timers or speed badges are shown to children.
 * **ADHD Auto-Pacing:** Sessions auto-lock to 5 minutes / 5 blooms, with a mandatory 30-second rest break after 5 words.
@@ -313,7 +369,7 @@ Located at `/teacher` and `/teacher/dashboard`:
 
 ---
 
-## 8. Repository Structure
+## 9. Repository Structure
 
 ```
 WordBloom/
@@ -322,12 +378,13 @@ WordBloom/
 ├── README.md                          ← Project homepage & documentation
 ├── backend/
 │   ├── main.py                        ← FastAPI application server
-│   ├── requirements.txt               ← Python dependencies
+│   ├── requirements.txt               ← Python dependencies (FastAPI, ADK, Model Armor)
 │   ├── test_wordbloom.py              ← Automated 4-stage pipeline test suite
 │   └── wordbloom_agent/
 │       ├── __init__.py
 │       ├── .env                       ← Vertex AI credentials (GOOGLE_CLOUD_PROJECT)
 │       ├── agent.py                   ← Root ADK Orchestrator
+│       ├── governance.py              ← 🛡️ Child Safeguarding via Google Cloud Model Armor
 │       ├── profile_agent.py           ← ProfileAgent
 │       ├── word_selector_agent.py     ← WordSelectorAgent
 │       ├── evaluator_agent.py         ← EvaluatorAgent
@@ -360,15 +417,10 @@ WordBloom/
 
 ---
 
-## 9. Quick Start Guide
+## 10. Quick Start Guide
 
-### 🚀 Try WordBloom Live (No Installation Required)
-
-Access the live production deployment directly in your browser:  
-👉 **[https://wordbloom-frontend-820113329049.us-central1.run.app](https://wordbloom-frontend-820113329049.us-central1.run.app)**
-
-* **Multi-Agent Backend**: Powered 24/7 by [Google Cloud Vertex AI Agent Runtime](https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/us-central1/agent-engines/1398722001920589824?project=soumyaaidevcamppro) (`wordbloom-agent`).
-* **Browser Recommendation**: Use Google Chrome or Microsoft Edge for full Web Speech API voice recognition and Google Cloud TTS phonics feedback.
+### 🌐 Hosted Cloud Version (Zero Installation)
+Visit: **[https://wordbloom-frontend-820113329049.us-central1.run.app](https://wordbloom-frontend-820113329049.us-central1.run.app)**
 
 ---
 
@@ -379,7 +431,7 @@ If you prefer to run and develop WordBloom locally on your computer:
 #### Prerequisites
 * **Python 3.10+** (Python 3.14 tested)
 * **Node.js 18+** (Node.js 20+ recommended)
-* **Google Cloud Account** with Vertex AI enabled.
+* **Google Cloud Account** with Vertex AI and Model Armor enabled.
 
 #### 1. Backend Setup
 ```bash
@@ -392,10 +444,11 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure Google Cloud Vertex AI credentials in backend/wordbloom_agent/.env:
+# Configure Google Cloud credentials in backend/wordbloom_agent/.env:
 # GOOGLE_CLOUD_PROJECT=your-gcp-project-id
 # GOOGLE_CLOUD_LOCATION=us-central1
 # GEMINI_MODEL=gemini-2.5-flash
+# MODEL_ARMOR_TEMPLATE_ID=wordbloom-child-guard
 
 # Start FastAPI backend server (http://localhost:8000)
 python main.py
@@ -416,7 +469,7 @@ Visit **`http://localhost:3000`** in your browser.
 
 ---
 
-## 10. Testing & Verification
+## 11. Testing & Verification
 
 ### Run Automated Multi-Agent Pipeline Test:
 ```bash
