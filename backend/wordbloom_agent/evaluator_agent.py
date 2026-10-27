@@ -233,6 +233,10 @@ def is_correct_for_profile(correct_word, child_answer, dyslexia_type,
     if str(input_mode or "").lower() == "voice":
         if clean_answer in VOICE_HOMOPHONES.get(clean_target, []):
             return True
+        # Carrier phrase tolerance (e.g. child says "a pin", "the pin", "it's pin")
+        answer_tokens = [t.strip() for t in clean_answer.split() if t.strip()]
+        if clean_target in answer_tokens:
+            return True
         # Common STT vowel elongation (e.g. child says "hop" -> mic hears "hope")
         if clean_answer.endswith("e") and clean_answer[:-1] == clean_target:
             return True
@@ -425,10 +429,14 @@ def evaluate_answer(
         elif any(c in correct_word.lower() for c in ['k', 'gh', 'w', 'b', 'l']):
             pattern = "silent_letter"
             explanation = f"Tricky silent letter pattern in '{correct_word}'."
-            positive_observation = f"Stayed engaged and identified {letters_correct} letter{'s' if letters_correct != 1 else ''}!"
         else:
             pattern = "omission"
             explanation = f"Attempted '{child_answer}' for '{correct_word}'."
+
+        is_voice_mode = str(input_mode or "").lower() == "voice"
+        if is_voice_mode:
+            positive_observation = f"Good voice effort! Listen closely to the sounds in '{correct_word}'."
+        else:
             positive_observation = f"Stayed engaged and identified {letters_correct} letter{'s' if letters_correct != 1 else ''}!"
 
     needs_visual_hint = (not is_correct) and (
@@ -436,7 +444,7 @@ def evaluate_answer(
         or is_mirror_swap
         or is_transposition
         or is_vowel_confusion
-        or str(input_mode or "").lower() in ("type", "tap")
+        or str(input_mode or "").lower() in ("type", "tap", "voice")
     )
 
     return {

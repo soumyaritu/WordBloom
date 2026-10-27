@@ -594,7 +594,7 @@ def decide_adaptation(
 
     mode = str(input_mode or "type").lower()
     is_voice = mode == "voice"
-    needs_scaffold = not is_correct and (needs_visual_hint or consecutive_wrong >= 2 or attempt_number >= 2)
+    needs_scaffold = not is_correct and (is_voice or needs_visual_hint or consecutive_wrong >= 2 or attempt_number >= 2)
 
     if needs_scaffold:
         target_word = word or "word"

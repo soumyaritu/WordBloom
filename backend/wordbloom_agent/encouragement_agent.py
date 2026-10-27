@@ -77,7 +77,12 @@ def _instant_encouragement(
                 "famous_dyslexic_used": None
             }
         else:
-            msg = f"You found {letters_correct} of {letters_total} letters in '{word}'."
+            if mode == "voice":
+                msg = f"Good try! 👂 Listen to the sounds in '{word}', then tap 🎤 to say it together!"
+            elif mode == "tap":
+                msg = f"Good try! 🧩 Look at the letter blocks and tap '{word}' in order!"
+            else:
+                msg = f"You found {letters_correct} of {letters_total} letters in '{word}'."
             return {
                 "message_type": "reframe",
                 "message": msg,

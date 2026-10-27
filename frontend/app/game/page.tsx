@@ -211,6 +211,7 @@ function GameContent() {
   const recognitionRef = useRef<any>(null)
   const silenceTimerRef = useRef<any>(null)
   const isSubmittingRef = useRef<boolean>(false)
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
   const startTime = useRef(Date.now())
 
   const playSpeechFallback = (chunksOrText: string, targetWord?: string) => {
@@ -235,7 +236,15 @@ function GameContent() {
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel()
       }
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause()
+        currentAudioRef.current = null
+      }
       const audio = new Audio(`data:audio/mp3;base64,${b64Audio}`)
+      currentAudioRef.current = audio
+      audio.onended = () => {
+        if (currentAudioRef.current === audio) currentAudioRef.current = null
+      }
       audio.play().catch(err => {
         console.warn('Audio auto-play prevented by browser policy, attempting speech synthesis fallback:', err)
         playSpeechFallback(fallbackText || phonicsSpoken || phonicsChunks || activeWord?.word || '', activeWord?.word)
@@ -260,6 +269,11 @@ function GameContent() {
       setIsListening(false)
       setMicStatusMsg('')
       return
+    }
+
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current = null
     }
 
     if (typeof window !== 'undefined' && window.speechSynthesis) {
@@ -639,7 +653,7 @@ function GameContent() {
 
   const handleSkipWord = () => {
     const currentWordClean = (activeWord?.word || currentWord || '').toLowerCase().trim()
-    let targetNextWord = pendingWord?.next_word
+    let targetNextWord = feedback?.next_word || pendingWord?.next_word
 
     // If next_word was missing or matches current word, guarantee a fresh new word
     if (!targetNextWord || targetNextWord?.word?.toLowerCase().trim() === currentWordClean) {
@@ -659,7 +673,7 @@ function GameContent() {
       targetNextWord = { ...fresh, difficulty: 'easy', category: 'practice' }
     }
 
-    advanceToNextWord(targetNextWord, pendingWord?.session_stats)
+    advanceToNextWord(targetNextWord, feedback?.session_stats || pendingWord?.session_stats)
   }
 
   // Keyboard shortcut: Press Enter to advance to next word or restart when goal is reached
@@ -848,9 +862,11 @@ function GameContent() {
         setTimeout(() => setShowBreak(false), 30000)
       }
 
-      // Store pending next word for child-paced progression (no timer pressure)
-      if (result.next_word) {
+      // Store pending next word for child-paced progression ONLY on correct answers
+      if (isCorrect && result.next_word) {
         setPendingWord(result)
+      } else {
+        setPendingWord(null)
       }
 
     } catch (e) {
@@ -1271,14 +1287,14 @@ function GameContent() {
             className={`${isSpotlight ? 'spotlight-focus-card' : ''}`}
             style={{
               width: '100%', maxWidth: cardMaxWidth, minHeight: 215,
-              background: pendingWord ? (pendingWord.evaluation?.is_correct ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)') : '#1E293B',
-              border: `2px solid ${pendingWord ? (pendingWord.evaluation?.is_correct ? 'var(--bloom)' : '#F59E0B') : isSpotlight ? '#FBBF24' : 'var(--border2)'}`,
+              background: pendingWord ? 'rgba(16,185,129,0.2)' : (feedback && !feedback?.evaluation?.is_correct ? 'rgba(245,158,11,0.15)' : '#1E293B'),
+              border: `2px solid ${pendingWord ? 'var(--bloom)' : (feedback && !feedback?.evaluation?.is_correct ? '#F59E0B' : (isSpotlight ? '#FBBF24' : 'var(--border2)'))}`,
               borderRadius: 22, padding: currentWord.length > 7 ? '2.25rem 2rem' : '2.5rem 2.25rem',
               textAlign: 'center', marginBottom: '1.5rem',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               boxShadow: isSpotlight
                 ? '0 0 0 3px rgba(251, 191, 36, 0.5), 0 0 60px rgba(251, 191, 36, 0.28), 0 25px 60px rgba(0, 0, 0, 0.75)'
-                : (pendingWord ? (pendingWord.evaluation?.is_correct ? '0 10px 30px rgba(16,185,129,0.2)' : '0 10px 30px rgba(245,158,11,0.2)') : '0 10px 30px rgba(0,0,0,0.3)'),
+                : (pendingWord ? '0 10px 30px rgba(16,185,129,0.2)' : (feedback && !feedback?.evaluation?.is_correct ? '0 10px 30px rgba(245,158,11,0.15)' : '0 10px 30px rgba(0,0,0,0.3)')),
               transition: 'all 0.3s ease',
             }}
           >
@@ -2012,7 +2028,7 @@ function GameContent() {
           )}
 
           {/* Skip option if child wants to move to the next word instead of retrying */}
-          {pendingWord && !pendingWord?.evaluation?.is_correct && (
+          {feedback && !feedback?.evaluation?.is_correct && !pendingWord && (
             <div className="spotlight-interactive-element" style={{ width: '100%', maxWidth: cardMaxWidth, textAlign: 'center', margin: '0.75rem 0 1.25rem' }}>
               <button
                 type="button"
