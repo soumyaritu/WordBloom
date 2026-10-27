@@ -99,7 +99,7 @@ export default function ChildDetailPage({
         {/* Top Breadcrumbs */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.25rem' }}>
           <Link
-            href={`/teacher?child=${childId}`}
+            href="/teacher/dashboard"
             style={{
               color: '#9CA3AF', textDecoration: 'none', fontSize: 13, fontWeight: 600,
               display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -166,6 +166,15 @@ export default function ChildDetailPage({
                 <span style={{ fontSize: 10, background: '#10B981', color: '#06080F', padding: '1px 5px', borderRadius: 8, fontWeight: 800 }}>NEW</span>
               </Link>
             )}
+            <Link
+              href={`/teacher?child=${childId}`}
+              style={{
+                padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                color: '#9CA3AF', textDecoration: 'none', transition: 'all 0.2s ease',
+              }}
+            >
+              Session Reports 📋
+            </Link>
             <Link
               href={`/profile?child=${childId}`}
               style={{

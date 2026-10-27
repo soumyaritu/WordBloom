@@ -323,7 +323,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
             }}
           >
             <span>←</span>
-            <span>Back</span>
+            <span>Back to Dashboard</span>
           </button>
 
           <div style={{ textAlign: 'center' }}>

@@ -429,13 +429,7 @@ function TeacherDashboardContent() {
         >
           <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
             <button
-              onClick={() => {
-                if (document.cookie.includes('wb_teacher_session')) {
-                  router.push('/teacher/dashboard')
-                } else {
-                  router.push('/')
-                }
-              }}
+              onClick={() => router.push('/teacher/dashboard')}
               aria-label="Back to teacher dashboard"
               style={{
                 background: 'var(--panel)',
@@ -454,7 +448,7 @@ function TeacherDashboardContent() {
               }}
             >
               <span>←</span>
-              <span>Back</span>
+              <span>Back to Dashboard</span>
             </button>
           </div>
 

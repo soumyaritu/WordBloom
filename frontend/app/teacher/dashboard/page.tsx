@@ -439,7 +439,10 @@ export default function TeacherDashboardPage() {
                 }}
               >
                 {/* Child Identity & Profile Info */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 260 }}>
+                <Link
+                  href={`/teacher/children/${child.id}`}
+                  style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 260, textDecoration: 'none' }}
+                >
                   <div
                     style={{
                       width: 58,
@@ -491,7 +494,7 @@ export default function TeacherDashboardPage() {
                       )}
                     </div>
                   </div>
-                </div>
+                </Link>
 
                 {/* Last session date + Candy count */}
                 <div

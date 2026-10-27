@@ -641,7 +641,7 @@ export default function DyslexiaMirrorPage({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: '1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <Link
-              href={`/teacher?child=${childId}`}
+              href="/teacher/dashboard"
               style={{
                 color: '#9CA3AF', textDecoration: 'none', fontSize: 13, fontWeight: 600,
                 display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -651,7 +651,12 @@ export default function DyslexiaMirrorPage({
               ← Back to Dashboard
             </Link>
             <span style={{ color: '#4B5563', fontSize: 13 }}>/</span>
-            <span style={{ color: '#9CA3AF', fontSize: 13 }}>{childName}</span>
+            <Link
+              href={`/teacher/children/${childId}`}
+              style={{ color: '#9CA3AF', fontSize: 13, textDecoration: 'none', fontWeight: 600 }}
+            >
+              {childName}
+            </Link>
             <span style={{ color: '#4B5563', fontSize: 13 }}>/</span>
             <span style={{ color: '#10B981', fontSize: 13, fontWeight: 700 }}>Dyslexia Mirror</span>
           </div>
@@ -698,6 +703,15 @@ export default function DyslexiaMirrorPage({
             >
               Mirror 🔍
             </div>
+            <Link
+              href={`/teacher?child=${childId}`}
+              style={{
+                padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                color: '#9CA3AF', textDecoration: 'none', transition: 'all 0.2s ease',
+              }}
+            >
+              Session Reports 📋
+            </Link>
             <Link
               href={`/profile?child=${childId}`}
               style={{
