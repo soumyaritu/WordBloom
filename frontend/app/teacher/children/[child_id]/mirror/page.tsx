@@ -153,23 +153,34 @@ export default function DyslexiaMirrorPage({
 
   const initialWords = DEFAULT_INITIAL_WORDS[childId] || DEFAULT_INITIAL_WORDS.emma
 
+  const fallbackNames: Record<string, string> = {
+    emma: 'Emma Clarke',
+    liam: "Liam O'Connor",
+    james: 'James Patel',
+    sofia: 'Sony Mathew',
+    sony: 'Sony Mathew',
+  }
+  const isSony = childId === 'sofia' || childId === 'sony'
+  const defaultDisplayName = fallbackNames[childId] || (childId.charAt(0).toUpperCase() + childId.slice(1))
+
   const [profile, setProfile] = useState<ChildProfile | null>(() => ({
     id: childId,
     child_id: childId,
-    name: childId === 'emma' ? 'Emma Clarke' : (childId.charAt(0).toUpperCase() + childId.slice(1)),
-    child_name: childId === 'emma' ? 'Emma Clarke' : (childId.charAt(0).toUpperCase() + childId.slice(1)),
-    dyslexia_type: childId === 'james' ? 'visual_spatial' : childId === 'liam' || childId === 'sofia' ? 'surface' : 'phonological',
-    font: 'opendyslexic',
-    display_mode: 'opendyslexic',
+    name: defaultDisplayName,
+    child_name: defaultDisplayName,
+    dyslexia_type: childId === 'james' ? 'visual_spatial' : childId === 'liam' ? 'surface' : isSony ? 'unknown' : 'phonological',
+    font: isSony ? 'standard' : 'opendyslexic',
+    display_mode: isSony ? 'standard' : 'opendyslexic',
     colour_overlay: childId === 'emma' || childId === 'james' ? 'yellow' : 'none',
-    input_mode: childId === 'emma' ? 'voice' : 'tap',
-    reading_level: childId === 'sofia' ? 4 : childId === 'emma' ? 3 : 2,
-    age: 9,
-    school_year: 'Year 4',
+    input_mode: childId === 'emma' ? 'voice' : isSony ? 'type' : 'tap',
+    reading_level: isSony ? 1 : childId === 'emma' ? 3 : 2,
+    age: isSony ? 7 : 9,
+    school_year: isSony ? 'Year 3' : 'Year 4',
   }))
   const [selectedType, setSelectedType] = useState<DyslexiaType>(() => {
     if (childId === 'james') return 'visual_spatial'
-    if (childId === 'liam' || childId === 'sofia') return 'surface'
+    if (childId === 'liam') return 'surface'
+    if (isSony) return 'non_dyslexic'
     return 'phonological'
   })
   const [animationOn, setAnimationOn]                 = useState<boolean>(true)
@@ -198,6 +209,10 @@ export default function DyslexiaMirrorPage({
           })
           if (res.ok) {
             loadedProfile = await res.json()
+            if (loadedProfile && isSony) {
+              loadedProfile.name = 'Sony Mathew'
+              loadedProfile.child_name = 'Sony Mathew'
+            }
           }
         } catch (e) {
           console.warn('Could not load profile via API, checking localStorage:', e)
@@ -213,16 +228,16 @@ export default function DyslexiaMirrorPage({
               loadedProfile = {
                 id: childId,
                 child_id: childId,
-                name: p.fullName || p.name || (childId in ['sofia', 'sony'] ? 'Sony Mathew' : childId.toUpperCase()),
-                child_name: p.fullName || p.name || (childId in ['sofia', 'sony'] ? 'Sony Mathew' : childId.toUpperCase()),
-                dyslexia_type: p.dyslexiaType || 'unknown',
-                font: p.displayMode || 'opendyslexic',
-                display_mode: p.displayMode || 'opendyslexic',
-                colour_overlay: p.colourOverlay || 'yellow',
-                input_mode: p.inputMode || 'voice',
-                reading_level: p.readingLevel || 1,
-                age: p.age || 7,
-                school_year: p.schoolYear || 'Year 3',
+                name: isSony ? 'Sony Mathew' : (p.fullName || p.name || defaultDisplayName),
+                child_name: isSony ? 'Sony Mathew' : (p.fullName || p.name || defaultDisplayName),
+                dyslexia_type: p.dyslexiaType || (isSony ? 'unknown' : 'phonological'),
+                font: p.displayMode || (isSony ? 'standard' : 'opendyslexic'),
+                display_mode: p.displayMode || (isSony ? 'standard' : 'opendyslexic'),
+                colour_overlay: p.colourOverlay || 'none',
+                input_mode: p.inputMode || (isSony ? 'type' : 'voice'),
+                reading_level: p.readingLevel || (isSony ? 1 : 1),
+                age: p.age || (isSony ? 7 : 7),
+                school_year: p.schoolYear || (isSony ? 'Year 3' : 'Year 3'),
               }
             } catch (e) {}
           }
@@ -405,8 +420,8 @@ export default function DyslexiaMirrorPage({
     return () => { isMounted = false }
   }, [childId])
 
-  const childName = profile?.name || profile?.child_name || (childId in ['sofia', 'sony'] ? 'Sony Mathew' : (childId.charAt(0).toUpperCase() + childId.slice(1)))
-  const firstName = childName.split(' ')[0]
+  const childName = isSony ? 'Sony Mathew' : (profile?.name || profile?.child_name || defaultDisplayName)
+  const firstName = isSony ? 'Sony' : childName.split(' ')[0]
   const activeWord = wrongWords[activeWordIndex] || wrongWords[0] || initialWords[0]
   const rawType = (profile?.dyslexia_type || '').toLowerCase().trim()
   const isNotSure = rawType.includes('unknown') || rawType.includes('not sure') || rawType.includes('undetermined')
@@ -524,7 +539,12 @@ export default function DyslexiaMirrorPage({
       })
 
       if (profile) {
-        const updated = { ...profile, ...patchPayload }
+        const updated = {
+          ...profile,
+          ...patchPayload,
+          name: isSony ? 'Sony Mathew' : profile.name,
+          child_name: isSony ? 'Sony Mathew' : profile.child_name,
+        }
         setProfile(updated)
         if (typeof window !== 'undefined') {
           localStorage.setItem(`wb_profile_${childId}`, JSON.stringify(updated))
@@ -536,7 +556,12 @@ export default function DyslexiaMirrorPage({
       setTimeout(() => setToastMessage(null), 4000)
     } catch (e) {
       if (profile && typeof window !== 'undefined') {
-        const updated = { ...profile, ...patchPayload }
+        const updated = {
+          ...profile,
+          ...patchPayload,
+          name: isSony ? 'Sony Mathew' : profile.name,
+          child_name: isSony ? 'Sony Mathew' : profile.child_name,
+        }
         setProfile(updated)
         localStorage.setItem(`wb_profile_${childId}`, JSON.stringify(updated))
         localStorage.setItem('wb_profile_sony', JSON.stringify(updated))

@@ -24,8 +24,19 @@ export async function GET(
     // Backend offline fallback: read SKILL.md directly from filesystem
   }
 
+  const fallbackNames: Record<string, string> = {
+    emma: 'Emma Clarke',
+    liam: "Liam O'Connor",
+    james: 'James Patel',
+    sofia: 'Sony Mathew',
+    sony: 'Sony Mathew',
+  }
+  const isSony = cleanId === 'sofia' || cleanId === 'sony'
+  const defaultDisplayName = fallbackNames[cleanId] || (cleanId.charAt(0).toUpperCase() + cleanId.slice(1))
+
   try {
-    const skillPath = path.join(process.cwd(), '..', 'backend', 'wordbloom_agent', 'skills', cleanId, 'SKILL.md')
+    const targetFolder = (cleanId === 'sony' && !fs.existsSync(path.join(process.cwd(), '..', 'backend', 'wordbloom_agent', 'skills', 'sony', 'SKILL.md'))) ? 'sofia' : cleanId
+    const skillPath = path.join(process.cwd(), '..', 'backend', 'wordbloom_agent', 'skills', targetFolder, 'SKILL.md')
     if (fs.existsSync(skillPath)) {
       const raw = fs.readFileSync(skillPath, 'utf-8')
       const extract = (pattern: RegExp, def: string) => {
@@ -33,19 +44,21 @@ export async function GET(
         return match ? match[1].trim() : def
       }
 
+      const resolvedName = isSony ? 'Sony Mathew' : extract(/- Full name:\s*(.+)/i, defaultDisplayName)
+
       return NextResponse.json({
         id: cleanId,
         child_id: cleanId,
-        name: extract(/- Full name:\s*(.+)/i, cleanId.charAt(0).toUpperCase() + cleanId.slice(1)),
-        child_name: extract(/- Full name:\s*(.+)/i, cleanId.charAt(0).toUpperCase() + cleanId.slice(1)),
-        dyslexia_type: extract(/- (?:Dyslexia type|Type):\s*(.+)/i, 'phonological'),
-        font: extract(/- Display mode:\s*(.+)/i, 'opendyslexic'),
-        display_mode: extract(/- Display mode:\s*(.+)/i, 'opendyslexic'),
+        name: resolvedName,
+        child_name: resolvedName,
+        dyslexia_type: extract(/- (?:Dyslexia type|Type):\s*(.+)/i, isSony ? 'unknown' : 'phonological'),
+        font: extract(/- Display mode:\s*(.+)/i, isSony ? 'standard' : 'opendyslexic'),
+        display_mode: extract(/- Display mode:\s*(.+)/i, isSony ? 'standard' : 'opendyslexic'),
         colour_overlay: extract(/- Colour overlay:\s*(.+)/i, 'none'),
-        input_mode: extract(/- Input mode:\s*(.+)/i, 'type'),
-        reading_level: parseInt(extract(/- Reading (?:level|stage):\s*(\d+)/i, '2'), 10),
-        age: parseInt(extract(/- Age:\s*(\d+)/i, '9'), 10),
-        school_year: extract(/- School year:\s*(.+)/i, 'Year 4'),
+        input_mode: extract(/- Input mode:\s*(.+)/i, isSony ? 'type' : 'tap'),
+        reading_level: parseInt(extract(/- Reading (?:level|stage):\s*(\d+)/i, isSony ? '1' : '2'), 10),
+        age: parseInt(extract(/- Age:\s*(\d+)/i, isSony ? '7' : '9'), 10),
+        school_year: extract(/- School year:\s*(.+)/i, isSony ? 'Year 3' : 'Year 4'),
       })
     }
   } catch (err) {
@@ -55,15 +68,15 @@ export async function GET(
   return NextResponse.json({
     id: cleanId,
     child_id: cleanId,
-    name: cleanId.charAt(0).toUpperCase() + cleanId.slice(1),
-    child_name: cleanId.charAt(0).toUpperCase() + cleanId.slice(1),
-    dyslexia_type: cleanId === 'liam' ? 'surface' : cleanId === 'james' ? 'visual_spatial' : (cleanId === 'sofia' || cleanId === 'sony') ? 'unknown' : 'phonological',
-    font: (cleanId === 'sofia' || cleanId === 'sony') ? 'standard' : 'opendyslexic',
-    display_mode: (cleanId === 'sofia' || cleanId === 'sony') ? 'standard' : 'opendyslexic',
+    name: defaultDisplayName,
+    child_name: defaultDisplayName,
+    dyslexia_type: cleanId === 'liam' ? 'surface' : cleanId === 'james' ? 'visual_spatial' : isSony ? 'unknown' : 'phonological',
+    font: isSony ? 'standard' : 'opendyslexic',
+    display_mode: isSony ? 'standard' : 'opendyslexic',
     colour_overlay: cleanId === 'emma' ? 'yellow' : cleanId === 'james' ? 'yellow' : 'none',
-    input_mode: cleanId === 'emma' ? 'voice' : (cleanId === 'sofia' || cleanId === 'sony') ? 'type' : 'tap',
+    input_mode: cleanId === 'emma' ? 'voice' : isSony ? 'type' : 'tap',
     reading_level: cleanId === 'emma' ? 3 : cleanId === 'liam' ? 2 : 1,
-    age: 9,
-    school_year: 'Year 4',
+    age: isSony ? 7 : 9,
+    school_year: isSony ? 'Year 3' : 'Year 4',
   })
 }

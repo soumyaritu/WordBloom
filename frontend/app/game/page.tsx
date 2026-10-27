@@ -477,7 +477,7 @@ function GameContent() {
           if (!s) {
             const fallbackProfile = {
               child_id: targetChildId,
-              child_name: targetChildId === 'sofia' ? 'Sony' : targetChildId.charAt(0).toUpperCase() + targetChildId.slice(1),
+              child_name: (targetChildId === 'sofia' || targetChildId === 'sony') ? 'Sony Mathew' : targetChildId.charAt(0).toUpperCase() + targetChildId.slice(1),
               reading_level: 1,
               input_mode: 'voice',
               display_mode: 'opendyslexic',

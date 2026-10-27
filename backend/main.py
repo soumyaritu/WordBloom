@@ -192,6 +192,8 @@ async def get_child_details(child_id: str):
     child_id = child_id.lower().strip()
     skills_dir = Path(__file__).parent / "wordbloom_agent" / "skills"
     skill_file = skills_dir / child_id / "SKILL.md"
+    if not skill_file.exists() and child_id in ["sofia", "sony"]:
+        skill_file = skills_dir / "sofia" / "SKILL.md" if (skills_dir / "sofia" / "SKILL.md").exists() else skills_dir / "sony" / "SKILL.md"
     if not skill_file.exists():
         raise HTTPException(status_code=404, detail=f"Child profile '{child_id}' not found")
 
@@ -200,11 +202,13 @@ async def get_child_details(child_id: str):
         match = re.search(pattern, raw, re.IGNORECASE | re.MULTILINE)
         return match.group(1).strip() if match else default
 
+    child_full_name = "Sony Mathew" if child_id in ["sofia", "sony"] else extract(r"- Full name:\s*(.+)", child_id.capitalize())
+
     return {
         "id": child_id,
         "child_id": child_id,
-        "name": extract(r"- Full name:\s*(.+)", child_id.capitalize()),
-        "child_name": extract(r"- Full name:\s*(.+)", child_id.capitalize()),
+        "name": child_full_name,
+        "child_name": child_full_name,
         "dyslexia_type": extract(r"- (?:Dyslexia type|Type):\s*(.+)", "phonological"),
         "font": extract(r"- Display mode:\s*(.+)", "opendyslexic"),
         "display_mode": extract(r"- Display mode:\s*(.+)", "opendyslexic"),

@@ -12,11 +12,18 @@ function ProfileForm() {
   const isNew = childParam === 'new'
 
   // Form State
+  const fallbackNames: Record<string, string> = {
+    emma: 'Emma Clarke',
+    liam: "Liam O'Connor",
+    james: 'James Patel',
+    sofia: 'Sony Mathew',
+    sony: 'Sony Mathew',
+  }
   const [childId, setChildId] = useState(isNew ? 'child_new' : childParam)
-  const [fullName, setFullName] = useState(isNew ? '' : (childParam.charAt(0).toUpperCase() + childParam.slice(1) + ' Clarke'))
+  const [fullName, setFullName] = useState(isNew ? '' : (fallbackNames[childParam.toLowerCase()] || (childParam.charAt(0).toUpperCase() + childParam.slice(1))))
   const [parentEmail, setParentEmail] = useState<string>(isNew ? '' : 'parent@example.com')
-  const [age, setAge] = useState<string | number>(isNew ? '' : 9)
-  const [schoolYear, setSchoolYear] = useState<string>(isNew ? '' : 'Year 4')
+  const [age, setAge] = useState<string | number>(isNew ? '' : ((childParam === 'sofia' || childParam === 'sony') ? 7 : 9))
+  const [schoolYear, setSchoolYear] = useState<string>(isNew ? '' : ((childParam === 'sofia' || childParam === 'sony') ? 'Year 3' : 'Year 4'))
 
   // Dyslexia Type — unselected by default for new child
   const [dyslexiaType, setDyslexiaType] = useState(isNew ? '' : 'phonological')

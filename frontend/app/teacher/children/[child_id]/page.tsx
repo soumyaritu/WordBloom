@@ -75,8 +75,16 @@ export default function ChildDetailPage({
     loadData()
   }, [childId])
 
-  const childName = profile?.name || profile?.child_name || (childId.charAt(0).toUpperCase() + childId.slice(1))
-  const firstName = childName.split(' ')[0]
+  const isSony = childId === 'sofia' || childId === 'sony'
+  const fallbackNames: Record<string, string> = {
+    emma: 'Emma Clarke',
+    liam: "Liam O'Connor",
+    james: 'James Patel',
+    sofia: 'Sony Mathew',
+    sony: 'Sony Mathew',
+  }
+  const childName = isSony ? 'Sony Mathew' : (profile?.name || profile?.child_name || fallbackNames[childId] || (childId.charAt(0).toUpperCase() + childId.slice(1)))
+  const firstName = isSony ? 'Sony' : childName.split(' ')[0]
   const rawType = (profile?.dyslexia_type || '').toLowerCase()
   const isNonDyslexic = rawType === 'non_dyslexic' || rawType === 'none' || rawType === 'general'
 
