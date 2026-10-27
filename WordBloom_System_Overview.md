@@ -116,7 +116,7 @@ Children’s vocal anatomy and speech cadence present unique challenges for stan
   * ⌨️ **Type it**: Keyboard input with automatic focus recovery for dyspraxia.
   * 🎤 **Say it**: Multi-alternative voice recognition.
   * 🔲 **Tap letters**: On-screen letter tile grid removing fine-motor keyboard strain.
-* **Adaptive WCAG AAA Color Overlays:** 5 high-contrast palette modes (**None, Yellow `#FEF3C7`, Blue `#DBEAFE`, Green `#D1FAE5`, Pink `#FCE7F3`**) that dynamically invert button contrast tokens to guarantee 7:1+ contrast ratios.
+* **Adaptive WCAG AA Color Overlays:** 5 high-contrast palette modes (**None, Yellow `#FEF3C7`, Blue `#DBEAFE`, Green `#D1FAE5`, Pink `#FCE7F3`**) that dynamically invert button contrast tokens to guarantee comfortable contrast ratios and visual clarity.
 * **Clean Word Skipping:** A dedicated `Skip this word for now · Next word ➔` button that automatically excludes the current word, ensuring children never get stuck on a frustrating loop.
 
 ---
@@ -132,7 +132,7 @@ flowchart TB
     subgraph PRESENTATION["🎨 Presentation Layer (Next.js 15 App Router)"]
         direction TB
         UI_HOME["🏠 Child Portal Home (/)<br/>• Dynamic Learner Selector<br/>• Profile Quick-Access"]
-        UI_GAME["🎮 Adaptive Word Game (/game)<br/>• Keyboard Type Focus<br/>• 5-Alt Web Speech Recognition<br/>• Dyspraxia Letter Tile Grid<br/>• Dynamic WCAG AAA Overlays & OpenDyslexic"]
+        UI_GAME["🎮 Adaptive Word Game (/game)<br/>• Keyboard Type Focus<br/>• 5-Alt Web Speech Recognition<br/>• Dyspraxia Letter Tile Grid<br/>• Dynamic WCAG AA Overlays & OpenDyslexic"]
         UI_PROFILE["⚙️ Profile Engine (/profile)<br/>• 6 Dyslexia Profiles & Co-occurring Flags<br/>• Real-Time Pediatric Setting Auto-Lock"]
         UI_TEACHER["👩‍🏫 Teacher Center & Dyslexia Mirror (/teacher)<br/>• Perceptual Mirror Simulator<br/>• Live Bloom Goals Tracker<br/>• Human-in-the-Loop Report Gate"]
     end
@@ -253,7 +253,7 @@ On saving, the backend updates the child’s persistent `SKILL.md` markdown prof
 ### 🎨 Frontend
 * **Framework**: Next.js 15 (App Router, TypeScript, React 19)
 * **Styling**: Pure CSS Design Tokens with dynamic CSS variables (Zero bloated utility frameworks)
-* **Accessibility**: WCAG AAA compliant contrast across all 5 color overlays; full keyboard navigation recovery
+* **Accessibility**: WCAG AA compliant contrast across all 5 color overlays; full keyboard navigation recovery
 * **Speech Integration**: Web Speech API (`SpeechRecognition`, `SpeechSynthesisUtterance`) with 5-alternative candidate re-ranking
 
 ### ⚙️ Backend & Agent Engine

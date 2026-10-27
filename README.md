@@ -14,7 +14,7 @@
 [![Next.js 15](https://img.shields.io/badge/Next.js-15.5_App_Router-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Python_3.14-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![UDL Principles](https://img.shields.io/badge/Pedagogy-Universal_Design_for_Learning-F59E0B)](https://www.cast.org/what-we-do/universal-design-for-learning/)
-[![Accessibility](https://img.shields.io/badge/Accessibility-WCAG_AAA_Compliant-10B981)](#8-sensory--accessibility-features)
+[![Accessibility](https://img.shields.io/badge/Accessibility-WCAG_AA_Compliant-10B981)](#8-sensory--accessibility-features)
 
 ---
 
@@ -159,7 +159,7 @@ flowchart TB
     subgraph PRESENTATION["🎨 Presentation Layer (Next.js 15)"]
         direction TB
         UI_HOME["🏠 Child Portal Home (/)"]
-        UI_GAME["🎮 Adaptive Word Game (/game)<br/>• Type Input (Keyboard Focus)<br/>• Voice Input (5-Alt Web Speech)<br/>• Tap Letters (Dyspraxia Grid)<br/>• WCAG AAA Overlays & OpenDyslexic"]
+        UI_GAME["🎮 Adaptive Word Game (/game)<br/>• Type Input (Keyboard Focus)<br/>• Voice Input (5-Alt Web Speech)<br/>• Tap Letters (Dyspraxia Grid)<br/>• WCAG AA Overlays & OpenDyslexic"]
         UI_PROFILE["⚙️ Profile Editor (/profile)"]
         UI_TEACHER["👩‍🏫 Teacher Center & Dyslexia Mirror (/teacher)<br/>• Perceptual Mirror Simulator<br/>• Live Bloom Goals Tracker<br/>• Human-In-The-Loop Approval Gate"]
     end
@@ -389,7 +389,7 @@ An interactive perceptual simulator enabling teachers and parents to experience 
 * **Zero Time Pressure:** Absolutely no countdown timers or speed badges are shown to children.
 * **ADHD Auto-Pacing:** Sessions auto-lock to 5 minutes / 5 blooms, with a mandatory 30-second rest break after 5 words.
 * **Autism Sensory Shield:** Sounds auto-muted by default to avoid sensory overload; encouragement uses direct, factual praise.
-* **WCAG AAA Color Overlays:** 5 high-contrast palettes (**None, Yellow `#FEF3C7`, Blue `#DBEAFE`, Green `#D1FAE5`, Pink `#FCE7F3`**) that dynamically invert button contrast tokens to guarantee 7:1+ contrast ratios.
+* **WCAG AA Color Overlays:** 5 high-contrast palettes (**None, Yellow `#FEF3C7`, Blue `#DBEAFE`, Green `#D1FAE5`, Pink `#FCE7F3`**) that dynamically invert button contrast tokens to guarantee comfortable contrast ratios and visual clarity.
 * **OpenDyslexic Typography:** Heavy weighted baselines prevent mental letter rotation and flipping.
 * **Spotlight Masking:** Isolates one word at a time, eliminating peripheral visual crowding.
 
@@ -432,7 +432,7 @@ WordBloom/
     ├── tsconfig.json
     ├── app/
     │   ├── layout.tsx                 ← Root layout & font tokens
-    │   ├── globals.css                ← WCAG AAA design system & overlay tokens
+    │   ├── globals.css                ← WCAG AA design system & overlay tokens
     │   ├── page.tsx                   ← Home portal & child selector
     │   ├── game/page.tsx              ← Adaptive word game & voice pipeline
     │   ├── profile/page.tsx           ← Profile setup & customization screen
