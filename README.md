@@ -13,8 +13,8 @@
 [![Google Cloud Vertex AI](https://img.shields.io/badge/Vertex_AI-Gemini_2.5_Flash-34A853?logo=google-cloud&logoColor=white)](https://cloud.google.com/vertex-ai)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15.5_App_Router-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Python_3.14-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![UDL Principles](https://img.shields.io/badge/Pedagogy-Universal_Design_for_Learning-F59E0B)](#pedagogical-architecture)
-[![Accessibility](https://img.shields.io/badge/Accessibility-WCAG_AAA_Compliant-10B981)](#sensory--accessibility-innovations)
+[![UDL Principles](https://img.shields.io/badge/Pedagogy-Universal_Design_for_Learning-F59E0B)](https://www.cast.org/what-we-do/universal-design-for-learning/)
+[![Accessibility](https://img.shields.io/badge/Accessibility-WCAG_AAA_Compliant-10B981)](#8-sensory--accessibility-features)
 
 ---
 
@@ -122,6 +122,8 @@ Instead of forcing a child to fit the software, WordBloom molds itself around th
 ---
 
 ## 3. Core Pedagogical Innovations
+
+WordBloom is designed in alignment with [CAST's Universal Design for Learning (UDL)](https://www.cast.org/what-we-do/universal-design-for-learning/) guidelines — providing multiple means of representation, action/expression, and engagement so every child can learn without barriers.
 
 ### 🪞 A. Scaffolded Retry for Mirror Reversals (`b ↔ d`, `p ↔ q`)
 Visual-spatial orientation flips are fundamentally different from phonological mistakes:
