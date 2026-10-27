@@ -26,6 +26,10 @@ WordBloom is fully deployed and accessible on Google Cloud:
   👉 **[https://wordbloom-frontend-820113329049.us-central1.run.app](https://wordbloom-frontend-820113329049.us-central1.run.app)**  
   *(Open in Google Chrome or Microsoft Edge for full Web Speech API voice support)*
 
+* ⚡ **Live Backend API (Google Cloud Run)**:  
+  👉 **[https://wordbloom-backend-820113329049.us-central1.run.app](https://wordbloom-backend-820113329049.us-central1.run.app)**  
+  *(FastAPI multi-agent service with Google Cloud Model Armor child safeguarding)*
+
 * 🤖 **Multi-Agent Backend (Google Cloud Vertex AI Agent Runtime)**:  
   * **Service Name**: `wordbloom-agent`
   * **Reasoning Engine ID**: `projects/820113329049/locations/us-central1/reasoningEngines/1398722001920589824`
@@ -249,12 +253,17 @@ WordBloom is built with the **Google Agent Development Kit (ADK)** and orchestra
 ```
 
 ### 1. 👤 ProfileAgent (`profile_agent.py`)
-* **Role**: Dynamic personalization grounding.
-* **How it works**: Uses Google ADK `SkillToolset` to dynamically ingest markdown child learning profiles (`SKILL.md`).
+* **Role**: Dynamic personalization grounding and profile setup adaptation.
+* **How it works**: Uses Google ADK `SkillToolset` to dynamically ingest markdown child learning profiles (`SKILL.md`) and powers the `/profile` setup engine.
 * **Capabilities**:
   * Reads 6 dyslexia types, co-occurring condition flags (ADHD, Autism, Dyspraxia), reading stage (1–4), preferred input mode, font preference, and color overlays.
-  * Injects exact child constraints into the session context before any word generation begins.
-  * Ensures zero hallucinated parameters or mismatched cognitive difficulty.
+  * **Intelligent Input Mode Auto-Recommendation**:
+    * **Phonological Dyslexia** ➔ Recommends **Voice Input** (*connects speech sounds directly to phonemes without orthographic stress*).
+    * **Dyspraxia / Visual-Spatial Dyslexia** ➔ Recommends **Tap Letters** (*removes fine-motor typing friction and keyboard fatigue*).
+    * **Surface Dyslexia** ➔ Recommends **Keyboard Typing** (*anchors whole-word orthographic shapes*).
+    * Preserves explicit teacher overrides whenever manually changed.
+  * **Condition Guardrails**: Automatically caps sessions to 5 minutes / 5 blooms for ADHD and configures auditory sensory limits for Autism.
+  * Injects exact child constraints into the session context before any word generation begins, preventing mismatched cognitive difficulty.
 
 ### 2. 📖 WordSelectorAgent (`word_selector_agent.py`)
 * **Role**: Adaptive curriculum selection and phonics generation.
@@ -284,11 +293,13 @@ WordBloom is built with the **Google Agent Development Kit (ADK)** and orchestra
 
 ### 5. 💚 EncouragementAgent (`encouragement_agent.py`)
 * **Role**: Evidence-based, neurodiversity-informed emotional reinforcement.
-* **How it works**: Generates warm, factual, growth-mindset praise using Gemini 2.5 Flash.
+* **How it works**: Generates warm, factual, growth-mindset praise using Gemini 2.5 Flash, strictly filtered through **Google Cloud Model Armor**.
 * **Capabilities**:
   * **Zero Vague Fluff**: Never uses patronizing or hollow phrases like *"Good job!"* or *"You're so smart!"*.
   * **Specific Mastery Praise**: Emphasizes the exact phonetic accomplishment (*"You heard the 'sh' blend right away!"* or *"You spotted the silent 'k' in knight!"*).
   * **Autism & Sensory Tuning**: Strictly factual, calm observations with zero exclamation overload when sensory flags are active.
+  * **🛡️ Google Cloud Model Armor Child Safeguarding (`governance.py`)**: Every candidate praise string is routed in real time through the `wordbloom-child-guard` regional template.
+  * **Auto-Healing Fallback**: If Model Armor detects an RAI flag (toxicity, sarcasm, negative sentiment), it is intercepted in real time and auto-healed with pre-vetted uplifting positive reinforcement.
 
 ### 6. 📋 ReportAgent (`report_agent.py`) & The Approval Gate
 * **Role**: Pedagogical synthesis, clinical reporting, and human governance.
@@ -296,6 +307,8 @@ WordBloom is built with the **Google Agent Development Kit (ADK)** and orchestra
 * **Capabilities**:
   * Highlights specific phonetic strengths and exact challenge areas in plain English.
   * Flags emerging patterns (e.g., *"Visual fatigue noted after word 4; consider switching to yellow overlay"*).
+  * **Session Governance Audit**: Binds the Google Cloud Model Armor verification audit certification (`🛡️ Verified Child-Safe by Google Cloud Model Armor`) to every drafted report.
+  * **Clean Educator View**: Summaries are structured for teachers and parents without exposed agent jargon or distraction.
   * **Human-in-the-Loop Safety Gate**: The report is generated with `approval_required: true`. **Zero data or summaries are sent to parents or external records without the educator manually reviewing and clicking "Approve Report" in the Teacher Dashboard.**
 
 ---
@@ -345,16 +358,27 @@ Praise delivered directly       Auto-healed with pre-vetted positive reinforceme
 
 ---
 
-## 7. Teacher Dashboard & Dyslexia Mirror Suite
+## 7. Teacher Dashboard, Profile Engine & Dyslexia Mirror Suite
 
-Located at `/teacher` and `/teacher/dashboard`:
+### 👩‍🏫 Teacher Dashboard (`/teacher`)
 * **Live Garden Bloom Tracking:** Tracks completed flowers against personalized targets (e.g. 4 🌸 for Alex, 5 🌸 for Emma).
-* **Session Governance Audit:** Directly displays verified child-safety certification from Google Cloud Model Armor on every session report.
-* **The Dyslexia Mirror (`/teacher/children/[child_id]/mirror`):** An interactive perceptual simulator enabling teachers and parents to experience reading through the child's perspective:
-  * **Letter Rotation & Flipping:** Visualizes mirror reversals (`b ↔ d`).
-  * **Ocular Jitter & Visual Drift:** Demonstrates how unweighted fonts appear to drift or float.
-  * **Crowding & Line Blurring:** Demonstrates why spotlight masking and color overlays bring immediate relief.
-* **Human-in-the-Loop Approval Gate:** Assessment summaries must be explicitly certified by the teacher before parent dispatch.
+* **Session Governance Audit:** Directly displays verified child-safety certification from Google Cloud Model Armor on every session report (`🛡️ Verified Child-Safe by Google Cloud Model Armor`).
+* **Human-in-the-Loop Approval Gate:** Assessment summaries must be explicitly certified by the educator before parent dispatch.
+
+### ⚙️ Child Profile Setup & Customization Engine (`/profile`)
+* **Individualized Setup:** Configure identity, school year, reading stage (1–4), dyslexia typology, and co-occurring conditions.
+* **Intelligent Input Mode Recommendations:** Automatically highlights the optimal modality with clear pedagogical rationales:
+  * Recommends **Voice Input** for Phonological Dyslexia to connect phonemes to speech.
+  * Recommends **Tap Letters** for Dyspraxia or Visual-Spatial challenges to bypass keyboard friction.
+  * Recommends **Keyboard Typing** for Surface Dyslexia to practice orthographic shape memory.
+* **Automatic Safeguards:** Selecting ADHD locks the session to 5 minutes with mandatory breaks; selecting Autism activates calm, factual praise and mutes sudden audio cues.
+* **Full Educator Freedom:** Teachers can manually override any setting at any time.
+
+### 🪞 The Dyslexia Mirror (`/teacher/children/[child_id]/mirror`)
+An interactive perceptual simulator enabling teachers and parents to experience reading through the child's perspective:
+* **Letter Rotation & Flipping:** Visualizes mirror reversals (`b ↔ d`, `p ↔ q`).
+* **Ocular Jitter & Visual Drift:** Demonstrates how unweighted fonts appear to drift or float.
+* **Crowding & Line Blurring:** Demonstrates why spotlight masking and color overlays bring immediate relief.
 
 ---
 
@@ -396,6 +420,7 @@ WordBloom/
 │           ├── liam/SKILL.md          ← Surface + Dyspraxia + ADHD profile
 │           ├── james/SKILL.md         ← Visual/Spatial + Dyspraxia profile
 │           ├── sofia/SKILL.md         ← Assessment / Not Sure Yet profile
+│           ├── sony/SKILL.md          ← Phonological + ADHD profile
 │           ├── alex/SKILL.md          ← Non-dyslexic / Standard reading profile
 │           ├── word-bank/SKILL.md     ← Phonics curriculum database
 │           └── dyslexic-heroes/SKILL.md
