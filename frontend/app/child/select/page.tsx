@@ -296,7 +296,7 @@ export default function ChildSelectPage() {
             textAlign: 'center',
           }}
         >
-          No typing or password required. Just tap your picture to begin! 🍬
+          No typing or password required. Just tap your picture to begin! 🌸
         </p>
       </div>
     </main>

@@ -1257,7 +1257,7 @@ function GameContent() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 }}
               >
-                {restarting ? '🔄 Loading fresh words...' : '🌟 Try New Words! 🍬'}
+                {restarting ? '🔄 Loading fresh words...' : '🌟 Try New Words! 🌸'}
               </button>
 
               <button
