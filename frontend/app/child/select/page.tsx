@@ -89,6 +89,9 @@ export default function ChildSelectPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // 0. Eager background warmup ping for the backend API
+    fetch('/api/backend/', { method: 'GET' }).catch(() => {})
+
     // 1. Immediately enrich fallback children from localStorage
     setChildren(enrichChildProfiles(FALLBACK_CHILDREN))
 

@@ -1,10 +1,14 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import Link from 'next/link'
 import DecorativeBackground from '../components/DecorativeBackground'
 
 export default function LandingPage() {
+  useEffect(() => {
+    // Eager background warmup ping for the backend API
+    fetch('/api/backend/', { method: 'GET' }).catch(() => {})
+  }, [])
   return (
     <main
       style={{

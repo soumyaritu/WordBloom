@@ -209,6 +209,15 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
         )
         print(f"   ✅ First word: {first_word.get('word')}")
 
+        first_word_str = str(first_word.get("word", "")).lower().strip()
+        cached_second_word = _instant_select_word(
+            reading_level           = profile.get("reading_level", 1),
+            struggling_words        = profile.get("struggling_words", []),
+            mastered_words          = profile.get("mastered_words", []),
+            words_done_this_session = list(exclude_words) + [first_word_str],
+            dyslexia_type           = profile.get("dyslexia_type", "unknown"),
+        )
+
         # Store session
         _sessions[session_id] = {
             "profile":            profile,
@@ -222,6 +231,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             "consecutive_correct": 0,
             "consecutive_wrong":   0,
             "current_word":       first_word,
+            "cached_next_word":   cached_second_word,
             "start_time":         __import__("time").time(),
             "word_attempts":      {},
         }
@@ -413,9 +423,38 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
                 session["cached_next_word"] = None
 
         if not adaptation.get("session_over"):
-            if not evaluation.get("is_correct") and session.get("cached_next_word"):
+            if session.get("cached_next_word"):
                 encouragement = await encouragement_task
                 next_word = session["cached_next_word"]
+                session["cached_next_word"] = None
+
+                # Asynchronously warm the subsequent word with Gemini in the background
+                def _background_warm():
+                    try:
+                        next_lvl = max(1, min(4, profile.get("reading_level", 1) + adaptation.get("level_change", 0)))
+                        subseq_done = list(set([str(w).lower().strip() for w in session.get("words_attempted", [])] + [current_word_str, str(next_word.get("word", "")).lower().strip()]))
+                        new_word = select_next_word(
+                            reading_level           = next_lvl,
+                            dyslexia_type           = profile.get("dyslexia_type", "phonological"),
+                            error_pattern           = evaluation.get("error_pattern", ""),
+                            co_occurring            = conditions,
+                            approach                = profile.get("approach", "phonics"),
+                            struggling_words        = profile.get("struggling_words", []),
+                            mastered_words          = profile.get("mastered_words", []),
+                            words_done_this_session = subseq_done,
+                            last_answer_correct     = evaluation.get("is_correct", False),
+                            consecutive_correct     = session["consecutive_correct"],
+                            consecutive_wrong       = session["consecutive_wrong"],
+                            adaptation_action       = adaptation.get("action", "continue"),
+                        )
+                        session["cached_next_word"] = new_word
+                    except Exception as e:
+                        print(f"Background word warm notice: {e}")
+
+                try:
+                    asyncio.get_event_loop().run_in_executor(None, _background_warm)
+                except Exception:
+                    pass
             else:
                 exclude_words = list(set([str(w).lower().strip() for w in session["words_attempted"]] + [current_word_str]))
                 next_word_task = asyncio.to_thread(
