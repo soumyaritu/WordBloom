@@ -30,12 +30,6 @@ WordBloom is fully deployed and accessible on Google Cloud:
   👉 **[https://wordbloom-backend-820113329049.us-central1.run.app](https://wordbloom-backend-820113329049.us-central1.run.app)**  
   *(FastAPI multi-agent service with Google Cloud Model Armor child safeguarding)*
 
-* 🤖 **Multi-Agent Backend (Google Cloud Vertex AI Agent Runtime)**:  
-  * **Service Name**: `wordbloom-agent`
-  * **Reasoning Engine ID**: `projects/820113329049/locations/us-central1/reasoningEngines/1398722001920589824`
-  * **Region**: `us-central1` (Project: `soumyaaidevcamppro`)
-  * **Console Dashboard**: [Vertex AI Agent Engine](https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/us-central1/agent-engines/1398722001920589824?project=soumyaaidevcamppro)
-
 ---
 
 ## 💡 Core Philosophy: Equal Care by Rejecting "One-Size-Fits-All"
@@ -47,28 +41,52 @@ WordBloom is fully deployed and accessible on Google Cloud:
 
 ## 1. What is WordBloom?
 
-WordBloom is an **adaptive early word learning companion** built on the Google Agent Development Kit (ADK) and powered by Gemini 2.5 Flash on Google Cloud Vertex AI.
+WordBloom is an adaptive word-learning companion for every young child taking their first steps in reading and spelling. It works for any early learner, and adapts automatically for children who need different support, such as children with dyslexia, ADHD, dyspraxia or sensory sensitivities, without singling anyone out. Children answer by speaking, typing or tapping letter tiles. A team of six AI agents built with Google's Agent Development Kit (ADK) and Gemini 2.5 Flash on Vertex AI notices how each child responds, adjusts the support after every word, and gives the teacher a plain-English summary that is only shared after the teacher approves it.
 
-Designed specifically for young learners taking their first steps in literacy, WordBloom helps children **discover, sound out, recognize, and understand words** at their own pace. Instead of a rigid question bank, WordBloom uses a team of 6 specialized AI agents that observe how the child interacts in real time and dynamically reshape the learning journey for every single word.
+WordBloom is a learning tool. It does not diagnose dyslexia or any other condition. It notices patterns in how a child answers and helps teachers support them.
 
 ---
 
 ### ⚠️ The Problem: Traditional Literacy Software Fails Early Learners
 
-Learning to recognize and understand words is one of the most critical developmental milestones in a child's life. But for millions of children — especially those with dyslexia, ADHD, dyspraxia, or sensory sensitivities — traditional reading apps create anxiety, defeat, and tears:
+Learning to read and spell words is one of the biggest steps in every child's life. Every child learns at a different pace and in a different way, yet most learning software gives every child the same fixed path. For many children, this is where confidence breaks, and children who learn differently feel it most. Common features of learning software make this worse:
 
-1. **Panic-Inducing Timers**: Countdown clocks pressure children before their brain can finish processing sounds and letters.
+1. **Panic-Inducing Timers**: Countdown clocks pressure children before their brains can finish processing sounds and letters.
 2. **Punitive "Right vs. Wrong" Buzzers**: Red error marks treat natural visual-spatial confusion (like mixing up mirror letters `b` and `d`) as failures, rather than perceptual orientation differences.
 3. **Rigid Physical Barriers**: Requiring fine-motor keyboard typing blocks children with dyspraxia who know the answer in their mind but physically struggle to type.
 4. **Flawed Speech Recognition**: Standard speech tools are trained on adult voices and fail on children's natural speech pitch and trailing breath sounds.
-5. **Vague or Overwhelming Praise**: Loud sounds or hollow praise (*"Good job!"*) can trigger sensory overload in autistic children or feel patronizing.
+5. **Vague or Overwhelming Praise**: Loud sounds or hollow praise (*"Good job!"*) can trigger sensory overload in autistic children or feel patronising.
 6. **The Confidence Trap**: When apps repeatedly tell young children they are "wrong," kids internalize the belief that they "can't read" before their literacy journey has even begun.
+
+   When an app keeps saying "wrong", children start to believe they "can't read".
+
+"Treating every child equally does not mean giving them the same test. It means giving every child the support, dignity and pace they need to bloom."
 
 ---
 
 ### 💡 The Solution: WordBloom's Adaptive Early Learning Companion
 
-**WordBloom acts as a patient, encouraging learning companion that molds itself around the child, meeting each early learner exactly where they are:**
+**WordBloom acts as a patient, encouraging learning companion that moulds itself around the child, meeting each early learner exactly where they are:**
+
+How WordBloom works
+
+For the child
+
+Three equal ways to answer: say it 🎙️, type it ⌨️, or tap letter tiles 🔲.
+No timers, no red crosses, no scores. Children grow a garden: each word earns a flower 🌸.
+Small steps: words progress through four phonics stages, from simple words (sun, cat) to blends (frog, ship), silent letters and vowel teams (knight, boat), and longer words (butterfly).
+Help when they're stuck: sound-by-sound audio, chunked letters (sh·i·p), direction hints for b/d and p/q, and a "skip for now" button that never loops back to the same word.
+Comfort settings: colour overlays, a choice of fonts including OpenDyslexic, and a spotlight mode that shows one word at a time.
+
+For the teacher
+Child setup with reading stage, learning profile and needs. WordBloom recommends a starting way of answering for each learning profile, with a plain reason. The teacher can change any setting.
+Optional pacing settings, for example short sessions with breaks, or quiet mode with calm, factual praise.
+Teacher dashboard with each child's progress and a drafted summary to review and approve.
+
+The Dyslexia Mirror: a short simulation of experiences some children describe, such as letters appearing reversed or crowded, to help adults understand why supports like spacing and spotlight mode help.
+Learning profiles and recommended starting mode
+
+Every child starts with the same garden, the same three ways to answer and no pressure. When a teacher adds a learning profile, WordBloom adds extra support on top.
 
 1. **Step-by-Step Word Discovery**: Focuses on bite-sized, sequential phonics stages — from simple 3-letter CVC words (*sun*, *cat*, *dog*), to blends (*frog*, *ship*), silent letters (*knight*), and multisyllabic words (*butterfly*).
 2. **Three Equal Ways to Answer**: Children choose how they want to show their understanding:
@@ -84,7 +102,7 @@ Learning to recognize and understand words is one of the most critical developme
    * **Autism Sensory Shield**: Sounds auto-muted by default; praise is calm, direct, and factual.
    * **Calming Overlays**: Soft color tints (yellow, blue, green, pink) and weighted OpenDyslexic typography prevent letters from dancing or vibrating.
 6. **Dual-Layer Safety & Teacher Control**:
-   * **Google Cloud Model Armor**: Every AI encouragement is scanned in real time to ensure 100% child safety.
+   * **Google Cloud Model Armor**: Every AI encouragement is scanned in real time to ensure child safety.
    * **Educator Approval Gate**: AI drafts progress summaries, but **zero reports are sent to parents without the teacher reviewing and approving first**.
 
 ---
@@ -110,7 +128,7 @@ Learning to recognize and understand words is one of the most critical developme
 | :--- | :--- | :--- |
 | **Standard / Early Beginner** | Rigid quizzes cause performance anxiety | Child-directed pacing, joyful garden blooms, and multi-modal choice (Type/Voice/Tap). |
 | **Phonological Dyslexia** | Difficulty connecting written letters to spoken phonemes | Audio-first phonics scaffolding, phoneme chunking, and sound-out blending. |
-| **Surface Dyslexia** | Difficulty recognizing whole word orthographic shapes | Visual letter highlights, high-contrast letter spacing, and semantic icon clues. |
+| **Surface Dyslexia** | Difficulty recognising whole-word orthographic shapes | Visual letter highlights, high-contrast letter spacing, and semantic icon clues. |
 | **Visual / Spatial Dyslexia** | Letters appear to flip, rotate, or vibrate | Weighted OpenDyslexic font anchors letter bases; scaffolded mirror reversal coaching. |
 | **Double Deficit** | Slower naming speed combined with sound difficulty | Stepped difficulty pacing with total elimination of time limits. |
 | **Attentional Dyslexia** | Letters transpose or swap across adjacent words | Spotlight focus mode masks surrounding text to isolate one word at a time. |
@@ -130,7 +148,7 @@ Visual-spatial orientation flips are fundamentally different from phonological m
 * A mirror reversal like *bog* for *dog* or *dat* for *bat* indicates the child knows the sound, but visually perceives the letter facing the opposite way.
 
 **Two-Tier Scaffolding:**
-* **Attempt 1:** The Evaluator Agent logs a `reversal` pattern and displays a supportive visual orientation hint (`b` faces right ➔, `d` faces left ⬅️), gently coaching the child to notice the orientation without penalizing them.
+* **Attempt 1:** The Evaluator Agent logs a `reversal` pattern and displays a supportive visual orientation hint (`b` faces right ➔, `d` faces left ⬅️), gently coaching the child to notice the orientation without penalising them.
 * **Attempt 2+:** Visual accommodations apply for confirmed profiles, celebrating their phonetic mastery without causing tears or frustration.
 
 ### 🎙️ B. Target-Biased Pediatric Voice Input & Acoustic Tolerance
@@ -149,7 +167,7 @@ A friendly `Skip this word for now · Next word ➔` button allows learners to m
 
 ## 4. System & Multi-Agent Architecture (Google ADK)
 
-WordBloom utilizes a **Hybrid Multi-Agent Architecture** powered by Google Cloud Vertex AI and the Google Agent Development Kit (ADK).
+WordBloom utilises a **Hybrid Multi-Agent Architecture** powered by Google Cloud Vertex AI and the Google Agent Development Kit (ADK).
 
 ### 🏛️ Complete System Architecture
 
@@ -280,7 +298,7 @@ WordBloom is built with the **Google Agent Development Kit (ADK)** and orchestra
 * **Role**: Profile-aware cognitive diagnosis (not just binary right/wrong).
 * **How it works**: Compares learner input against target word using phonemic distance and diagnostic error pattern rules.
 * **Capabilities**:
-  * **Mirror Reversals (`b ↔ d`, `p ↔ q`)**: Recognizes visual-spatial flips (*"bog"* for *"dog"* or *"dat"* for *"bat"* is diagnosed as a visual orientation mistake, not a spelling failure).
+  * **Mirror Reversals (`b ↔ d`, `p ↔ q`)**: Recognises visual-spatial flips (*"bog"* for *"dog"* or *"dat"* for *"bat"* is diagnosed as a visual orientation mistake, not a spelling failure).
   * **Acoustic Tolerance for Voice Input**: Multi-alternative candidate ranking (`maxAlternatives = 5`), elongation tolerance (`hop ↔ hope`, `cut ↔ cute`), and spoken homophone mapping (*sun/son*, *sea/see*, *right/write*).
   * **Phonological Error Clustering**: Pinpoints whether difficulty stems from initial blends, medial vowel teams, or silent letter patterns.
 
@@ -297,14 +315,14 @@ WordBloom is built with the **Google Agent Development Kit (ADK)** and orchestra
 * **How it works**: Generates warm, factual, growth-mindset praise using Gemini 2.5 Flash, strictly filtered through **Google Cloud Model Armor**.
 * **Capabilities**:
   * **Zero Vague Fluff**: Never uses patronizing or hollow phrases like *"Good job!"* or *"You're so smart!"*.
-  * **Specific Mastery Praise**: Emphasizes the exact phonetic accomplishment (*"You heard the 'sh' blend right away!"* or *"You spotted the silent 'k' in knight!"*).
+  * **Specific Mastery Praise**: Emphasises the exact phonetic accomplishment (*"You heard the 'sh' blend right away!"* or *"You spotted the silent 'k' in knight!"*).
   * **Autism & Sensory Tuning**: Strictly factual, calm observations with zero exclamation overload when sensory flags are active.
   * **🛡️ Google Cloud Model Armor Child Safeguarding (`governance.py`)**: Every candidate praise string is routed in real time through the `wordbloom-child-guard` regional template.
   * **Auto-Healing Fallback**: If Model Armor detects an RAI flag (toxicity, sarcasm, negative sentiment), it is intercepted in real time and auto-healed with pre-vetted uplifting positive reinforcement.
 
 ### 6. 📋 ReportAgent (`report_agent.py`) & The Approval Gate
 * **Role**: Pedagogical synthesis, clinical reporting, and human governance.
-* **How it works**: Analyzes full session metrics (accuracy, error patterns, response latency, self-corrections) and drafts an educator summary.
+* **How it works**: Analyses full session metrics (accuracy, error patterns, response latency, self-corrections) and drafts an educator summary.
 * **Capabilities**:
   * Highlights specific phonetic strengths and exact challenge areas in plain English.
   * Flags emerging patterns (e.g., *"Visual fatigue noted after word 4; consider switching to yellow overlay"*).
@@ -316,7 +334,7 @@ WordBloom is built with the **Google Agent Development Kit (ADK)** and orchestra
 
 ## 6. Enterprise AI Governance & Child Safeguarding (Google Cloud Model Armor)
 
-Assistive AI for neurodivergent children cannot afford hallucinations, harshness, or sarcasm. A single demoralizing comment (*"Oh, you finally figured it out..."*) can destroy a dyslexic child's confidence.
+Assistive AI for neurodivergent children cannot afford hallucinations, harshness, or sarcasm. A single demoralising comment (*"Oh, you finally figured it out..."*) can destroy a dyslexic child's confidence.
 
 WordBloom implements **Defense-in-Depth Governance** by pairing Google Cloud's newly released **Model Armor** with a strict **Human-in-the-Loop Approval Gate**:
 
@@ -349,11 +367,7 @@ Praise delivered directly       Auto-healed with pre-vetted positive reinforceme
    * Goes beyond naive word-blocklists by using Google's semantic classifiers to catch subtle sarcasm, condescension, and negative bias.
    * **Automated Healing (`governance.py`)**: If Model Armor detects a policy violation, the response is instantly intercepted and replaced with safe, encouraging growth-mindset praise without stalling the session.
 
-2. **Immutable Audit Trails for School Districts**:
-   * Every scan operation is logged directly to **Google Cloud Logging** and **Security Command Center**.
-   * Provides educational authorities with verifiable proof of **COPPA, FERPA, and GDPR-K** compliance.
-
-3. **Human-in-the-Loop Approval Gate**:
+2. **Human-in-the-Loop Approval Gate**:
    * Diagnostic progress reports drafted by the system are held in quarantine.
    * **Zero reports are sent to parents or permanent records** until the educator reviews, edits, and certifies them in the Teacher Dashboard.
 
@@ -434,7 +448,7 @@ WordBloom/
     │   ├── globals.css                ← WCAG AA design system & overlay tokens
     │   ├── page.tsx                   ← Home portal & child selector
     │   ├── game/page.tsx              ← Adaptive word game & voice pipeline
-    │   ├── profile/page.tsx           ← Profile setup & customization screen
+    │   ├── profile/page.tsx           ← Profile setup & customisation screen
     │   └── teacher/                   ← Teacher dashboard, reports & Dyslexia Mirror
     ├── components/                    ← Reusable UI components
     └── lib/
@@ -524,7 +538,7 @@ npm run build
 ✓ Compiled successfully in 1270ms
 ✓ Linting and checking validity of types
 ✓ Generating static pages (12/12)
-✓ Finalizing page optimization
+✓ Finalising page optimisation
 All 19 routes generated with 0 errors!
 ```
 
