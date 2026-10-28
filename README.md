@@ -41,7 +41,7 @@ WordBloom is fully deployed and accessible on Google Cloud:
 
 ## 1. What is WordBloom?
 
-WordBloom is an adaptive word-learning companion for every young child taking their first steps in reading and spelling. It works for any early learner, and adapts automatically for children who need different support, such as children with dyslexia, ADHD, dyspraxia or sensory sensitivities, without singling anyone out. Children answer by speaking, typing or tapping letter tiles. A team of six AI agents built with Google's Agent Development Kit (ADK) and Gemini 2.5 Flash on Vertex AI notices how each child responds, adjusts the support after every word, and gives the teacher a plain-English summary that is only shared after the teacher approves it.
+WordBloom is an **adaptive word-learning companion** for every young child taking their first steps in reading and spelling. It works for any early learner, and adapts automatically for children who need different support, such as children with dyslexia, ADHD, dyspraxia or sensory sensitivities, without singling anyone out. Children answer by speaking, typing or tapping letter tiles. A team of six AI agents built with Google's Agent Development Kit (ADK) and Gemini 2.5 Flash on Vertex AI notices how each child responds, adjusts the support after every word, and gives the teacher a plain-English summary that is only shared after the teacher approves it.
 
 WordBloom is a learning tool. It does not diagnose dyslexia or any other condition. It notices patterns in how a child answers and helps teachers support them.
 
