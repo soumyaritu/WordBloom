@@ -213,7 +213,7 @@ graph TD
 | **📋 ReportAgent** | Drafts comprehensive teacher session summary with **Approval Gate** | Sequential (6th) | Teacher report draft (`approval_required: true`) |
 
 ### 🔒 Human-in-the-Loop (HITL) Teacher Approval Gate
-No assessment summary or diagnostic report is ever published or dispatched to parents automatically. The `ReportAgent` drafts the plain-English summary, which remains in a locked state until an educator explicitly reviews, edits, and approves it on the Teacher Dashboard (`POST /report/approve`).
+No session summary or student progress report is ever published or dispatched to parents automatically. The `ReportAgent` drafts the plain-English summary, which remains in a locked state until an educator explicitly reviews, edits, and approves it on the Teacher Dashboard (`POST /report/approve`).
 
 ---
 

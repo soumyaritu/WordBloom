@@ -196,7 +196,7 @@ export default function ChildDetailPage({
           </div>
         </div>
 
-        {/* Diagnostic Banner: Dyslexia Mirror (shown only for dyslexic profiles) */}
+        {/* Teacher Banner: Dyslexia Mirror (shown only for dyslexic profiles) */}
         {!isNonDyslexic && (
           <div style={{
             background: 'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(17,24,39,0.95) 100%)',

@@ -98,7 +98,7 @@ Every child begins with the same friendly garden, the same three ways to answer,
   * *ADHD Mode*: Auto-paces sessions to 5 minutes / 5 blooms with gentle 30-second eye-rest breaks.
   * *Autism Sensory Shield*: Audio auto-muted by default with concrete, factual observations.
 * **The Dyslexia Mirror**: An interactive simulation of visual-spatial, surface, and attentional dyslexia to help adults directly experience why accommodations like letter spacing and spotlight masking work.
-* **The Human Approval Gate**: AI drafts diagnostic session summaries, but **zero reports are ever published or sent to parents without the teacher reviewing and approving first**.
+* **The Human Approval Gate**: AI drafts learning progress summaries, but **zero reports are ever published or sent to parents without the teacher reviewing and approving first**.
 
 ---
 
@@ -263,7 +263,7 @@ WordBloom is built with the **Google Agent Development Kit (ADK)** and orchestra
        │              │             │             │              │              │
        ▼              ▼             ▼             ▼              ▼              ▼
   SKILL.md       Gemini 2.5    Phonemic      Scaffolding    Growth         Human-in-
-  Child Profile  Phonics Gen   Diagnosis     & Pacing       Praise         the-Loop Gate
+  Child Profile  Phonics Gen   Evaluation    & Pacing       Praise         the-Loop Gate
 ```
 
 ### 1. 👤 ProfileAgent (`profile_agent.py`)
@@ -290,10 +290,10 @@ WordBloom is built with the **Google Agent Development Kit (ADK)** and orchestra
   * **Intelligent Deduplication**: Strictly prevents repetitive loops by tracking session history and practicing unmastered phonemes.
 
 ### 3. 🔍 EvaluatorAgent (`evaluator_agent.py`)
-* **Role**: Profile-aware cognitive diagnosis (not just binary right/wrong).
-* **How it works**: Compares learner input against target word using phonemic distance and diagnostic error pattern rules.
+* **Role**: Profile-aware reading observation and evaluation (not just binary right/wrong).
+* **How it works**: Compares learner input against target word using phonemic distance and supportive phonetic pattern rules.
 * **Capabilities**:
-  * **Mirror Reversals (`b ↔ d`, `p ↔ q`)**: Recognises visual-spatial flips (*"bog"* for *"dog"* or *"dat"* for *"bat"* is diagnosed as a visual orientation mistake, not a spelling failure).
+  * **Mirror Reversals (`b ↔ d`, `p ↔ q`)**: Recognises visual-spatial flips (*"bog"* for *"dog"* or *"dat"* for *"bat"* is understood as a natural visual orientation difference, not a spelling failure).
   * **Acoustic Tolerance for Voice Input**: Multi-alternative candidate ranking (`maxAlternatives = 5`), elongation tolerance (`hop ↔ hope`, `cut ↔ cute`), and spoken homophone mapping (*sun/son*, *sea/see*, *right/write*).
   * **Phonological Error Clustering**: Pinpoints whether difficulty stems from initial blends, medial vowel teams, or silent letter patterns.
 
@@ -316,7 +316,7 @@ WordBloom is built with the **Google Agent Development Kit (ADK)** and orchestra
   * **Auto-Healing Fallback**: If Model Armor detects an RAI flag (toxicity, sarcasm, negative sentiment), it is intercepted in real time and auto-healed with pre-vetted uplifting positive reinforcement.
 
 ### 6. 📋 ReportAgent (`report_agent.py`) & The Approval Gate
-* **Role**: Pedagogical synthesis, clinical reporting, and human governance.
+* **Role**: Pedagogical synthesis, learning progress reporting, and human governance.
 * **How it works**: Analyses full session metrics (accuracy, error patterns, response latency, self-corrections) and drafts an educator summary.
 * **Capabilities**:
   * Highlights specific phonetic strengths and exact challenge areas in plain English.
@@ -363,7 +363,7 @@ Praise delivered directly       Auto-healed with pre-vetted positive reinforceme
    * **Automated Healing (`governance.py`)**: If Model Armor detects a policy violation, the response is instantly intercepted and replaced with safe, encouraging growth-mindset praise without stalling the session.
 
 2. **Human-in-the-Loop Approval Gate**:
-   * Diagnostic progress reports drafted by the system are held in quarantine.
+   * Student learning progress reports drafted by the system are held in pending review.
    * **Zero reports are sent to parents or permanent records** until the educator reviews, edits, and certifies them in the Teacher Dashboard.
 
 ---
@@ -373,7 +373,7 @@ Praise delivered directly       Auto-healed with pre-vetted positive reinforceme
 ### 👩‍🏫 Teacher Dashboard (`/teacher`)
 * **Live Garden Bloom Tracking:** Tracks completed flowers against personalized targets (e.g. 4 🌸 for Alex, 5 🌸 for Emma).
 * **Session Governance Audit:** Directly displays verified child-safety certification from Google Cloud Model Armor on every session report (`🛡️ Verified Child-Safe by Google Cloud Model Armor`).
-* **Human-in-the-Loop Approval Gate:** Assessment summaries must be explicitly certified by the educator before parent dispatch.
+* **Human-in-the-Loop Approval Gate:** Session progress summaries must be explicitly certified by the educator before parent dispatch.
 
 ### ⚙️ Child Profile Setup & Customization Engine (`/profile`)
 * **Individualized Setup:** Configure identity, school year, reading stage (1–4), dyslexia typology, and co-occurring conditions.
@@ -429,7 +429,7 @@ WordBloom/
 │           ├── emma/SKILL.md          ← Phonological + ADHD profile
 │           ├── liam/SKILL.md          ← Surface + Dyspraxia + ADHD profile
 │           ├── james/SKILL.md         ← Visual/Spatial + Dyspraxia profile
-│           ├── sofia/SKILL.md         ← Assessment / Not Sure Yet profile
+│           ├── sofia/SKILL.md         ← Exploratory / Not Sure Yet profile
 │           ├── sony/SKILL.md          ← Phonological + ADHD profile
 │           ├── alex/SKILL.md          ← Non-dyslexic / Standard reading profile
 │           ├── word-bank/SKILL.md     ← Phonics curriculum database

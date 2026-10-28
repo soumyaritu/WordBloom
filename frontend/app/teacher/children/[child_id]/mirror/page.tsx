@@ -1021,7 +1021,7 @@ export default function DyslexiaMirrorPage({
                 No session data yet for {firstName}. Run a session first.
               </div>
               <p style={{ color: '#9CA3AF', fontSize: 14, maxWidth: 440, margin: '0 auto 1.5rem', lineHeight: 1.5 }}>
-                When {firstName} attempts word exercises in WordBloom, words will automatically appear here for interactive perceptual diagnosis.
+                When {firstName} attempts word exercises in WordBloom, words will automatically appear here for interactive perceptual observation.
               </p>
               <button
                 onClick={() => router.push(`/teacher?child=${childId}`)}
@@ -1338,7 +1338,7 @@ export default function DyslexiaMirrorPage({
                 💡 Recommended changes for {firstName}&apos;s profile
               </h2>
               <p style={{ color: '#9CA3AF', fontSize: 13, marginTop: 4 }}>
-                Based on diagnosed {DYSLEXIA_TYPES.find(t => t.id === selectedType)?.label} patterns during word analysis.
+                Based on observed {DYSLEXIA_TYPES.find(t => t.id === selectedType)?.label} patterns during word analysis.
               </p>
             </div>
 
