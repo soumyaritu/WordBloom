@@ -1548,6 +1548,12 @@ function GameContent() {
                 <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--white)', marginTop: 2 }}>
                   {(feedback.evaluation?.candy_earned || feedback.evaluation?.is_correct)
                     ? feedback.encouragement.message
+                    : feedback.evaluation?.error_pattern === 'reversal'
+                    ? (inputMode === 'voice')
+                      ? `So close! Look closely at the letter direction — remember: b faces right (b ➔) and d faces left (⬅️ d). ${phonicsChunks ? `Listen to the sounds "${phonicsChunks}" and say '${currentWord}'! 🎤` : `Say '${currentWord}'! 🎤`}`
+                      : (inputMode === 'tap')
+                      ? `So close! You have the right sounds — remember: b faces right (b ➔) and d faces left (⬅️ d). Tap each letter tile in order to build '${currentWord}'! 🧩`
+                      : `So close! You have the right sounds — remember: b faces right (b ➔) and d faces left (⬅️ d). Look at the letter pattern above and type '${currentWord}'! ⌨️`
                     : visualHintB64
                     ? (inputMode === 'voice')
                       ? (phonicsChunks
@@ -1565,6 +1571,12 @@ function GameContent() {
                     window.speechSynthesis.cancel()
                     const raw = (feedback.evaluation?.candy_earned || feedback.evaluation?.is_correct)
                       ? (feedback.encouragement.spoken_message || feedback.encouragement.message || '')
+                      : feedback.evaluation?.error_pattern === 'reversal'
+                      ? (inputMode === 'voice'
+                          ? `So close! Look closely at the letter direction. Remember, b faces right and d faces left. Try saying ${currentWord} again!`
+                          : (inputMode === 'tap'
+                              ? `So close! You have the right sounds. Remember, b faces right and d faces left. Tap each letter tile in order to build ${currentWord}.`
+                              : `So close! You have the right sounds. Remember, b faces right and d faces left. Look at the letter pattern above and type ${currentWord}.`))
                       : visualHintB64
                       ? (inputMode === 'voice'
                           ? (phonicsChunks ? `Listen to the sounds ${phonicsChunks.replace(/\.\.\./g, ' ')} and try saying the word again!` : `Take a look at the sound blocks above to help you sound it out. Give it another try!`)
