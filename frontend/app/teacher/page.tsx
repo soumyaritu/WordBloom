@@ -562,6 +562,7 @@ function TeacherDashboardContent() {
             <button
               onClick={() => router.push('/teacher/dashboard')}
               aria-label="Back to teacher dashboard"
+              title="Back to dashboard"
               style={{
                 background: 'var(--panel)',
                 border: '1px solid var(--border)',
@@ -571,15 +572,16 @@ function TeacherDashboardContent() {
                 fontSize: 15,
                 fontWeight: 700,
                 cursor: 'pointer',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
                 minHeight: 42,
+                whiteSpace: 'nowrap',
                 transition: 'all 0.2s ease',
               }}
             >
               <span>←</span>
-              <span>Back to Dashboard</span>
+              <span>Back</span>
             </button>
           </div>
 

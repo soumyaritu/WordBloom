@@ -754,6 +754,7 @@ export default function DyslexiaMirrorPage({
                 color: '#9CA3AF', textDecoration: 'none', fontSize: 13, fontWeight: 600,
                 display: 'inline-flex', alignItems: 'center', gap: 6,
                 padding: '6px 12px', background: '#111827', border: '1px solid #1F2937', borderRadius: 8,
+                whiteSpace: 'nowrap',
               }}
             >
               ← Back to Dashboard
@@ -919,70 +920,80 @@ export default function DyslexiaMirrorPage({
         <div style={{
           background: '#111827', border: '1px solid #1F2937', borderRadius: 16,
           padding: '16px 20px', marginBottom: '1.75rem',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
         }}>
-          <div>
-            <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: '#9CA3AF', fontWeight: 700, marginBottom: 8 }}>
+          {/* Controls Header Row: Label on Left, Animation Toggle Stack on Right */}
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+            flexWrap: 'wrap', gap: 12, marginBottom: 14,
+          }}>
+            <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: '#9CA3AF', fontWeight: 700, paddingTop: 4 }}>
               Simulate Dyslexia Profile:
             </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {DYSLEXIA_TYPES.map(t => {
-                const isSelected = selectedType === t.id
-                const isChildProfileDefault = !isNotSure && profile && normalizeDyslexiaType(profile.dyslexia_type) === t.id
-                const isAiRecommended = isNotSure && recommendedProfile && normalizeDyslexiaType(recommendedProfile) === t.id
-                return (
-                  <button
-                    key={t.id}
-                    onClick={() => setSelectedType(t.id)}
-                    style={{
-                      background: isSelected ? 'rgba(16,185,129,0.15)' : '#0B0F19',
-                      border: `1.5px solid ${isSelected ? '#10B981' : isAiRecommended ? '#38BDF8' : '#1F2937'}`,
-                      color: isSelected ? '#34D399' : '#D1D5DB',
-                      padding: '8px 14px', borderRadius: 10,
-                      fontSize: 13, fontWeight: isSelected ? 700 : 500,
-                      cursor: 'pointer', transition: 'all 0.15s ease',
-                      display: 'flex', alignItems: 'center', gap: 6,
-                    }}
-                  >
-                    <span>{t.label}</span>
-                    {isChildProfileDefault && (
-                      <span style={{ fontSize: 10, background: '#10B981', color: '#06080F', padding: '1px 6px', borderRadius: 10, fontWeight: 800 }}>
-                        Profile
-                      </span>
-                    )}
-                    {isAiRecommended && (
-                      <span style={{ fontSize: 10, background: '#38BDF8', color: '#06080F', padding: '1px 6px', borderRadius: 10, fontWeight: 800 }}>
-                        WordBloom Recommended 🌸
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
+
+            {/* Animation Toggle Stack Aligned on Top-Right */}
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
+              textAlign: 'right', gap: 5, marginLeft: 'auto',
+            }}>
+              <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.8, color: '#9CA3AF', fontWeight: 700 }}>
+                Perceptual Motion:
+              </div>
+              <button
+                onClick={() => setAnimationOn(!animationOn)}
+                title="Turn off animation if it causes visual discomfort"
+                style={{
+                  background: animationOn ? 'rgba(16,185,129,0.15)' : '#1F2937',
+                  border: `1.5px solid ${animationOn ? '#10B981' : '#374151'}`,
+                  color: animationOn ? '#34D399' : '#9CA3AF',
+                  padding: '6px 14px', borderRadius: 20,
+                  fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 7,
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: animationOn ? '#10B981' : '#6B7280' }} />
+                {animationOn ? 'Animation: ON' : 'Animation: OFF'}
+              </button>
+              <span style={{ fontSize: 11.5, color: '#9CA3AF', whiteSpace: 'nowrap' }}>
+                Turn off animation if it causes discomfort
+              </span>
             </div>
           </div>
 
-          {/* Animation Toggle */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-            <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: '#9CA3AF', fontWeight: 700 }}>
-              Perceptual Motion:
-            </div>
-            <button
-              onClick={() => setAnimationOn(!animationOn)}
-              style={{
-                background: animationOn ? 'rgba(16,185,129,0.15)' : '#1F2937',
-                border: `1.5px solid ${animationOn ? '#10B981' : '#374151'}`,
-                color: animationOn ? '#34D399' : '#9CA3AF',
-                padding: '6px 14px', borderRadius: 20,
-                fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 8,
-              }}
-            >
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: animationOn ? '#10B981' : '#6B7280' }} />
-              {animationOn ? 'Animation: ON' : 'Animation: OFF'}
-            </button>
-            <span style={{ fontSize: 12, color: '#9CA3AF' }}>
-              Turn off animation if it causes discomfort
-            </span>
+          {/* Profile buttons spanning full width */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {DYSLEXIA_TYPES.map(t => {
+              const isSelected = selectedType === t.id
+              const isChildProfileDefault = !isNotSure && profile && normalizeDyslexiaType(profile.dyslexia_type) === t.id
+              const isAiRecommended = isNotSure && recommendedProfile && normalizeDyslexiaType(recommendedProfile) === t.id
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setSelectedType(t.id)}
+                  style={{
+                    background: isSelected ? 'rgba(16,185,129,0.15)' : '#0B0F19',
+                    border: `1.5px solid ${isSelected ? '#10B981' : isAiRecommended ? '#38BDF8' : '#1F2937'}`,
+                    color: isSelected ? '#34D399' : '#D1D5DB',
+                    padding: '8px 14px', borderRadius: 10,
+                    fontSize: 13, fontWeight: isSelected ? 700 : 500,
+                    cursor: 'pointer', transition: 'all 0.15s ease',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                  }}
+                >
+                  <span>{t.label}</span>
+                  {isChildProfileDefault && (
+                    <span style={{ fontSize: 10, background: '#10B981', color: '#06080F', padding: '1px 6px', borderRadius: 10, fontWeight: 800 }}>
+                      Profile
+                    </span>
+                  )}
+                  {isAiRecommended && (
+                    <span style={{ fontSize: 10, background: '#38BDF8', color: '#06080F', padding: '1px 6px', borderRadius: 10, fontWeight: 800 }}>
+                      WordBloom Recommended 🌸
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
         </div>
 

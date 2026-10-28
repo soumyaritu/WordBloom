@@ -314,6 +314,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
               }
             }}
             aria-label="Back to dashboard or home"
+            title="Back"
             style={{
               background: '#111827',
               border: '1.5px solid #1F2937',
@@ -323,14 +324,15 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
               fontSize: 14,
               fontWeight: 700,
               cursor: 'pointer',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
+              whiteSpace: 'nowrap',
               boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
             }}
           >
             <span>←</span>
-            <span>Back to Dashboard</span>
+            <span>Back</span>
           </button>
 
           <div style={{ textAlign: 'center' }}>
@@ -908,7 +910,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
             </div>
 
             <div style={{ background: '#0F172A', padding: '14px 18px', borderRadius: 12, fontSize: 14.5, color: '#9CA3AF', border: '1px solid #1F2937' }}>
-              ℹ️ <strong style={{ color: '#F9FAFB' }}>No Timer Pressure:</strong> Countdown clocks are never shown to the child. Sessions end pleasantly when they earn their candy goal!
+              ℹ️ <strong style={{ color: '#F9FAFB' }}>No Timer Pressure:</strong> Countdown clocks are never shown to the child. Sessions end pleasantly when they reach their flower bloom goal!
             </div>
           </section>
 

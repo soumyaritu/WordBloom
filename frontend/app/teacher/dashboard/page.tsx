@@ -376,7 +376,7 @@ export default function TeacherDashboardPage() {
                 Classroom Students ({children.length})
               </h2>
               <p style={{ color: '#6b7280', fontSize: '0.92rem', fontWeight: 600 }}>
-                Monitor learning profiles, check candy achievements, and inspect dyslexia mirrors.
+                Monitor learning profiles, check flower bloom achievements, and inspect dyslexia mirrors.
               </p>
             </div>
 
@@ -496,7 +496,7 @@ export default function TeacherDashboardPage() {
                   </div>
                 </Link>
 
-                {/* Last session date + Candy count */}
+                {/* Last session date + Flower blooms count */}
                 <div
                   style={{
                     display: 'flex',

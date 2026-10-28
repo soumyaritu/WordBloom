@@ -112,9 +112,10 @@ export default function ChildDetailPage({
               color: '#9CA3AF', textDecoration: 'none', fontSize: 13, fontWeight: 600,
               display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '6px 12px', background: '#111827', border: '1px solid #1F2937', borderRadius: 8,
+              whiteSpace: 'nowrap',
             }}
           >
-            ← Back to Teacher Dashboard
+            ← Back to Dashboard
           </Link>
           <span style={{ color: '#4B5563', fontSize: 13 }}>/</span>
           <span style={{ color: '#F9FAFB', fontSize: 13, fontWeight: 700 }}>{childName}</span>
