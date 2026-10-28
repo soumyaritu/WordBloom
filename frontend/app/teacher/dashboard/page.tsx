@@ -538,7 +538,7 @@ export default function TeacherDashboardPage() {
                 {/* Action Buttons: 📋 Profile & 👁️ Mirror (Mirror only for dyslexic profiles) */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Link
-                    href={`/teacher/profile/${child.id}`}
+                    href={`/profile?child=${child.id}`}
                     className="wb-btn"
                     style={{
                       display: 'inline-flex',

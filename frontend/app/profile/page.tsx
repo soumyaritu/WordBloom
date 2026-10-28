@@ -10,44 +10,87 @@ function ProfileForm() {
   const searchParams = useSearchParams()
   const childParam = searchParams.get('child') || 'emma'
   const isNew = childParam === 'new'
+  const cKey = childParam.toLowerCase().trim()
 
-  // Form State
-  const fallbackNames: Record<string, string> = {
-    emma: 'Emma Clarke',
-    liam: "Liam O'Connor",
-    james: 'James Patel',
-    sofia: 'Sony Mathew',
-    sony: 'Sony Mathew',
+  // Child-specific defaults so initial render has zero layout jump before API resolves
+  const CHILD_DEFAULTS: Record<string, any> = {
+    emma: {
+      fullName: 'Emma Clarke', age: 9, schoolYear: 'Year 4', dyslexiaType: 'phonological',
+      coOccurring: ['adhd'], readingLevel: 1, inputMode: 'voice', displayMode: 'opendyslexic',
+      colourOverlay: 'yellow', sessionLength: 5, candyGoal: 5, breakAfter: 5,
+    },
+    liam: {
+      fullName: "Liam O'Connor", age: 8, schoolYear: 'Year 3', dyslexiaType: 'surface',
+      coOccurring: ['dyspraxia', 'adhd'], readingLevel: 2, inputMode: 'tap', displayMode: 'standard',
+      colourOverlay: 'none', sessionLength: 5, candyGoal: 5, breakAfter: 5,
+    },
+    james: {
+      fullName: 'James Patel', age: 10, schoolYear: 'Year 5', dyslexiaType: 'visual',
+      coOccurring: ['dyspraxia'], readingLevel: 2, inputMode: 'tap', displayMode: 'opendyslexic',
+      colourOverlay: 'blue', sessionLength: 10, candyGoal: 8, breakAfter: 10,
+    },
+    sofia: {
+      fullName: 'Sony Mathew', age: 7, schoolYear: 'Year 3', dyslexiaType: 'unknown',
+      coOccurring: [], readingLevel: 1, inputMode: 'type', displayMode: 'standard',
+      colourOverlay: 'blue', sessionLength: 5, candyGoal: 10, breakAfter: 5,
+    },
+    sony: {
+      fullName: 'Sony Mathew', age: 7, schoolYear: 'Year 3', dyslexiaType: 'unknown',
+      coOccurring: [], readingLevel: 1, inputMode: 'type', displayMode: 'standard',
+      colourOverlay: 'blue', sessionLength: 5, candyGoal: 10, breakAfter: 5,
+    },
+    alex: {
+      fullName: 'Alex Rivera', age: 8, schoolYear: 'Year 3', dyslexiaType: 'non_dyslexic',
+      coOccurring: [], readingLevel: 2, inputMode: 'type', displayMode: 'standard',
+      colourOverlay: 'none', sessionLength: 10, candyGoal: 4, breakAfter: 10,
+    },
   }
+
+  const getInitialField = (field: string, fallbackVal: any) => {
+    if (isNew) return fallbackVal
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(`wb_profile_${cKey}`)
+        if (raw) {
+          const parsed = JSON.parse(raw)
+          if (parsed[field] !== undefined && parsed[field] !== null) return parsed[field]
+        }
+      } catch (e) {}
+    }
+    const def = CHILD_DEFAULTS[cKey]
+    if (def && def[field] !== undefined) return def[field]
+    return fallbackVal
+  }
+
   const [childId, setChildId] = useState(isNew ? 'child_new' : childParam)
-  const [fullName, setFullName] = useState(isNew ? '' : (fallbackNames[childParam.toLowerCase()] || (childParam.charAt(0).toUpperCase() + childParam.slice(1))))
-  const [parentEmail, setParentEmail] = useState<string>(isNew ? '' : 'parent@example.com')
-  const [age, setAge] = useState<string | number>(isNew ? '' : ((childParam === 'sofia' || childParam === 'sony') ? 7 : 9))
-  const [schoolYear, setSchoolYear] = useState<string>(isNew ? '' : ((childParam === 'sofia' || childParam === 'sony') ? 'Year 3' : 'Year 4'))
+  const [fullName, setFullName] = useState<string>(() => getInitialField('fullName', isNew ? '' : (childParam.charAt(0).toUpperCase() + childParam.slice(1))))
+  const [parentEmail, setParentEmail] = useState<string>(() => getInitialField('parentEmail', isNew ? '' : 'parent@example.com'))
+  const [age, setAge] = useState<string | number>(() => getInitialField('age', isNew ? '' : 9))
+  const [schoolYear, setSchoolYear] = useState<string>(() => getInitialField('schoolYear', isNew ? '' : 'Year 4'))
 
   // Dyslexia Type — unselected by default for new child
-  const [dyslexiaType, setDyslexiaType] = useState(isNew ? '' : 'phonological')
+  const [dyslexiaType, setDyslexiaType] = useState<string>(() => getInitialField('dyslexiaType', isNew ? '' : 'phonological'))
 
   // Co-occurring conditions
-  const [coOccurring, setCoOccurring] = useState<string[]>(isNew ? [] : ['adhd'])
+  const [coOccurring, setCoOccurring] = useState<string[]>(() => getInitialField('coOccurring', isNew ? [] : []))
 
   // Reading Level — unselected by default for new child
-  const [readingLevel, setReadingLevel] = useState<number | null>(isNew ? null : 3)
+  const [readingLevel, setReadingLevel] = useState<number | null>(() => getInitialField('readingLevel', isNew ? null : 2))
 
   // Input Mode — unselected by default for new child
-  const [inputMode, setInputMode] = useState(isNew ? '' : 'voice')
+  const [inputMode, setInputMode] = useState<string>(() => getInitialField('inputMode', isNew ? '' : 'voice'))
   const [inputModeTouched, setInputModeTouched] = useState(false)
 
   // Display Mode — unselected by default for new child
-  const [displayMode, setDisplayMode] = useState(isNew ? '' : 'opendyslexic')
+  const [displayMode, setDisplayMode] = useState<string>(() => getInitialField('displayMode', isNew ? '' : 'opendyslexic'))
 
   // Colour Overlay — unselected by default for new child
-  const [colourOverlay, setColourOverlay] = useState(isNew ? '' : 'yellow')
+  const [colourOverlay, setColourOverlay] = useState<string>(() => getInitialField('colourOverlay', isNew ? '' : 'none'))
 
   // Session Settings
-  const [sessionLength, setSessionLength] = useState<number>(5)
-  const [candyGoal, setCandyGoal] = useState<number>(5)
-  const [breakAfter, setBreakAfter] = useState<number>(5)
+  const [sessionLength, setSessionLength] = useState<number>(() => getInitialField('sessionLength', 5))
+  const [candyGoal, setCandyGoal] = useState<number>(() => getInitialField('candyGoal', 5))
+  const [breakAfter, setBreakAfter] = useState<number>(() => getInitialField('breakAfter', 5))
 
   const [saving, setSaving] = useState(false)
 
@@ -64,9 +107,12 @@ function ProfileForm() {
     }
   }, [hasADHD])
 
-  // Try loading existing profile on mount
+  // Try loading existing profile on mount (only if not already hydrated from localStorage)
   useEffect(() => {
     if (!isNew && childParam) {
+      if (typeof window !== 'undefined' && localStorage.getItem(`wb_profile_${cKey}`)) {
+        return
+      }
       getProfile(childParam)
         .then(res => {
           if (res.found && res.content) {
@@ -83,12 +129,21 @@ function ProfileForm() {
             const matchYear = raw.match(/- School year:\s*(.+)/i)
             if (matchYear) setSchoolYear(matchYear[1].trim())
 
-            const matchType = raw.match(/- Type:\s*(.+)/i)
-            if (matchType) setDyslexiaType(matchType[1].trim().toLowerCase())
+            const matchType = raw.match(/- (?:Dyslexia type|Type):\s*(.+)/i)
+            if (matchType) {
+              let t = matchType[1].trim().toLowerCase()
+              if (t === 'visual/spatial' || t === 'visual_spatial') t = 'visual'
+              if (t === 'double_deficit' || t === 'double deficit') t = 'double'
+              if (t === 'not_sure' || t === 'not sure yet') t = 'unknown'
+              setDyslexiaType(t)
+            }
 
-            const matchCo = raw.match(/- Co-occurring:\s*(.+)/i)
+            const matchCo = raw.match(/- (?:Conditions|Co-occurring):\s*(.+)/i)
             if (matchCo) {
-              const list = matchCo[1].split(',').map((s: string) => s.trim().toLowerCase()).filter(Boolean)
+              const list = matchCo[1]
+                .split(',')
+                .map((s: string) => s.trim().toLowerCase())
+                .filter((s: string) => Boolean(s) && s !== 'none')
               setCoOccurring(list)
             }
 
@@ -101,7 +156,7 @@ function ProfileForm() {
             const matchOverlay = raw.match(/- Colour overlay:\s*(.+)/i)
             if (matchOverlay) setColourOverlay(matchOverlay[1].trim().toLowerCase())
 
-            const matchLevel = raw.match(/- Reading level:\s*(\d+)/i)
+            const matchLevel = raw.match(/- Reading (?:level|stage):\s*(\d+)/i)
             if (matchLevel) setReadingLevel(parseInt(matchLevel[1]))
 
             const matchCandy = raw.match(/- Candy goal:\s*(\d+)/i)
@@ -116,7 +171,7 @@ function ProfileForm() {
         })
         .catch(() => {})
     }
-  }, [childParam, isNew])
+  }, [childParam, isNew, cKey])
 
   // Ensure teacher administration screen maintains clean dark styling
   useEffect(() => {
@@ -340,7 +395,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
               {isNew ? 'New Child Profile' : `Edit ${fullName.split(' ')[0] || 'Child'}'s Profile`}
             </h1>
             <p style={{ fontSize: 15, color: '#9CA3AF', marginTop: 4, margin: 0 }}>
-              WordBloom Adaptive Neurodiverse Learning Settings
+              WordBloom Adaptive Learning Settings
             </p>
           </div>
 
@@ -940,7 +995,7 @@ description: ${fullName || activeId}'s learning profile and dyslexia settings
 
 export default function ProfilePage() {
   return (
-    <Suspense fallback={<div style={{ color: 'var(--grey)', textAlign: 'center', padding: '4rem' }}>Loading profile editor...</div>}>
+    <Suspense fallback={<div style={{ minHeight: '100vh', backgroundColor: '#06080F' }} />}>
       <ProfileForm />
     </Suspense>
   )
