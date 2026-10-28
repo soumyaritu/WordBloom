@@ -66,44 +66,39 @@ Learning to read and spell words is one of the biggest steps in every child's li
 
 ### 💡 The Solution: WordBloom's Adaptive Early Learning Companion
 
-**WordBloom acts as a patient, encouraging learning companion that moulds itself around the child, meeting each early learner exactly where they are:**
+**WordBloom acts as a patient, encouraging learning companion that moulds itself around the child, meeting each early learner exactly where they are.**
 
-How WordBloom works
+Every child begins with the same friendly garden, the same three ways to answer, and zero time pressure. When a learning profile is configured, WordBloom dynamically layers adaptive multi-agent scaffolding on top.
 
-For the child
+---
 
-Three equal ways to answer: say it 🎙️, type it ⌨️, or tap letter tiles 🔲.
-No timers, no red crosses, no scores. Children grow a garden: each word earns a flower 🌸.
-Small steps: words progress through four phonics stages, from simple words (sun, cat) to blends (frog, ship), silent letters and vowel teams (knight, boat), and longer words (butterfly).
-Help when they're stuck: sound-by-sound audio, chunked letters (sh·i·p), direction hints for b/d and p/q, and a "skip for now" button that never loops back to the same word.
-Comfort settings: colour overlays, a choice of fonts including OpenDyslexic, and a spotlight mode that shows one word at a time.
+#### 👧 For the Child — Joyful, Pressure-Free Word Discovery
 
-For the teacher
-Child setup with reading stage, learning profile and needs. WordBloom recommends a starting way of answering for each learning profile, with a plain reason. The teacher can change any setting.
-Optional pacing settings, for example short sessions with breaks, or quiet mode with calm, factual praise.
-Teacher dashboard with each child's progress and a drafted summary to review and approve.
+* **Three Equal Ways to Answer**: Children choose their preferred input mode on every word:
+  * 🎙️ **Say it out loud** into the microphone (with pediatric acoustic tolerance).
+  * ⌨️ **Type it** on the keyboard (with auto-focus recovery).
+  * 🔲 **Tap letter tiles** on screen (eliminating fine-motor keyboard fatigue for dyspraxia).
+* **Growing a Garden, Not Taking a Test**:
+  * **No countdown timers** — children take all the time they need without rushing.
+  * **No red crosses or scores** — every successful attempt blooms a new flower (`🌸`) in their garden.
+* **Small, Confidence-Building Steps**: Practice progresses naturally across four phonics stages:
+  1. *Stage 1*: Simple 3-letter CVC words (*sun*, *cat*, *hop*)
+  2. *Stage 2*: Consonant blends & digraphs (*frog*, *ship*, *drum*)
+  3. *Stage 3*: Silent letters & vowel teams (*knight*, *thumb*, *beach*)
+  4. *Stage 4*: Multisyllabic & compound words (*butterfly*, *sunshine*, *adventure*)
+* **Multi-Sensory Scaffolding When Stuck**: Sound-by-sound chunking (`sh · i · p`), letter-direction hints for mirror letters (`b ➔` vs `⬅️ d`), and a gentle *"Skip for now"* option that never penalises or loops.
+* **Personalised Comfort Settings**: Tinted colour overlays (yellow, blue, green, pink), OpenDyslexic weighted typography, and spotlight focus mode to isolate one word at a time.
 
-The Dyslexia Mirror: a short simulation of experiences some children describe, such as letters appearing reversed or crowded, to help adults understand why supports like spacing and spotlight mode help.
-Learning profiles and recommended starting mode
+---
 
-Every child starts with the same garden, the same three ways to answer and no pressure. When a teacher adds a learning profile, WordBloom adds extra support on top.
+#### 👩‍🏫 For the Teacher — Complete Insight with Human-in-the-Loop Control
 
-1. **Step-by-Step Word Discovery**: Focuses on bite-sized, sequential phonics stages — from simple 3-letter CVC words (*sun*, *cat*, *dog*), to blends (*frog*, *ship*), silent letters (*knight*), and multisyllabic words (*butterfly*).
-2. **Three Equal Ways to Answer**: Children choose how they want to show their understanding:
-   * ⌨️ **Type it** on the keyboard (with auto-focus recovery).
-   * 🎙️ **Say it out loud** into the microphone (with pediatric acoustic tolerance).
-   * 🔲 **Tap letter tiles** on screen (eliminating fine-motor keyboard fatigue for dyspraxia).
-3. **Zero Anxiety, Zero Pressure**:
-   * **No countdown timers** — children take all the time they need.
-   * **No red buzzer marks or grades** — children earn blooming garden flowers (`🌸`), celebrating practice and progress.
-4. **Gentle Orientation Coaching**: If a child mirrors `b` and `d`, WordBloom doesn't punish them. It gently shows letter direction (`b` faces right ➔, `d` faces left ⬅️) so the child learns the visual difference with confidence.
-5. **Automatic Sensory & Focus Safeguards**:
-   * **ADHD Auto-Pacing**: Sessions automatically lock to 5 minutes / 5 blooms, with gentle 30-second eye-rest breaks.
-   * **Autism Sensory Shield**: Sounds auto-muted by default; praise is calm, direct, and factual.
-   * **Calming Overlays**: Soft color tints (yellow, blue, green, pink) and weighted OpenDyslexic typography prevent letters from dancing or vibrating.
-6. **Dual-Layer Safety & Teacher Control**:
-   * **Google Cloud Model Armor**: Every AI encouragement is scanned in real time to ensure child safety.
-   * **Educator Approval Gate**: AI drafts progress summaries, but **zero reports are sent to parents without the teacher reviewing and approving first**.
+* **Personalised Profile Setup**: Customise reading stages, input preferences, and neurodiverse flags with instant plain-English pedagogical rationales.
+* **Automated Sensory & Pacing Safeguards**:
+  * *ADHD Mode*: Auto-paces sessions to 5 minutes / 5 blooms with gentle 30-second eye-rest breaks.
+  * *Autism Sensory Shield*: Audio auto-muted by default with concrete, factual observations.
+* **The Dyslexia Mirror**: An interactive simulation of visual-spatial, surface, and attentional dyslexia to help adults directly experience why accommodations like letter spacing and spotlight masking work.
+* **The Human Approval Gate**: AI drafts diagnostic session summaries, but **zero reports are ever published or sent to parents without the teacher reviewing and approving first**.
 
 ---
 
