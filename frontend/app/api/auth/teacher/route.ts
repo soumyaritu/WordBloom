@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const DEMO_TEACHER = {
-  name: 'Ms. Rachel Edwards',
+  name: 'Ms Soumya Jayakumar',
   email: 'teacher@wordbloom.edu',
   role: 'educator',
 }

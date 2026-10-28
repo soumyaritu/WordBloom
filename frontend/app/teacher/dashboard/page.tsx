@@ -182,7 +182,7 @@ function enrichChildrenWithLocalStorage(baseList: ChildRow[]): ChildRow[] {
 
 export default function TeacherDashboardPage() {
   const router = useRouter()
-  const [teacherName, setTeacherName] = useState('Ms. Rachel Edwards')
+  const [teacherName, setTeacherName] = useState('Ms Soumya Jayakumar')
   const [children, setChildren] = useState<ChildRow[]>(FALLBACK_CHILDREN)
   const [loading, setLoading] = useState(true)
 
@@ -192,7 +192,13 @@ export default function TeacherDashboardPage() {
     if (rawTeacher) {
       try {
         const parsed = JSON.parse(rawTeacher)
-        if (parsed.name) setTeacherName(parsed.name)
+        if (parsed.name && parsed.name !== 'Ms. Rachel Edwards') {
+          setTeacherName(parsed.name)
+        } else {
+          parsed.name = 'Ms Soumya Jayakumar'
+          localStorage.setItem('wb_teacher', JSON.stringify(parsed))
+          setTeacherName('Ms Soumya Jayakumar')
+        }
       } catch (e) {}
     } else {
       // Check cookie

@@ -23,7 +23,7 @@ const authOptions: AuthOptions = {
         if (isValid) {
           return {
             id: 't1',
-            name: 'Ms. Rachel Edwards',
+            name: 'Ms Soumya Jayakumar',
             email: email,
             role: 'teacher',
           } as any
