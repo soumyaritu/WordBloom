@@ -741,7 +741,7 @@ function TeacherDashboardContent() {
                   Session Governance Audit:
                 </span>
                 <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--bloom-text)' }}>
-                  🛡️ Verified Child-Safe by Google Cloud Model Armor
+                  🛡️ Screened by Model Armor
                 </span>
               </div>
             </div>

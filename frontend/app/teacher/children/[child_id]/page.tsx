@@ -308,7 +308,7 @@ export default function ChildDetailPage({
                 Recent Session Report
               </div>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#34D399', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.35)', borderRadius: 20, padding: '4px 12px' }}>
-                Session Governance Audit: 🛡️ Verified Child-Safe by Google Cloud Model Armor
+                Session Governance Audit: 🛡️ Screened by Model Armor
               </div>
             </div>
             <p style={{ fontSize: 14, color: '#D1D5DB', lineHeight: 1.6 }}>

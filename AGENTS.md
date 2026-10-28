@@ -24,7 +24,7 @@ WordBloom/
 │   ├── test_wordbloom.py
 │   └── wordbloom_agent/
 │       ├── __init__.py
-│       ├── .env                       ← GOOGLE_CLOUD_PROJECT + GOOGLE_CLOUD_LOCATION
+│       ├── .env.example               ← GOOGLE_CLOUD_PROJECT + GOOGLE_CLOUD_LOCATION template
 │       ├── agent.py                   ← Root orchestrator (root_agent must be here)
 │       ├── profile_agent.py
 │       ├── word_selector_agent.py

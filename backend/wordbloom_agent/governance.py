@@ -21,7 +21,7 @@ PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
 LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
 TEMPLATE_ID = os.getenv("MODEL_ARMOR_TEMPLATE_ID", "wordbloom-child-guard")
 
-# Pre-vetted safe fallbacks if an agent ever produces discouraged, sarcastic, or flagged phrases
+# Pre-vetted safe fallbacks if an agent ever produces flagged phrases
 CHILD_SAFE_FALLBACKS = [
     "You are doing wonderfully! Let's keep exploring new words! 🌟",
     "Great effort! Every try helps your reading brain bloom! 🌱",
@@ -33,7 +33,7 @@ CHILD_SAFE_FALLBACKS = [
 class ModelArmorChildGuard:
     """
     Acts as an inline Responsible AI shield protecting children from
-    toxic, discouraging, or inappropriate agent responses.
+    harmful, unsafe, or inappropriate agent responses.
     """
 
     def __init__(self):
@@ -64,7 +64,7 @@ class ModelArmorChildGuard:
     def sanitize_encouragement(self, message: str) -> dict:
         """
         Inspects encouragement text before it is displayed or spoken to the child.
-        Uses SanitizeModelResponse to detect harassment, negative tone, or RAI violations.
+        Uses SanitizeModelResponse to detect harassment, hate speech, or RAI violations.
         """
         if not message:
             return {

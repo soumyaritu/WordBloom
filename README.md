@@ -228,8 +228,8 @@ graph TD
     G --> H1["💚 Encouragement Agent"]
     G --> H2["📖 Word Selector Agent"]
     H1 --> MA["🛡️ Google Cloud Model Armor (SanitizeModelResponse)"]
-    MA -->|"Verified Child-Safe"| I["Return Next Word + Verified Feedback"]
-    MA -->|"Flagged Harsh/Negative"| HEAL["Auto-Heal: Pre-vetted Uplifting Praise"]
+    MA -->|"Screened by Model Armor"| I["Return Next Word + Screened Feedback"]
+    MA -->|"Flagged by Model Armor"| HEAL["Auto-Heal: Pre-vetted Uplifting Praise"]
     HEAL --> I
     H2 --> I
     I --> J["POST /session/end"]
@@ -313,7 +313,7 @@ WordBloom is built with the **Google Agent Development Kit (ADK)** and orchestra
   * **Specific Mastery Praise**: Emphasises the exact phonetic accomplishment (*"You heard the 'sh' blend right away!"* or *"You spotted the silent 'k' in knight!"*).
   * **Autism & Sensory Tuning**: Strictly factual, calm observations with zero exclamation overload when sensory flags are active.
   * **🛡️ Google Cloud Model Armor Child Safeguarding (`governance.py`)**: Every candidate praise string is routed in real time through the `wordbloom-child-guard` regional template.
-  * **Auto-Healing Fallback**: If Model Armor detects an RAI flag (toxicity, sarcasm, negative sentiment), it is intercepted in real time and auto-healed with pre-vetted uplifting positive reinforcement.
+  * **Auto-Healing Fallback**: If Model Armor detects an RAI flag (e.g. harassment or hate speech), it is intercepted in real time and auto-healed with pre-vetted uplifting positive reinforcement.
 
 ### 6. 📋 ReportAgent (`report_agent.py`) & The Approval Gate
 * **Role**: Pedagogical synthesis, learning progress reporting, and human governance.
@@ -321,7 +321,7 @@ WordBloom is built with the **Google Agent Development Kit (ADK)** and orchestra
 * **Capabilities**:
   * Highlights specific phonetic strengths and exact challenge areas in plain English.
   * Flags emerging patterns (e.g., *"Visual fatigue noted after word 4; consider switching to yellow overlay"*).
-  * **Session Governance Audit**: Binds the Google Cloud Model Armor verification audit certification (`🛡️ Verified Child-Safe by Google Cloud Model Armor`) to every drafted report.
+  * **Session Governance Audit**: Records the Google Cloud Model Armor screening status (`🛡️ Screened by Model Armor`) on every drafted report.
   * **Clean Educator View**: Summaries are structured for teachers and parents without exposed agent jargon or distraction.
   * **Human-in-the-Loop Safety Gate**: The report is generated with `approval_required: true`. **Zero data or summaries are sent to parents or external records without the educator manually reviewing and clicking "Approve Report" in the Teacher Dashboard.**
 
@@ -329,9 +329,9 @@ WordBloom is built with the **Google Agent Development Kit (ADK)** and orchestra
 
 ## 6. Enterprise AI Governance & Child Safeguarding (Google Cloud Model Armor)
 
-Assistive AI for neurodivergent children cannot afford hallucinations, harshness, or sarcasm. A single demoralising comment (*"Oh, you finally figured it out..."*) can destroy a dyslexic child's confidence.
+Assistive AI for neurodivergent children cannot afford harmful or unkind output.
 
-WordBloom implements **Defense-in-Depth Governance** by pairing Google Cloud's newly released **Model Armor** with a strict **Human-in-the-Loop Approval Gate**:
+WordBloom implements **Defense-in-Depth Governance** by pairing Google Cloud **Model Armor** with a strict **Human-in-the-Loop Approval Gate**:
 
 ```
 [ Evaluator / Adapter ]
@@ -342,7 +342,7 @@ WordBloom implements **Defense-in-Depth Governance** by pairing Google Cloud's n
            ▼
 [ 🛡️ Google Cloud Model Armor ]  <─── Regional Endpoint: modelarmor.us-central1.rep.googleapis.com
   • Template: wordbloom-child-guard
-  • RAI Filters: Hate Speech, Harassment, Toxicity, Dangerous Tone
+  • RAI Filters: Hate Speech, Harassment, Sexually Explicit, Dangerous Content
   • Confidence Level: MEDIUM_AND_ABOVE
            │
      ┌─────┴─────────────────────────┐
@@ -357,9 +357,9 @@ Praise delivered directly       Auto-healed with pre-vetted positive reinforceme
 
 ### Core Governance Pillars:
 
-1. **Semantic Tone & Safety Shielding (`SanitizeModelResponse`)**:
-   * Evaluates encouragement output against Google Cloud Model Armor filters.
-   * Goes beyond naive word-blocklists by using Google's semantic classifiers to catch subtle sarcasm, condescension, and negative bias.
+1. **Responsible AI Output Screening (`SanitizeModelResponse`)**:
+   * Evaluates encouragement output against Google Cloud Model Armor RAI filters.
+   * Goes beyond naive word-blocklists by using Google's classifiers to screen for hate speech, harassment, sexually explicit, and dangerous content.
    * **Automated Healing (`governance.py`)**: If Model Armor detects a policy violation, the response is instantly intercepted and replaced with safe, encouraging growth-mindset praise without stalling the session.
 
 2. **Human-in-the-Loop Approval Gate**:
@@ -372,7 +372,7 @@ Praise delivered directly       Auto-healed with pre-vetted positive reinforceme
 
 ### 👩‍🏫 Teacher Dashboard (`/teacher`)
 * **Live Garden Bloom Tracking:** Tracks completed flowers against personalized targets (e.g. 4 🌸 for Alex, 5 🌸 for Emma).
-* **Session Governance Audit:** Directly displays verified child-safety certification from Google Cloud Model Armor on every session report (`🛡️ Verified Child-Safe by Google Cloud Model Armor`).
+* **Session Governance Audit:** Directly displays the Google Cloud Model Armor screening status on every session report (`🛡️ Screened by Model Armor`).
 * **Human-in-the-Loop Approval Gate:** Session progress summaries must be explicitly certified by the educator before parent dispatch.
 
 ### ⚙️ Child Profile Setup & Customization Engine (`/profile`)
@@ -416,7 +416,7 @@ WordBloom/
 │   ├── test_wordbloom.py              ← Automated 4-stage pipeline test suite
 │   └── wordbloom_agent/
 │       ├── __init__.py
-│       ├── .env                       ← Vertex AI credentials (GOOGLE_CLOUD_PROJECT)
+│       ├── .env.example               ← Vertex AI environment template (copy to .env)
 │       ├── agent.py                   ← Root ADK Orchestrator
 │       ├── governance.py              ← 🛡️ Child Safeguarding via Google Cloud Model Armor
 │       ├── profile_agent.py           ← ProfileAgent
@@ -479,7 +479,8 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure Google Cloud credentials in backend/wordbloom_agent/.env:
+# Create your local .env from the template and set your Google Cloud Project ID:
+cp wordbloom_agent/.env.example wordbloom_agent/.env
 # GOOGLE_CLOUD_PROJECT=your-gcp-project-id
 # GOOGLE_CLOUD_LOCATION=us-central1
 # GEMINI_MODEL=gemini-2.5-flash
