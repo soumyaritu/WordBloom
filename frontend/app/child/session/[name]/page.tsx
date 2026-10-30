@@ -55,28 +55,42 @@ export default function ChildWelcomePage({
     const shouldPrepare = true
 
     if (shouldPrepare) {
+      const defaultStage = childId === 'emma' ? 3 : childId === 'alex' ? 4 : (childId === 'sofia' || childId === 'sony') ? 1 : 2
+      let savedProf: any = null
+      try {
+        const rawProf = localStorage.getItem(`wb_profile_${childId}`) ||
+                        (childId === 'sofia' ? localStorage.getItem('wb_profile_sony') : null) ||
+                        (childId === 'sony' ? localStorage.getItem('wb_profile_sofia') : null)
+        if (rawProf) savedProf = JSON.parse(rawProf)
+      } catch (e) {}
+
+      const stage = Number(savedProf?.readingLevel || savedProf?.reading_level || defaultStage)
+      const stageFirstWord = stage === 4
+        ? { word: 'sunshine', difficulty: 'hard', category: 'compound', audio_hint: 'sun-shine', visual_hint: 'sun·shine', sentence: 'Warm sunshine filled the room.', why_chosen: 'Stage 4 practice' }
+        : stage === 3
+        ? { word: 'wrist', difficulty: 'medium', category: 'silent letter', audio_hint: 'rist', visual_hint: 'w·r·i·s·t', sentence: 'Wear a watch on your wrist.', why_chosen: 'Stage 3 silent letters practice' }
+        : stage === 2
+        ? (childId === 'james'
+            ? { word: 'star', difficulty: 'medium', category: 'blends', audio_hint: 'star', visual_hint: 's·t·a·r', sentence: 'Look up at the bright twinkling star.', why_chosen: 'Stage 2 practice' }
+            : { word: 'frog', difficulty: 'medium', category: 'blends', audio_hint: 'frog', visual_hint: 'f·r·o·g', sentence: 'The green frog jumped in the pond.', why_chosen: 'Stage 2 practice' })
+        : { word: 'sun', difficulty: 'easy', category: 'CVC', audio_hint: 'sun', visual_hint: 's·u·n', sentence: 'The warm sun is shining bright.', why_chosen: 'Stage 1 practice' }
+
       const instantSession = {
         session_id: `session_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
         profile: {
           child_id: childId,
-          child_name: displayName,
-          reading_level: childId === 'emma' ? 1 : 2,
-          reading_stage: childId === 'emma' ? 1 : 2,
-          dyslexia_type: childId === 'liam' ? 'surface' : (childId === 'james' ? 'visual/spatial' : 'phonological'),
-          input_mode: (childId === 'liam' || childId === 'james') ? 'tap' : 'voice',
-          display_mode: childId === 'liam' ? 'standard' : 'opendyslexic',
-          colour_overlay: childId === 'emma' ? 'yellow' : (childId === 'james' ? 'blue' : (childId === 'sofia' || childId === 'sony' ? 'green' : 'none')),
-          session_length: (childId === 'emma' || childId === 'sofia' || childId === 'sony') ? 5 : 10,
-          candy_goal: (childId === 'emma' || childId === 'sofia' || childId === 'sony') ? 5 : 10,
-          break_after: (childId === 'emma' || childId === 'sofia' || childId === 'sony') ? 5 : 10,
+          child_name: savedProf?.fullName || displayName,
+          reading_level: stage,
+          reading_stage: stage,
+          dyslexia_type: savedProf?.dyslexiaType || (childId === 'alex' ? 'non_dyslexic' : childId === 'liam' ? 'surface' : childId === 'james' ? 'visual/spatial' : (childId === 'sofia' || childId === 'sony') ? 'unknown' : 'phonological'),
+          input_mode: savedProf?.inputMode || (childId === 'emma' ? 'voice' : (childId === 'liam' || childId === 'james') ? 'tap' : 'type'),
+          display_mode: savedProf?.displayMode || ((childId === 'liam' || childId === 'alex' || childId === 'sofia' || childId === 'sony') ? 'standard' : 'opendyslexic'),
+          colour_overlay: savedProf?.colourOverlay || (childId === 'emma' ? 'yellow' : childId === 'james' ? 'yellow' : (childId === 'sofia' || childId === 'sony') ? 'blue' : 'none'),
+          session_length: Number(savedProf?.sessionLength || ((childId === 'emma' || childId === 'sofia' || childId === 'sony' || childId === 'liam') ? 5 : 10)),
+          candy_goal: Number(savedProf?.candyGoal || (childId === 'alex' ? 4 : (childId === 'emma' || childId === 'sofia' || childId === 'sony' || childId === 'liam') ? 5 : 8)),
+          break_after: Number(savedProf?.breakAfter || ((childId === 'emma' || childId === 'sofia' || childId === 'sony' || childId === 'liam') ? 5 : 10)),
         },
-        current_word: childId === 'emma' ? {
-          word: 'sun', difficulty: 'easy', category: 'CVC', audio_hint: 'sun', visual_hint: 's·u·n', sentence: 'The warm sun is shining bright.', why_chosen: 'Stage 1 practice'
-        } : (childId === 'james' ? {
-          word: 'star', difficulty: 'medium', category: 'blends', audio_hint: 'star', visual_hint: 's·t·a·r', sentence: 'Look up at the bright twinkling star.', why_chosen: 'Stage 2 practice'
-        } : {
-          word: 'frog', difficulty: 'medium', category: 'blends', audio_hint: 'frog', visual_hint: 'f·r·o·g', sentence: 'The green frog jumped in the pond.', why_chosen: 'Stage 2 practice'
-        }),
+        current_word: stageFirstWord,
         words_done: [],
         words_correct: [],
         start_time: Date.now(),
@@ -88,10 +102,37 @@ export default function ChildWelcomePage({
     // Prefetch official backend session asynchronously in background
     startSession(childId).then(data => {
       if (data?.session_id) {
+        let savedProf: any = null
+        try {
+          const rawProf = localStorage.getItem(`wb_profile_${childId}`)
+          if (rawProf) savedProf = JSON.parse(rawProf)
+        } catch (e) {}
+        const localStage = savedProf?.readingLevel ? Number(savedProf.readingLevel) : null
+        const backendStage = Number(data.profile?.reading_level || data.profile?.reading_stage || 1)
+        const resolvedStage = localStage || backendStage
+        const stageMatchedWord = (localStage && localStage !== backendStage)
+          ? (localStage === 4
+              ? { word: 'sunshine', difficulty: 'hard', category: 'compound', audio_hint: 'sun-shine', visual_hint: 'sun·shine', sentence: 'Warm sunshine filled the room.', why_chosen: 'Stage 4 practice' }
+              : localStage === 3
+              ? { word: 'wrist', difficulty: 'medium', category: 'silent letter', audio_hint: 'rist', visual_hint: 'w·r·i·s·t', sentence: 'Wear a watch on your wrist.', why_chosen: 'Stage 3 silent letters practice' }
+              : localStage === 2
+              ? { word: 'frog', difficulty: 'medium', category: 'blends', audio_hint: 'frog', visual_hint: 'f·r·o·g', sentence: 'The green frog jumped in the pond.', why_chosen: 'Stage 2 practice' }
+              : { word: 'sun', difficulty: 'easy', category: 'CVC', audio_hint: 'sun', visual_hint: 's·u·n', sentence: 'The warm sun is shining bright.', why_chosen: 'Stage 1 practice' })
+          : data.first_word
+
         localStorage.setItem('wb_session', JSON.stringify({
           session_id:   data.session_id,
-          profile:      { ...data.profile, child_id: childId },
-          current_word: data.first_word,
+          profile:      {
+            ...data.profile,
+            child_id: childId,
+            reading_level: resolvedStage,
+            reading_stage: resolvedStage,
+            ...(savedProf?.inputMode ? { input_mode: savedProf.inputMode } : {}),
+            ...(savedProf?.displayMode ? { display_mode: savedProf.displayMode } : {}),
+            ...(savedProf?.colourOverlay ? { colour_overlay: savedProf.colourOverlay } : {}),
+            ...(savedProf?.dyslexiaType ? { dyslexia_type: savedProf.dyslexiaType } : {}),
+          },
+          current_word: stageMatchedWord,
           words_done:   [],
           words_correct: [],
           start_time:   Date.now(),

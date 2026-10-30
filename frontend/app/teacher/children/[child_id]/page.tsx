@@ -30,7 +30,32 @@ export default function ChildDetailPage({
   const childId = (resolvedParams?.child_id || 'emma').toLowerCase().trim()
   const router = useRouter()
 
-  const [profile, setProfile] = useState<ChildProfile | null>(null)
+  const isSony = childId === 'sofia' || childId === 'sony'
+  const isAlex = childId === 'alex'
+  const fallbackNames: Record<string, string> = {
+    emma: 'Emma Clarke',
+    liam: "Liam O'Connor",
+    james: 'James Patel',
+    sofia: 'Sony Mathew',
+    sony: 'Sony Mathew',
+    alex: 'Alex',
+  }
+  const defaultDisplayName = fallbackNames[childId] || (childId.charAt(0).toUpperCase() + childId.slice(1))
+
+  const [profile, setProfile] = useState<ChildProfile | null>(() => ({
+    id: childId,
+    child_id: childId,
+    name: defaultDisplayName,
+    child_name: defaultDisplayName,
+    dyslexia_type: isAlex ? 'non_dyslexic' : childId === 'liam' ? 'surface' : childId === 'james' ? 'visual_spatial' : isSony ? 'unknown' : 'phonological',
+    font: (isSony || isAlex || childId === 'liam') ? 'standard' : 'opendyslexic',
+    display_mode: (isSony || isAlex || childId === 'liam') ? 'standard' : 'opendyslexic',
+    colour_overlay: (childId === 'emma' || childId === 'james') ? 'yellow' : isSony ? 'blue' : 'none',
+    input_mode: childId === 'emma' ? 'voice' : (isSony || isAlex) ? 'type' : 'tap',
+    reading_level: isAlex ? 4 : childId === 'emma' ? 3 : (childId === 'liam' || childId === 'james') ? 2 : 1,
+    age: isAlex ? 13 : isSony ? 7 : 9,
+    school_year: isAlex ? 'Year 9' : isSony ? 'Year 3' : 'Year 4',
+  }))
   const [loading, setLoading] = useState(true)
   const [sessionReport, setSessionReport] = useState<any>(null)
 
@@ -66,7 +91,13 @@ export default function ChildDetailPage({
         const rep = localStorage.getItem(`wb_report_${childId}`)
         if (rep) {
           try {
-            setSessionReport(JSON.parse(rep))
+            const parsedRep = JSON.parse(rep)
+            // Ignore stale 0% accuracy reports generated from old 3-wrong-word fallback
+            if (parsedRep && !(parsedRep.accuracy_percent === 0 && parsedRep.words_attempted === 3)) {
+              setSessionReport(parsedRep)
+            } else {
+              localStorage.removeItem(`wb_report_${childId}`)
+            }
           } catch (e) {}
         }
       }
@@ -75,18 +106,10 @@ export default function ChildDetailPage({
     loadData()
   }, [childId])
 
-  const isSony = childId === 'sofia' || childId === 'sony'
-  const fallbackNames: Record<string, string> = {
-    emma: 'Emma Clarke',
-    liam: "Liam O'Connor",
-    james: 'James Patel',
-    sofia: 'Sony Mathew',
-    sony: 'Sony Mathew',
-  }
-  const childName = isSony ? 'Sony Mathew' : (profile?.name || profile?.child_name || fallbackNames[childId] || (childId.charAt(0).toUpperCase() + childId.slice(1)))
+  const childName = isSony ? 'Sony Mathew' : (profile?.name || profile?.child_name || defaultDisplayName)
   const firstName = isSony ? 'Sony' : childName.split(' ')[0]
-  const rawType = (profile?.dyslexia_type || '').toLowerCase()
-  const isNonDyslexic = rawType === 'non_dyslexic' || rawType === 'none' || rawType === 'general'
+  const rawType = (profile?.dyslexia_type || (isAlex ? 'non_dyslexic' : '')).toLowerCase()
+  const isNonDyslexic = rawType.includes('non') || rawType === 'none' || rawType === 'general' || rawType === 'standard' || rawType === 'normal'
 
   return (
     <main

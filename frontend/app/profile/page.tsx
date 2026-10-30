@@ -16,7 +16,7 @@ function ProfileForm() {
   const CHILD_DEFAULTS: Record<string, any> = {
     emma: {
       fullName: 'Emma Clarke', age: 9, schoolYear: 'Year 4', dyslexiaType: 'phonological',
-      coOccurring: ['adhd'], readingLevel: 1, inputMode: 'voice', displayMode: 'opendyslexic',
+      coOccurring: ['adhd'], readingLevel: 3, inputMode: 'voice', displayMode: 'opendyslexic',
       colourOverlay: 'yellow', sessionLength: 5, candyGoal: 5, breakAfter: 5,
     },
     liam: {
@@ -27,21 +27,21 @@ function ProfileForm() {
     james: {
       fullName: 'James Patel', age: 10, schoolYear: 'Year 5', dyslexiaType: 'visual',
       coOccurring: ['dyspraxia'], readingLevel: 2, inputMode: 'tap', displayMode: 'opendyslexic',
-      colourOverlay: 'blue', sessionLength: 10, candyGoal: 8, breakAfter: 10,
+      colourOverlay: 'yellow', sessionLength: 10, candyGoal: 8, breakAfter: 10,
     },
     sofia: {
       fullName: 'Sony Mathew', age: 7, schoolYear: 'Year 3', dyslexiaType: 'unknown',
       coOccurring: [], readingLevel: 1, inputMode: 'type', displayMode: 'standard',
-      colourOverlay: 'blue', sessionLength: 5, candyGoal: 10, breakAfter: 5,
+      colourOverlay: 'blue', sessionLength: 5, candyGoal: 5, breakAfter: 5,
     },
     sony: {
       fullName: 'Sony Mathew', age: 7, schoolYear: 'Year 3', dyslexiaType: 'unknown',
       coOccurring: [], readingLevel: 1, inputMode: 'type', displayMode: 'standard',
-      colourOverlay: 'blue', sessionLength: 5, candyGoal: 10, breakAfter: 5,
+      colourOverlay: 'blue', sessionLength: 5, candyGoal: 5, breakAfter: 5,
     },
     alex: {
-      fullName: 'Alex Rivera', age: 8, schoolYear: 'Year 3', dyslexiaType: 'non_dyslexic',
-      coOccurring: [], readingLevel: 2, inputMode: 'type', displayMode: 'standard',
+      fullName: 'Alex', age: 13, schoolYear: 'Year 9', dyslexiaType: 'non_dyslexic',
+      coOccurring: [], readingLevel: 4, inputMode: 'type', displayMode: 'standard',
       colourOverlay: 'none', sessionLength: 10, candyGoal: 4, breakAfter: 10,
     },
   }

@@ -18,7 +18,7 @@ export async function PATCH(
 
   // 1. Try calling FastAPI backend PATCH (use 127.0.0.1 to avoid IPv6 localhost hang)
   try {
-    const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:8000'
+    const backendUrl = process.env.BACKEND_URL || process.env.LOCAL_BACKEND_URL || process.env.ADK_BACKEND_ORIGIN || 'http://127.0.0.1:8000'
     const res = await fetch(`${backendUrl}/api/children/${cleanId}/profile`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

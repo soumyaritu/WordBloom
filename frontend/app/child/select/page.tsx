@@ -16,10 +16,11 @@ interface ChildProfile {
 }
 
 const FALLBACK_CHILDREN: ChildProfile[] = [
-  { id: 'emma',  name: 'Emma Clarke',  avatar: '👧', dyslexia_type: 'Phonological', reading_stage: 3, input_mode: 'voice' },
-  { id: 'liam',  name: "Liam O'Connor", avatar: '👦', dyslexia_type: 'Surface',      reading_stage: 2, input_mode: 'tap' },
-  { id: 'james', name: 'James Patel',  avatar: '🚀', dyslexia_type: 'Visual/Spatial', reading_stage: 2, input_mode: 'tap' },
-  { id: 'sofia', name: 'Sony Mathew',  avatar: '🌟', dyslexia_type: 'Phonological', reading_stage: 2, input_mode: 'voice' },
+  { id: 'emma',  name: 'Emma Clarke',   avatar: '👧', dyslexia_type: 'Phonological',   reading_stage: 3, input_mode: 'voice' },
+  { id: 'liam',  name: "Liam O'Connor", avatar: '👦', dyslexia_type: 'Surface',        reading_stage: 2, input_mode: 'tap' },
+  { id: 'james', name: 'James Patel',   avatar: '🚀', dyslexia_type: 'Visual/Spatial', reading_stage: 2, input_mode: 'tap' },
+  { id: 'sofia', name: 'Sony Mathew',   avatar: '🌟', dyslexia_type: 'Not sure yet',   reading_stage: 1, input_mode: 'type' },
+  { id: 'alex',  name: 'Alex',          avatar: '🦊', dyslexia_type: 'Non-dyslexic',   reading_stage: 4, input_mode: 'type' },
 ]
 
 function enrichChildProfiles(baseList: ChildProfile[]): ChildProfile[] {

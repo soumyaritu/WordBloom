@@ -73,6 +73,127 @@ function formatCategoryBadge(category?: string, readingLevel?: number): string {
 function getInitialInstantSession(childParam: string) {
   if (typeof window === 'undefined') return null
   const cId = (childParam || 'emma').toLowerCase().trim()
+
+  // Instant pre-computed session so the game card renders in 0ms without delay
+  const instantProfiles: Record<string, any> = {
+    emma: {
+      child_id: 'emma',
+      child_name: 'Emma Clarke',
+      reading_level: 3,
+      reading_stage: 3,
+      dyslexia_type: 'phonological',
+      input_mode: 'voice',
+      display_mode: 'opendyslexic',
+      colour_overlay: 'yellow',
+      session_length: 5,
+      candy_goal: 5,
+      break_after: 5,
+      first_word: { word: 'wrist', difficulty: 'medium', category: 'silent letter', audio_hint: 'rist', visual_hint: 'w·r·i·s·t', sentence: 'Wear a watch on your wrist.', why_chosen: 'Stage 3 silent letters practice' },
+    },
+    liam: {
+      child_id: 'liam',
+      child_name: "Liam O'Connor",
+      reading_level: 2,
+      reading_stage: 2,
+      dyslexia_type: 'surface',
+      input_mode: 'tap',
+      display_mode: 'standard',
+      colour_overlay: 'none',
+      session_length: 5,
+      candy_goal: 5,
+      break_after: 5,
+      first_word: { word: 'frog', difficulty: 'medium', category: 'blends', audio_hint: 'frog', visual_hint: 'f·r·o·g', sentence: 'The green frog jumped in the pond.', why_chosen: 'Stage 2 practice' },
+    },
+    james: {
+      child_id: 'james',
+      child_name: 'James Patel',
+      reading_level: 2,
+      reading_stage: 2,
+      dyslexia_type: 'visual/spatial',
+      input_mode: 'tap',
+      display_mode: 'opendyslexic',
+      colour_overlay: 'yellow',
+      session_length: 10,
+      candy_goal: 8,
+      break_after: 10,
+      first_word: { word: 'star', difficulty: 'medium', category: 'blends', audio_hint: 'star', visual_hint: 's·t·a·r', sentence: 'Look up at the bright twinkling star.', why_chosen: 'Stage 2 practice' },
+    },
+    sofia: {
+      child_id: 'sofia',
+      child_name: 'Sony Mathew',
+      reading_level: 1,
+      reading_stage: 1,
+      dyslexia_type: 'unknown',
+      input_mode: 'type',
+      display_mode: 'standard',
+      colour_overlay: 'blue',
+      session_length: 5,
+      candy_goal: 5,
+      break_after: 5,
+      first_word: { word: 'sun', difficulty: 'easy', category: 'CVC', audio_hint: 'sun', visual_hint: 's·u·n', sentence: 'The warm sun is shining bright.', why_chosen: 'Stage 1 practice' },
+    },
+    sony: {
+      child_id: 'sony',
+      child_name: 'Sony Mathew',
+      reading_level: 1,
+      reading_stage: 1,
+      dyslexia_type: 'unknown',
+      input_mode: 'type',
+      display_mode: 'standard',
+      colour_overlay: 'blue',
+      session_length: 5,
+      candy_goal: 5,
+      break_after: 5,
+      first_word: { word: 'sun', difficulty: 'easy', category: 'CVC', audio_hint: 'sun', visual_hint: 's·u·n', sentence: 'The warm sun is shining bright.', why_chosen: 'Stage 1 practice' },
+    },
+    alex: {
+      child_id: 'alex',
+      child_name: 'Alex',
+      reading_level: 4,
+      reading_stage: 4,
+      dyslexia_type: 'non_dyslexic',
+      input_mode: 'type',
+      display_mode: 'standard',
+      colour_overlay: 'none',
+      session_length: 10,
+      candy_goal: 4,
+      break_after: 10,
+      first_word: { word: 'sunshine', difficulty: 'hard', category: 'compound', audio_hint: 'sun-shine', visual_hint: 'sun·shine', sentence: 'Warm sunshine filled the room.', why_chosen: 'Stage 4 practice' },
+    },
+  }
+
+  const baseP = instantProfiles[cId] || instantProfiles.emma
+  let savedProf: any = null
+  try {
+    const rawProf = localStorage.getItem(`wb_profile_${cId}`) ||
+                    (cId === 'sofia' ? localStorage.getItem('wb_profile_sony') : null) ||
+                    (cId === 'sony' ? localStorage.getItem('wb_profile_sofia') : null)
+    if (rawProf) savedProf = JSON.parse(rawProf)
+  } catch (e) {}
+
+  // If savedProf in localStorage has stale Emma readingLevel=1 from an old session without explicit stage change, prefer Stage 3 for Emma unless modified
+  const resolvedStage = Number(savedProf?.readingLevel || savedProf?.reading_level || baseP.reading_level || 1)
+  const stageWord = resolvedStage === 4
+    ? { word: 'sunshine', difficulty: 'hard', category: 'compound', audio_hint: 'sun-shine', visual_hint: 'sun·shine', sentence: 'Warm sunshine filled the room.', why_chosen: 'Stage 4 practice' }
+    : resolvedStage === 3
+    ? { word: 'wrist', difficulty: 'medium', category: 'silent letter', audio_hint: 'rist', visual_hint: 'w·r·i·s·t', sentence: 'Wear a watch on your wrist.', why_chosen: 'Stage 3 silent letters practice' }
+    : resolvedStage === 2
+    ? (cId === 'james'
+        ? { word: 'star', difficulty: 'medium', category: 'blends', audio_hint: 'star', visual_hint: 's·t·a·r', sentence: 'Look up at the bright twinkling star.', why_chosen: 'Stage 2 practice' }
+        : { word: 'frog', difficulty: 'medium', category: 'blends', audio_hint: 'frog', visual_hint: 'f·r·o·g', sentence: 'The green frog jumped in the pond.', why_chosen: 'Stage 2 practice' })
+    : { word: 'sun', difficulty: 'easy', category: 'CVC', audio_hint: 'sun', visual_hint: 's·u·n', sentence: 'The warm sun is shining bright.', why_chosen: 'Stage 1 practice' }
+
+  const p = {
+    ...baseP,
+    reading_level: resolvedStage,
+    reading_stage: resolvedStage,
+    ...(savedProf?.inputMode ? { input_mode: savedProf.inputMode } : {}),
+    ...(savedProf?.displayMode ? { display_mode: savedProf.displayMode } : {}),
+    ...(savedProf?.colourOverlay ? { colour_overlay: savedProf.colourOverlay } : {}),
+    ...(savedProf?.dyslexiaType ? { dyslexia_type: savedProf.dyslexiaType } : {}),
+    first_word: stageWord,
+  }
+
   try {
     const raw = localStorage.getItem('wb_session')
     if (raw) {
@@ -86,87 +207,13 @@ function getInitialInstantSession(childParam: string) {
         (targetChildId === 'sofia' && sessionChild.includes('sony')) ||
         (targetChildId === 'sony' && sessionChild.includes('sony'))
       )
-      if (isMatchingChild && s?.current_word) {
+      const sStage = Number(s?.profile?.reading_level || s?.profile?.reading_stage || 1)
+      if (isMatchingChild && s?.current_word && sStage === resolvedStage) {
         return s
       }
     }
   } catch (e) {}
 
-  // Instant pre-computed session so the game card renders in 0ms without delay
-  const instantProfiles: Record<string, any> = {
-    emma: {
-      child_id: 'emma',
-      child_name: 'Emma Clarke',
-      reading_level: 1,
-      reading_stage: 1,
-      dyslexia_type: 'phonological',
-      input_mode: 'voice',
-      display_mode: 'opendyslexic',
-      colour_overlay: 'yellow',
-      session_length: 5,
-      candy_goal: 5,
-      break_after: 5,
-      first_word: { word: 'sun', difficulty: 'easy', category: 'CVC', audio_hint: 'sun', visual_hint: 's·u·n', sentence: 'The warm sun is shining bright.', why_chosen: 'Stage 1 practice' },
-    },
-    liam: {
-      child_id: 'liam',
-      child_name: "Liam O'Connor",
-      reading_level: 2,
-      reading_stage: 2,
-      dyslexia_type: 'surface',
-      input_mode: 'tap',
-      display_mode: 'standard',
-      colour_overlay: 'none',
-      session_length: 10,
-      candy_goal: 10,
-      break_after: 10,
-      first_word: { word: 'frog', difficulty: 'medium', category: 'blends', audio_hint: 'frog', visual_hint: 'f·r·o·g', sentence: 'The green frog jumped in the pond.', why_chosen: 'Stage 2 practice' },
-    },
-    james: {
-      child_id: 'james',
-      child_name: 'James Patel',
-      reading_level: 2,
-      reading_stage: 2,
-      dyslexia_type: 'visual/spatial',
-      input_mode: 'tap',
-      display_mode: 'opendyslexic',
-      colour_overlay: 'blue',
-      session_length: 10,
-      candy_goal: 10,
-      break_after: 10,
-      first_word: { word: 'star', difficulty: 'medium', category: 'blends', audio_hint: 'star', visual_hint: 's·t·a·r', sentence: 'Look up at the bright twinkling star.', why_chosen: 'Stage 2 practice' },
-    },
-    sofia: {
-      child_id: 'sofia',
-      child_name: 'Sony Mathew',
-      reading_level: 2,
-      reading_stage: 2,
-      dyslexia_type: 'phonological',
-      input_mode: 'voice',
-      display_mode: 'opendyslexic',
-      colour_overlay: 'green',
-      session_length: 5,
-      candy_goal: 5,
-      break_after: 5,
-      first_word: { word: 'drum', difficulty: 'medium', category: 'blends', audio_hint: 'drum', visual_hint: 'd·r·u·m', sentence: 'Beat the rhythm on the drum.', why_chosen: 'Stage 2 practice' },
-    },
-    sony: {
-      child_id: 'sony',
-      child_name: 'Sony Mathew',
-      reading_level: 2,
-      reading_stage: 2,
-      dyslexia_type: 'phonological',
-      input_mode: 'voice',
-      display_mode: 'opendyslexic',
-      colour_overlay: 'green',
-      session_length: 5,
-      candy_goal: 5,
-      break_after: 5,
-      first_word: { word: 'drum', difficulty: 'medium', category: 'blends', audio_hint: 'drum', visual_hint: 'd·r·u·m', sentence: 'Beat the rhythm on the drum.', why_chosen: 'Stage 2 practice' },
-    },
-  }
-
-  const p = instantProfiles[cId] || instantProfiles.emma
   return {
     session_id: `session_${Date.now()}`,
     profile: p,
@@ -508,10 +555,24 @@ function GameContent() {
       const sessionChild = (s?.profile?.child_name || '').toLowerCase()
       const sessionChildId = (s?.profile?.child_id || '').toLowerCase()
 
-      // Check if session in localStorage is already for the requested child and not already finished
+      // Check if session in localStorage is already for the requested child, at the right stage, and not already finished
+      const defaultChildStage = targetChildId === 'emma' ? 3 : targetChildId === 'alex' ? 4 : (targetChildId === 'sofia' || targetChildId === 'sony') ? 1 : 2
+      let expectedStage = defaultChildStage
+      try {
+        const rawProf = localStorage.getItem(`wb_profile_${targetChildId}`)
+        if (rawProf) {
+          const parsedProf = JSON.parse(rawProf)
+          if (parsedProf?.readingLevel || parsedProf?.reading_level) {
+            expectedStage = Number(parsedProf.readingLevel || parsedProf.reading_level)
+          }
+        }
+      } catch (e) {}
+
+      const sStage = Number(s?.profile?.reading_level || s?.profile?.reading_stage || 1)
+      const isStaleStage = (!s?.words_done || s.words_done.length === 0) && sStage !== expectedStage
       const isCompleted = Boolean(s?.goalAchieved || (s?.stats?.words_correct && s.stats.words_correct >= (s?.profile?.candy_goal || 5)))
       const isMatchingChild = Boolean(
-        s && !isCompleted && (
+        s && !isCompleted && !isStaleStage && (
           !childParam ||
           sessionChildId === targetChildId ||
           sessionChild.includes(targetChildId) ||
@@ -520,14 +581,25 @@ function GameContent() {
         )
       )
 
-      // If no session, or URL specifies childParam and stored session is for another child:
+      // If no session, or URL specifies childParam and stored session is for another child or stale stage:
       if (!s || !isMatchingChild) {
         try {
           const data = await startSession(targetChildId)
+          const backendStage = Number(data.profile?.reading_level || data.profile?.reading_stage || expectedStage)
+          const resolvedStage = expectedStage || backendStage
+          const stageWord = resolvedStage !== backendStage
+            ? (resolvedStage === 4
+                ? { word: 'sunshine', difficulty: 'hard', category: 'compound', audio_hint: 'sun-shine', visual_hint: 'sun·shine', sentence: 'Warm sunshine filled the room.', why_chosen: 'Stage 4 practice' }
+                : resolvedStage === 3
+                ? { word: 'wrist', difficulty: 'medium', category: 'silent letter', audio_hint: 'rist', visual_hint: 'w·r·i·s·t', sentence: 'Wear a watch on your wrist.', why_chosen: 'Stage 3 silent letters practice' }
+                : resolvedStage === 2
+                ? { word: 'frog', difficulty: 'medium', category: 'blends', audio_hint: 'frog', visual_hint: 'f·r·o·g', sentence: 'The green frog jumped in the pond.', why_chosen: 'Stage 2 practice' }
+                : { word: 'sun', difficulty: 'easy', category: 'CVC', audio_hint: 'sun', visual_hint: 's·u·n', sentence: 'The warm sun is shining bright.', why_chosen: 'Stage 1 practice' })
+            : data.first_word
           s = {
             session_id:   data.session_id,
-            profile:      { ...data.profile, child_id: targetChildId },
-            current_word: data.first_word,
+            profile:      { ...data.profile, child_id: targetChildId, reading_level: resolvedStage, reading_stage: resolvedStage },
+            current_word: stageWord,
             words_done:   [],
             words_correct: [],
             start_time:   Date.now(),
@@ -536,36 +608,8 @@ function GameContent() {
           localStorage.setItem('wb_session', JSON.stringify(s))
         } catch (err) {
           console.error('Failed to start session for', targetChildId, err)
-          if (!s) {
-            const fallbackProfile = {
-              child_id: targetChildId,
-              child_name: (targetChildId === 'sofia' || targetChildId === 'sony') ? 'Sony Mathew' : targetChildId.charAt(0).toUpperCase() + targetChildId.slice(1),
-              reading_level: 1,
-              input_mode: 'voice',
-              display_mode: 'opendyslexic',
-              session_length: 5,
-              break_after: 5,
-              candy_goal: 5,
-            }
-            s = {
-              session_id: `session_${Date.now()}`,
-              profile: fallbackProfile,
-              current_word: {
-                word: 'sun',
-                difficulty: 'easy',
-                category: 'CVC',
-                phonics_rule: "Short 'u' sound",
-                audio_hint: 'sun',
-                visual_hint: 's·u·n',
-                sentence: 'The big yellow sun shines in the sky!',
-              },
-              words_done: [],
-              words_correct: [],
-              start_time: Date.now(),
-              stats: { words_done: 0, words_correct: 0, accuracy: 0 },
-            }
-            localStorage.setItem('wb_session', JSON.stringify(s))
-          }
+          s = getInitialInstantSession(targetChildId)
+          if (s) localStorage.setItem('wb_session', JSON.stringify(s))
         }
       }
 

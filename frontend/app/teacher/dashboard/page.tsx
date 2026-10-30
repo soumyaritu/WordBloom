@@ -42,7 +42,7 @@ const FALLBACK_CHILDREN: ChildRow[] = [
   },
   {
     id: 'james',
-    name: 'James Patel',
+    name: 'James Bond',
     avatar: '🚀',
     dyslexia_type: 'Visual / Spatial',
     reading_stage: 2,
@@ -136,7 +136,7 @@ function enrichChildrenWithLocalStorage(baseList: ChildRow[]): ChildRow[] {
           child.last_session = 'Today'
         }
       }
-    } catch (e) {}
+    } catch (e) { }
 
     result.push(child)
   })
@@ -173,9 +173,9 @@ function enrichChildrenWithLocalStorage(baseList: ChildRow[]): ChildRow[] {
           last_session: 'Today',
           candy_count: Number(p.candyGoal) || 5,
         })
-      } catch (e) {}
+      } catch (e) { }
     })
-  } catch (e) {}
+  } catch (e) { }
 
   return result
 }
@@ -199,7 +199,7 @@ export default function TeacherDashboardPage() {
           localStorage.setItem('wb_teacher', JSON.stringify(parsed))
           setTeacherName('Ms Soumya Jayakumar')
         }
-      } catch (e) {}
+      } catch (e) { }
     } else {
       // Check cookie
       if (!document.cookie.includes('wb_teacher_session')) {
@@ -228,7 +228,7 @@ export default function TeacherDashboardPage() {
   const handleSignOut = async () => {
     try {
       await fetch('/api/auth/teacher', { method: 'DELETE' })
-    } catch (e) {}
+    } catch (e) { }
 
     document.cookie = 'wb_teacher_session=; path=/; max-age=0'
     localStorage.removeItem('wb_teacher')
@@ -558,7 +558,7 @@ export default function TeacherDashboardPage() {
                   </Link>
 
                   {(child.dyslexia_type || '').toLowerCase().includes('non') ||
-                   ['none', 'general', 'standard', 'normal'].includes((child.dyslexia_type || '').toLowerCase().trim()) ? (
+                    ['none', 'general', 'standard', 'normal'].includes((child.dyslexia_type || '').toLowerCase().trim()) ? (
                     <span
                       style={{
                         display: 'inline-flex',

@@ -68,20 +68,20 @@ const DEFAULT_START_PROFILES: Record<string, any> = {
     break_after: 5,
     approach: "audio_first",
     encouragement_style: "specific",
-    reading_stage: 1,
-    reading_level: 1,
-    mastered_words: ["cat", "dog", "run", "play", "help"],
+    reading_stage: 3,
+    reading_level: 3,
+    mastered_words: ["wrist", "thumb", "light", "train", "beach"],
     struggling_words: ["through", "knight", "enough"],
     pattern_difficulty: "silent letters",
     first_word: {
-      word: "sun",
-      difficulty: "easy",
-      category: "CVC",
-      phonics_rule: "Short 'u' sound",
-      audio_hint: "sun",
-      visual_hint: "s·u·n",
-      sentence: "The warm sun is shining bright.",
-      why_chosen: "Selected for Stage 1 phonics practice matching child's profile."
+      word: "wrist",
+      difficulty: "medium",
+      category: "silent letter",
+      phonics_rule: "Silent 'w' in 'wr'",
+      audio_hint: "rist",
+      visual_hint: "w·r·i·s·t",
+      sentence: "Wear a watch on your wrist.",
+      why_chosen: "Selected for Stage 3 silent letters practice matching Emma's profile."
     }
   },
   liam: {
@@ -226,6 +226,42 @@ const DEFAULT_START_PROFILES: Record<string, any> = {
       visual_hint: "c·a·t",
       sentence: "The cat sat on the mat.",
       why_chosen: "Selected for Stage 1 baseline assessment."
+    }
+  },
+  alex: {
+    child_id: "alex",
+    child_name: "Alex",
+    parent_email: "parent@example.com",
+    age: 13,
+    school_year: "Year 9",
+    dyslexia_type: "non_dyslexic",
+    severity: "none",
+    conditions: [],
+    co_occurring: [],
+    input_mode: "type",
+    display_mode: "standard",
+    colour_overlay: "none",
+    show_timer: false,
+    score_display: "stars",
+    session_length: 10,
+    candy_goal: 4,
+    break_after: 10,
+    approach: "standard",
+    encouragement_style: "warm",
+    reading_stage: 4,
+    reading_level: 4,
+    mastered_words: ["sunshine", "adventure", "wonderful", "rainbow"],
+    struggling_words: [],
+    pattern_difficulty: "none",
+    first_word: {
+      word: "sunshine",
+      difficulty: "hard",
+      category: "compound",
+      phonics_rule: "Compound word 'sun + shine'",
+      audio_hint: "sun-shine",
+      visual_hint: "sun·shine",
+      sentence: "Warm sunshine filled the room.",
+      why_chosen: "Selected for Stage 4 compound word practice matching Alex's profile."
     }
   }
 }

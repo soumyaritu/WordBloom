@@ -6,10 +6,11 @@ import { approveReport, startSession, getProfile } from '../../lib/api'
 import TeacherBackground from '../../components/TeacherBackground'
 
 const DEFAULT_STUDENTS = [
-  { id: 'emma',  name: 'Emma Clarke',  level: 3, type: 'Phonological · ADHD' },
+  { id: 'emma',  name: 'Emma Clarke',   level: 3, type: 'Phonological · ADHD' },
   { id: 'liam',  name: "Liam O'Connor", level: 2, type: 'Surface · DYSPRAXIA, ADHD' },
-  { id: 'james', name: 'James Patel',  level: 2, type: 'Visual · Dyspraxia'  },
-  { id: 'sofia', name: 'Sony Mathew',  level: 1, type: 'Bloom Profile: Not sure yet' },
+  { id: 'james', name: 'James Patel',   level: 2, type: 'Visual · Dyspraxia'  },
+  { id: 'sofia', name: 'Sony Mathew',   level: 1, type: 'Bloom Profile: Not sure yet' },
+  { id: 'alex',  name: 'Alex',          level: 4, type: 'Non-dyslexic (General)' },
 ]
 
 function dedupeName(name: string): string {
@@ -215,6 +216,9 @@ function TeacherDashboardContent() {
         .catch(() => {})
     }
 
+    const isStaleZeroReport = (r: any) =>
+      !r || (r.accuracy_percent === 0 && r.words_attempted === 3) || String(r.report_text || '').includes('0% accuracy across 3 words')
+
     // 1. Try loading child-specific report from localStorage (matching ID and name variants)
     const targetNameLower = (targetStudent?.name || '').toLowerCase()
     const targetFirst = targetNameLower.split(' ')[0]
@@ -225,10 +229,14 @@ function TeacherDashboardContent() {
     if (savedChildReport) {
       try {
         const parsed = JSON.parse(savedChildReport)
-        const sanitized = sanitizeReport(parsed, targetStudent)
-        localStorage.setItem(`wb_report_${activeChildId}`, JSON.stringify(sanitized))
-        setReport(sanitized)
-        return
+        if (!isStaleZeroReport(parsed)) {
+          const sanitized = sanitizeReport(parsed, targetStudent)
+          localStorage.setItem(`wb_report_${activeChildId}`, JSON.stringify(sanitized))
+          setReport(sanitized)
+          return
+        } else {
+          localStorage.removeItem(`wb_report_${activeChildId}`)
+        }
       } catch (e) {}
     }
 
@@ -242,7 +250,7 @@ function TeacherDashboardContent() {
                         (targetFirst && nameMatch.includes(targetFirst)) ||
                         (targetNameLower && nameMatch.includes(targetNameLower)) ||
                         ((activeChildId === 'sofia' || activeChildId === 'sony') && (nameMatch.includes('sofia') || nameMatch.includes('sony')))
-        if (isMatch) {
+        if (isMatch && !isStaleZeroReport(parsed)) {
           const sanitized = sanitizeReport(parsed, targetStudent)
           localStorage.setItem(`wb_report_${activeChildId}`, JSON.stringify(sanitized))
           setReport(sanitized)
@@ -258,10 +266,23 @@ function TeacherDashboardContent() {
     if (savedWordsRaw) {
       try {
         const wordsArr = JSON.parse(savedWordsRaw)
-        if (Array.isArray(wordsArr) && wordsArr.length > 0) {
-          const attempted = wordsArr.map((w: any) => (typeof w === 'object' ? (w.target || w.word) : w) || '')
-          const correct = wordsArr.filter((w: any) => typeof w === 'object' ? w.is_correct : true).map((w: any) => (typeof w === 'object' ? (w.target || w.word) : w) || '')
-          const incorrect = wordsArr.filter((w: any) => typeof w === 'object' && !w.is_correct).map((w: any) => (typeof w === 'object' ? (w.target || w.word) : w) || '')
+        if (Array.isArray(wordsArr) && wordsArr.length > 0 && !(wordsArr.length === 3 && wordsArr.every((w: any) => !w.is_correct))) {
+          const uniqueCorrectSet = new Set<string>()
+          const uniqueIncorrectSet = new Set<string>()
+          wordsArr.forEach((w: any) => {
+            const wordText = String(typeof w === 'object' ? (w.target || w.word || '') : (w || '')).trim()
+            if (!wordText) return
+            const isC = typeof w === 'object' ? Boolean(w.is_correct) : true
+            if (isC) {
+              uniqueCorrectSet.add(wordText)
+              uniqueIncorrectSet.delete(wordText)
+            } else if (!uniqueCorrectSet.has(wordText)) {
+              uniqueIncorrectSet.add(wordText)
+            }
+          })
+          const correct = Array.from(uniqueCorrectSet)
+          const incorrect = Array.from(uniqueIncorrectSet)
+          const attempted = [...correct, ...incorrect]
           const acc = Math.round((correct.length / Math.max(attempted.length, 1)) * 100)
           const stdFirst = (targetStudent?.name || 'Sony Mathew').split(' ')[0]
           const isUnknown = (targetStudent?.type || '').toLowerCase().includes('not sure') || (childProfile?.dyslexiaType || '').toLowerCase().includes('unknown')
@@ -346,8 +367,8 @@ function TeacherDashboardContent() {
             adapter_actions: ['continue'],
             breaks_taken: 0,
             report_text: isUnknown
-              ? `🌸 WordBloom Assessment: ${stdFirst} completed ${attempted.length} words today with ${acc}% accuracy. Evaluator Agent observed letter sound mapping and visual alignment patterns. WordBloom Recommended Profile: ${inferredRec?.recProfile || 'Phonological'}.`
-              : `${stdFirst} completed a focused WordBloom practice session with ${acc}% accuracy across ${attempted.length} words.`,
+              ? `🌸 WordBloom Assessment: ${stdFirst} earned ${correct.length} blooms 🌸 today (${acc}% accuracy across ${attempted.length} words). Evaluator Agent observed letter sound mapping and visual alignment patterns. WordBloom Recommended Profile: ${inferredRec?.recProfile || 'Phonological'}.`
+              : `${stdFirst} completed a focused WordBloom practice session, earning ${correct.length} blooms 🌸 with ${acc}% accuracy across ${attempted.length} words.`,
             recommended_profile: isUnknown ? inferredRec?.recProfile : null,
             recommendation_reason: isUnknown ? inferredRec?.recReason : null,
             is_assessment: isUnknown,
@@ -366,9 +387,22 @@ function TeacherDashboardContent() {
       .then(r => r.json())
       .then(data => {
         if (data && Array.isArray(data.words) && data.words.length > 0) {
-          const attempted = data.words.map((w: any) => (typeof w === 'object' ? (w.target || w.word) : w) || '')
-          const correct = data.words.filter((w: any) => typeof w === 'object' ? w.is_correct : true).map((w: any) => (typeof w === 'object' ? (w.target || w.word) : w) || '')
-          const incorrect = data.words.filter((w: any) => typeof w === 'object' && !w.is_correct).map((w: any) => (typeof w === 'object' ? (w.target || w.word) : w) || '')
+          const uniqueCorrectSet = new Set<string>()
+          const uniqueIncorrectSet = new Set<string>()
+          data.words.forEach((w: any) => {
+            const wordText = String(typeof w === 'object' ? (w.target || w.word || '') : (w || '')).trim()
+            if (!wordText) return
+            const isC = typeof w === 'object' ? Boolean(w.is_correct) : true
+            if (isC) {
+              uniqueCorrectSet.add(wordText)
+              uniqueIncorrectSet.delete(wordText)
+            } else if (!uniqueCorrectSet.has(wordText)) {
+              uniqueIncorrectSet.add(wordText)
+            }
+          })
+          const correct = Array.from(uniqueCorrectSet)
+          const incorrect = Array.from(uniqueIncorrectSet)
+          const attempted = [...correct, ...incorrect]
           const acc = Math.round((correct.length / Math.max(attempted.length, 1)) * 100)
           const stdFirst = (targetStudent?.name || 'Sony Mathew').split(' ')[0]
           const isUnknown = (targetStudent?.type || '').toLowerCase().includes('not sure') || (childProfile?.dyslexiaType || '').toLowerCase().includes('unknown')
@@ -452,8 +486,8 @@ function TeacherDashboardContent() {
             adapter_actions: ['continue'],
             breaks_taken: 0,
             report_text: isUnknown
-              ? `🌸 WordBloom Assessment: ${stdFirst} completed ${attempted.length} words with ${acc}% accuracy. Evaluator Agent observed letter sound mapping and visual alignment patterns. WordBloom Recommended Profile: ${apiInferredRec?.recProfile || 'Phonological'}.`
-              : `${stdFirst} completed a focused WordBloom practice session with ${acc}% accuracy across ${attempted.length} words.`,
+              ? `🌸 WordBloom Assessment: ${stdFirst} earned ${correct.length} blooms 🌸 today (${acc}% accuracy across ${attempted.length} words). Evaluator Agent observed letter sound mapping and visual alignment patterns. WordBloom Recommended Profile: ${apiInferredRec?.recProfile || 'Phonological'}.`
+              : `${stdFirst} completed a focused WordBloom practice session, earning ${correct.length} blooms 🌸 with ${acc}% accuracy across ${attempted.length} words.`,
             recommended_profile: isUnknown ? apiInferredRec?.recProfile : null,
             recommendation_reason: isUnknown ? apiInferredRec?.recReason : null,
             is_assessment: isUnknown,
@@ -663,11 +697,12 @@ function TeacherDashboardContent() {
 
       {/* Stats overview (if report exists) */}
       {report && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, width: '100%', maxWidth: 1040, marginBottom: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, width: '100%', maxWidth: 1040, marginBottom: '1.5rem' }}>
           {[
-            { label: 'Words tried',  value: report.words_attempted },
-            { label: 'Accuracy',     value: `${report.accuracy_percent}%` },
-            { label: 'Duration',     value: `${report.duration_minutes} min` },
+            { label: 'Blooms earned', value: `${report.words_correct ?? (report.new_words_mastered?.length || 0)} 🌸` },
+            { label: 'Words tried',   value: report.words_attempted },
+            { label: 'Accuracy',      value: `${report.accuracy_percent}%` },
+            { label: 'Duration',      value: `${report.duration_minutes} min` },
           ].map((stat, i) => (
             <div key={i} style={{
               background: 'var(--panel)', border: '1.5px solid var(--border2)',

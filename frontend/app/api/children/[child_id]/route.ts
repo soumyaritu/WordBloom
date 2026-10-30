@@ -11,7 +11,7 @@ export async function GET(
 
   // Try proxying to FastAPI backend first (use 127.0.0.1 to prevent IPv6 localhost hang)
   try {
-    const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:8000'
+    const backendUrl = process.env.BACKEND_URL || process.env.LOCAL_BACKEND_URL || process.env.ADK_BACKEND_ORIGIN || 'http://127.0.0.1:8000'
     const res = await fetch(`${backendUrl}/api/children/${cleanId}`, {
       cache: 'no-store',
       signal: AbortSignal.timeout(2000),
@@ -30,8 +30,10 @@ export async function GET(
     james: 'James Patel',
     sofia: 'Sony Mathew',
     sony: 'Sony Mathew',
+    alex: 'Alex',
   }
   const isSony = cleanId === 'sofia' || cleanId === 'sony'
+  const isAlex = cleanId === 'alex'
   const defaultDisplayName = fallbackNames[cleanId] || (cleanId.charAt(0).toUpperCase() + cleanId.slice(1))
 
   try {
@@ -51,14 +53,14 @@ export async function GET(
         child_id: cleanId,
         name: resolvedName,
         child_name: resolvedName,
-        dyslexia_type: extract(/- (?:Dyslexia type|Type):\s*(.+)/i, isSony ? 'unknown' : 'phonological'),
-        font: extract(/- Display mode:\s*(.+)/i, isSony ? 'standard' : 'opendyslexic'),
-        display_mode: extract(/- Display mode:\s*(.+)/i, isSony ? 'standard' : 'opendyslexic'),
+        dyslexia_type: extract(/- (?:Dyslexia type|Type):\s*(.+)/i, isAlex ? 'non_dyslexic' : isSony ? 'unknown' : 'phonological'),
+        font: extract(/- Display mode:\s*(.+)/i, (isSony || isAlex) ? 'standard' : 'opendyslexic'),
+        display_mode: extract(/- Display mode:\s*(.+)/i, (isSony || isAlex) ? 'standard' : 'opendyslexic'),
         colour_overlay: extract(/- Colour overlay:\s*(.+)/i, 'none'),
-        input_mode: extract(/- Input mode:\s*(.+)/i, isSony ? 'type' : 'tap'),
-        reading_level: parseInt(extract(/- Reading (?:level|stage):\s*(\d+)/i, isSony ? '1' : '2'), 10),
-        age: parseInt(extract(/- Age:\s*(\d+)/i, isSony ? '7' : '9'), 10),
-        school_year: extract(/- School year:\s*(.+)/i, isSony ? 'Year 3' : 'Year 4'),
+        input_mode: extract(/- Input mode:\s*(.+)/i, (isSony || isAlex) ? 'type' : 'tap'),
+        reading_level: parseInt(extract(/- Reading (?:level|stage):\s*(\d+)/i, isAlex ? '4' : isSony ? '1' : cleanId === 'emma' ? '3' : '2'), 10),
+        age: parseInt(extract(/- Age:\s*(\d+)/i, isAlex ? '13' : isSony ? '7' : '9'), 10),
+        school_year: extract(/- School year:\s*(.+)/i, isAlex ? 'Year 9' : isSony ? 'Year 3' : 'Year 4'),
       })
     }
   } catch (err) {
@@ -70,13 +72,13 @@ export async function GET(
     child_id: cleanId,
     name: defaultDisplayName,
     child_name: defaultDisplayName,
-    dyslexia_type: cleanId === 'liam' ? 'surface' : cleanId === 'james' ? 'visual_spatial' : isSony ? 'unknown' : 'phonological',
-    font: isSony ? 'standard' : 'opendyslexic',
-    display_mode: isSony ? 'standard' : 'opendyslexic',
+    dyslexia_type: isAlex ? 'non_dyslexic' : cleanId === 'liam' ? 'surface' : cleanId === 'james' ? 'visual_spatial' : isSony ? 'unknown' : 'phonological',
+    font: (isSony || isAlex) ? 'standard' : 'opendyslexic',
+    display_mode: (isSony || isAlex) ? 'standard' : 'opendyslexic',
     colour_overlay: cleanId === 'emma' ? 'yellow' : cleanId === 'james' ? 'yellow' : 'none',
-    input_mode: cleanId === 'emma' ? 'voice' : isSony ? 'type' : 'tap',
-    reading_level: cleanId === 'emma' ? 3 : cleanId === 'liam' ? 2 : 1,
-    age: isSony ? 7 : 9,
-    school_year: isSony ? 'Year 3' : 'Year 4',
+    input_mode: cleanId === 'emma' ? 'voice' : (isSony || isAlex) ? 'type' : 'tap',
+    reading_level: isAlex ? 4 : cleanId === 'emma' ? 3 : (cleanId === 'liam' || cleanId === 'james') ? 2 : 1,
+    age: isAlex ? 13 : isSony ? 7 : 9,
+    school_year: isAlex ? 'Year 9' : isSony ? 'Year 3' : 'Year 4',
   })
 }

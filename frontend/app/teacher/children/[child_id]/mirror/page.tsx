@@ -125,29 +125,50 @@ export default function DyslexiaMirrorPage({
 
   const DEFAULT_INITIAL_WORDS: Record<string, WrongWord[]> = {
     emma: [
-      { target: 'through', child_answer: 'thru', is_correct: false, sentence: 'The rabbit ran through the garden fence.' },
-      { target: 'knight',  child_answer: 'nite', is_correct: false, sentence: 'The brave knight rode to the castle.' },
-      { target: 'dog',     child_answer: 'bog',  is_correct: false, sentence: 'The dog ran across the grass.' },
+      { target: 'through', child_answer: 'thru',  is_correct: false, sentence: 'The rabbit ran through the garden fence.' },
+      { target: 'knight',  child_answer: 'nite',  is_correct: false, sentence: 'The brave knight rode to the castle.' },
+      { target: 'wrist',   child_answer: 'wrist', is_correct: true,  sentence: 'Wear a watch on your wrist.' },
+      { target: 'thumb',   child_answer: 'thumb', is_correct: true,  sentence: 'Give a big thumbs up.' },
+      { target: 'light',   child_answer: 'light', is_correct: true,  sentence: 'Turn on the reading light.' },
+      { target: 'train',   child_answer: 'train', is_correct: true,  sentence: 'The train arrived at the station.' },
+      { target: 'beach',   child_answer: 'beach', is_correct: true,  sentence: 'We built sandcastles on the sunny beach.' },
     ],
     liam: [
-      { target: 'dog',   child_answer: 'bog',  is_correct: false, sentence: 'The dog ran across the grass.' },
       { target: 'wrote', child_answer: 'rote', is_correct: false, sentence: 'She wrote a letter to her friend.' },
       { target: 'ship',  child_answer: 'snip', is_correct: false, sentence: 'The big ship sailed across the ocean.' },
+      { target: 'frog',  child_answer: 'frog', is_correct: true,  sentence: 'The green frog jumped in the pond.' },
+      { target: 'clap',  child_answer: 'clap', is_correct: true,  sentence: 'Clap your hands to the music.' },
+      { target: 'drum',  child_answer: 'drum', is_correct: true,  sentence: 'Beat the rhythm on the drum.' },
+      { target: 'star',  child_answer: 'star', is_correct: true,  sentence: 'Look up at the bright twinkling star.' },
     ],
     james: [
       { target: 'dog',   child_answer: 'bog',   is_correct: false, sentence: 'The dog ran across the grass.' },
       { target: 'beach', child_answer: 'deach', is_correct: false, sentence: 'We built a sandcastle on the sunny beach.' },
-      { target: 'chair', child_answer: 'cahir', is_correct: false, sentence: 'Sit down on the wooden chair.' },
+      { target: 'star',  child_answer: 'star',  is_correct: true,  sentence: 'Look up at the bright twinkling star.' },
+      { target: 'jump',  child_answer: 'jump',  is_correct: true,  sentence: 'Jump high into the air.' },
+      { target: 'fish',  child_answer: 'fish',  is_correct: true,  sentence: 'A colourful fish swam past.' },
     ],
     sofia: [
-      { target: 'dog',     child_answer: 'dog',  is_correct: true,  sentence: 'The dog ran happily across the green lawn.' },
-      { target: 'cat',     child_answer: 'cat',  is_correct: true,  sentence: 'The friendly cat purred softly in the morning sun.' },
       { target: 'through', child_answer: 'thru', is_correct: false, sentence: 'They walked through the bright forest.' },
+      { target: 'sun',     child_answer: 'sun',  is_correct: true,  sentence: 'The warm sun is shining bright.' },
+      { target: 'hop',     child_answer: 'hop',  is_correct: true,  sentence: 'Watch the little bunny hop.' },
+      { target: 'cup',     child_answer: 'cup',  is_correct: true,  sentence: 'Drink water from the blue cup.' },
+      { target: 'pin',     child_answer: 'pin',  is_correct: true,  sentence: 'Fasten the paper with a pin.' },
+      { target: 'net',     child_answer: 'net',  is_correct: true,  sentence: 'The butterfly landed on the net.' },
     ],
     sony: [
-      { target: 'dog',     child_answer: 'dog',  is_correct: true,  sentence: 'The dog ran happily across the green lawn.' },
-      { target: 'cat',     child_answer: 'cat',  is_correct: true,  sentence: 'The friendly cat purred softly in the morning sun.' },
       { target: 'through', child_answer: 'thru', is_correct: false, sentence: 'They walked through the bright forest.' },
+      { target: 'sun',     child_answer: 'sun',  is_correct: true,  sentence: 'The warm sun is shining bright.' },
+      { target: 'hop',     child_answer: 'hop',  is_correct: true,  sentence: 'Watch the little bunny hop.' },
+      { target: 'cup',     child_answer: 'cup',  is_correct: true,  sentence: 'Drink water from the blue cup.' },
+      { target: 'pin',     child_answer: 'pin',  is_correct: true,  sentence: 'Fasten the paper with a pin.' },
+      { target: 'net',     child_answer: 'net',  is_correct: true,  sentence: 'The butterfly landed on the net.' },
+    ],
+    alex: [
+      { target: 'sunshine',  child_answer: 'sunshine',  is_correct: true, sentence: 'Warm sunshine filled the room.' },
+      { target: 'adventure', child_answer: 'adventure', is_correct: true, sentence: 'Every book is a great adventure.' },
+      { target: 'wonderful', child_answer: 'wonderful', is_correct: true, sentence: 'You did a wonderful job today.' },
+      { target: 'rainbow',   child_answer: 'rainbow',   is_correct: true, sentence: 'A double rainbow arched across the sky.' },
     ],
   }
 
@@ -159,8 +180,10 @@ export default function DyslexiaMirrorPage({
     james: 'James Patel',
     sofia: 'Sony Mathew',
     sony: 'Sony Mathew',
+    alex: 'Alex',
   }
   const isSony = childId === 'sofia' || childId === 'sony'
+  const isAlex = childId === 'alex'
   const defaultDisplayName = fallbackNames[childId] || (childId.charAt(0).toUpperCase() + childId.slice(1))
 
   const [profile, setProfile] = useState<ChildProfile | null>(() => ({
@@ -168,16 +191,17 @@ export default function DyslexiaMirrorPage({
     child_id: childId,
     name: defaultDisplayName,
     child_name: defaultDisplayName,
-    dyslexia_type: childId === 'james' ? 'visual_spatial' : childId === 'liam' ? 'surface' : isSony ? 'unknown' : 'phonological',
-    font: isSony ? 'standard' : 'opendyslexic',
-    display_mode: isSony ? 'standard' : 'opendyslexic',
+    dyslexia_type: isAlex ? 'non_dyslexic' : childId === 'james' ? 'visual_spatial' : childId === 'liam' ? 'surface' : isSony ? 'unknown' : 'phonological',
+    font: (isSony || isAlex) ? 'standard' : 'opendyslexic',
+    display_mode: (isSony || isAlex) ? 'standard' : 'opendyslexic',
     colour_overlay: childId === 'emma' || childId === 'james' ? 'yellow' : 'none',
-    input_mode: childId === 'emma' ? 'voice' : isSony ? 'type' : 'tap',
-    reading_level: isSony ? 1 : childId === 'emma' ? 3 : 2,
-    age: isSony ? 7 : 9,
-    school_year: isSony ? 'Year 3' : 'Year 4',
+    input_mode: childId === 'emma' ? 'voice' : (isSony || isAlex) ? 'type' : 'tap',
+    reading_level: isAlex ? 4 : isSony ? 1 : childId === 'emma' ? 3 : 2,
+    age: isAlex ? 13 : isSony ? 7 : 9,
+    school_year: isAlex ? 'Year 9' : isSony ? 'Year 3' : 'Year 4',
   }))
   const [selectedType, setSelectedType] = useState<DyslexiaType>(() => {
+    if (isAlex) return 'non_dyslexic'
     if (childId === 'james') return 'visual_spatial'
     if (childId === 'liam') return 'surface'
     if (isSony) return 'non_dyslexic'
@@ -394,17 +418,22 @@ export default function DyslexiaMirrorPage({
           }
         }
 
-        // Filter to wrong answers safely or display session words with correct state preserved
-        let filteredWrong = sessionWords.filter(w => w && typeof w === 'object' && w.target && !w.is_correct)
-        if (filteredWrong.length === 0 && sessionWords.length > 0) {
-          filteredWrong = sessionWords.map(w => ({ ...w }))
+        // Keep all session words (sorting words to revisit first so the Mirror opens on a word needing support)
+        let displayWords = sessionWords.filter(w => w && typeof w === 'object' && w.target)
+        // If sessionWords was the old 3-wrong-word fallback with 0 correct words, upgrade to the complete default set
+        if (displayWords.length === 3 && displayWords.every(w => !w.is_correct)) {
+          displayWords = DEFAULT_INITIAL_WORDS[childId] || DEFAULT_INITIAL_WORDS.emma
         }
-        if (filteredWrong.length === 0) {
-          filteredWrong = DEFAULT_INITIAL_WORDS[childId] || DEFAULT_INITIAL_WORDS.sony || DEFAULT_INITIAL_WORDS.emma
+        if (displayWords.length === 0) {
+          displayWords = DEFAULT_INITIAL_WORDS[childId] || DEFAULT_INITIAL_WORDS.sony || DEFAULT_INITIAL_WORDS.emma
+        } else {
+          const revisit = displayWords.filter(w => !w.is_correct)
+          const mastered = displayWords.filter(w => w.is_correct)
+          displayWords = [...revisit, ...mastered]
         }
 
         if (isMounted) {
-          setWrongWords(filteredWrong)
+          setWrongWords(displayWords)
           setActiveWordIndex(0)
         }
       } catch (err) {
@@ -1147,19 +1176,21 @@ export default function DyslexiaMirrorPage({
                   {activeSentence.split(' ').map((w, idx) => {
                     const isTarget = w.toLowerCase().replace(/[^a-z]/g, '') === activeWord.target.toLowerCase()
                     return (
-                      <span key={idx} style={{ marginRight: 6, display: 'inline-block' }}>
-                        {isTarget ? (
-                          <strong style={{ color: selectedType === 'non_dyslexic' ? '#34D399' : '#F87171' }}>
-                            {renderSimulatedWord(w)}
-                          </strong>
-                        ) : selectedType === 'attentional' && animationOn ? (
-                          <span className="animate-mirror-drift" style={{ display: 'inline-block', animationDelay: `${(idx * 0.4) % 2}s` }}>
-                            {w}
-                          </span>
-                        ) : (
-                          w
-                        )}
-                      </span>
+                      <React.Fragment key={idx}>
+                        <span style={{ marginRight: 6, display: 'inline-block' }}>
+                          {isTarget ? (
+                            <strong style={{ color: selectedType === 'non_dyslexic' ? '#34D399' : '#F87171' }}>
+                              {renderSimulatedWord(w)}
+                            </strong>
+                          ) : selectedType === 'attentional' && animationOn ? (
+                            <span className="animate-mirror-drift" style={{ display: 'inline-block', animationDelay: `${(idx * 0.4) % 2}s` }}>
+                              {w}
+                            </span>
+                          ) : (
+                            w
+                          )}
+                        </span>{' '}
+                      </React.Fragment>
                     )
                   })}
                 </div>
@@ -1273,31 +1304,38 @@ export default function DyslexiaMirrorPage({
                     const isTarget = w.toLowerCase().replace(/[^a-z]/g, '') === activeWord.target.toLowerCase()
                     if (isTarget) {
                       return (
-                        <span
-                          key={idx}
-                          style={{
-                            background: 'rgba(16,185,129,0.25)',
-                            border: '1px solid #10B981',
-                            padding: '2px 8px',
-                            borderRadius: 6,
-                            color: '#34D399',
-                            fontWeight: 700,
-                            marginRight: 6,
-                            display: 'inline-block',
-                          }}
-                        >
-                          {w}
-                        </span>
+                        <React.Fragment key={idx}>
+                          <span
+                            style={{
+                              background: 'rgba(16,185,129,0.25)',
+                              border: '1px solid #10B981',
+                              padding: '2px 8px',
+                              borderRadius: 6,
+                              color: '#34D399',
+                              fontWeight: 700,
+                              marginRight: 6,
+                              display: 'inline-block',
+                            }}
+                          >
+                            {w}
+                          </span>{' '}
+                        </React.Fragment>
                       )
                     }
                     if (selectedType === 'attentional') {
                       return (
-                        <span key={idx} style={{ opacity: 0.35, filter: 'blur(0.3px)', marginRight: 6 }}>
-                          {w}
-                        </span>
+                        <React.Fragment key={idx}>
+                          <span style={{ opacity: 0.35, filter: 'blur(0.3px)', marginRight: 6, display: 'inline-block' }}>
+                            {w}
+                          </span>{' '}
+                        </React.Fragment>
                       )
                     }
-                    return <span key={idx} style={{ marginRight: 6 }}>{w}</span>
+                    return (
+                      <React.Fragment key={idx}>
+                        <span style={{ marginRight: 6, display: 'inline-block' }}>{w}</span>{' '}
+                      </React.Fragment>
+                    )
                   })}
                 </div>
               </div>

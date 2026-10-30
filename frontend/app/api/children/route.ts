@@ -141,8 +141,7 @@ export async function GET() {
           if (seenNames.has(parsedName.toLowerCase())) continue
           seenNames.add(parsedName.toLowerCase())
 
-          const rawGoal = extract(/- Candy goal:\s*(\d+)/i, '')
-          const parsedGoal = rawGoal ? parseInt(rawGoal, 10) : (fallback?.candy_count ?? 5)
+          const defaultBlooms = fallback?.candy_count ?? 5
 
           children.push({
             id: childId,
@@ -153,7 +152,7 @@ export async function GET() {
             input_mode: extract(/- Input mode:\s*(.+)/i, fallback?.input_mode || 'voice'),
             conditions: conditions.length > 0 ? conditions : (fallback?.conditions || []),
             last_session: fallback?.last_session || 'Today',
-            candy_count: parsedGoal,
+            candy_count: defaultBlooms,
             font: extract(/- Display mode:\s*(.+)/i, fallback?.font || 'standard'),
             colour_overlay: extract(/- Colour overlay:\s*(.+)/i, fallback?.colour_overlay || 'none'),
           })
