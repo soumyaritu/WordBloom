@@ -18,6 +18,10 @@ export async function GET(
     })
     if (res.ok) {
       const data = await res.json()
+      if (cleanId === 'james') {
+        if (!data.name || data.name.toLowerCase().includes('patel')) data.name = 'James Bond'
+        if (!data.child_name || data.child_name.toLowerCase().includes('patel')) data.child_name = 'James Bond'
+      }
       return NextResponse.json(data)
     }
   } catch (e) {
@@ -27,7 +31,7 @@ export async function GET(
   const fallbackNames: Record<string, string> = {
     emma: 'Emma Clarke',
     liam: "Liam O'Connor",
-    james: 'James Patel',
+    james: 'James Bond',
     sofia: 'Sony Mathew',
     sony: 'Sony Mathew',
     alex: 'Alex',

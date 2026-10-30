@@ -122,7 +122,7 @@ const DEFAULT_START_PROFILES: Record<string, any> = {
   },
   james: {
     child_id: "james",
-    child_name: "James Patel",
+    child_name: "James Bond",
     parent_email: "parent@example.com",
     age: 10,
     school_year: "Year 5",

@@ -41,12 +41,12 @@ export interface StudentSessionSummary {
   report: StudentSessionReport
 }
 
-const SYNC_VERSION_KEY = 'wb_session_sync_v4'
+const SYNC_VERSION_KEY = 'wb_session_sync_v5'
 
 export const DEFAULT_STUDENT_NAMES: Record<string, string> = {
   emma: 'Emma Clarke',
   liam: "Liam O'Connor",
-  james: 'James Patel',
+  james: 'James Bond',
   sofia: 'Sony Mathew',
   sony: 'Sony Mathew',
   alex: 'Alex',
@@ -114,7 +114,10 @@ export const DEFAULT_SESSION_WORDS: Record<string, SessionWordAttempt[]> = {
 
 export function dedupeStudentName(name: string): string {
   if (!name) return ''
-  let cleaned = name.trim().replace(/\s+/g, ' ')
+  let cleaned = name
+    .trim()
+    .replace(/\bJames Patel\b/gi, 'James Bond')
+    .replace(/\s+/g, ' ')
   while (/\b([A-Za-z'.-]+)\s+\1\b/i.test(cleaned)) {
     cleaned = cleaned.replace(/\b([A-Za-z'.-]+)\s+\1\b/gi, '$1')
   }
@@ -144,6 +147,16 @@ export function ensureSessionDataSynced(): void {
       }
     }
     keysToRemove.forEach(k => localStorage.removeItem(k))
+    const jamesProfRaw = localStorage.getItem('wb_profile_james')
+    if (jamesProfRaw) {
+      try {
+        const jp = JSON.parse(jamesProfRaw)
+        if (!jp.fullName || String(jp.fullName).toLowerCase().includes('patel')) {
+          jp.fullName = 'James Bond'
+          localStorage.setItem('wb_profile_james', JSON.stringify(jp))
+        }
+      } catch (e) {}
+    }
     localStorage.setItem(SYNC_VERSION_KEY, 'true')
   } catch (e) {}
 }

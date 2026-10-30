@@ -36,7 +36,7 @@ export default function ChildDetailPage({
   const fallbackNames: Record<string, string> = {
     emma: 'Emma Clarke',
     liam: "Liam O'Connor",
-    james: 'James Patel',
+    james: 'James Bond',
     sofia: 'Sony Mathew',
     sony: 'Sony Mathew',
     alex: 'Alex',
@@ -104,7 +104,8 @@ export default function ChildDetailPage({
     loadData()
   }, [childId, defaultDisplayName, isAlex, isSony])
 
-  const childName = isSony ? 'Sony Mathew' : (profile?.name || profile?.child_name || defaultDisplayName)
+  const rawChildName = isSony ? 'Sony Mathew' : (profile?.name || profile?.child_name || defaultDisplayName)
+  const childName = rawChildName.replace(/\bJames Patel\b/gi, 'James Bond')
   const firstName = isSony ? 'Sony' : childName.split(' ')[0]
   const rawType = (profile?.dyslexia_type || (isAlex ? 'non_dyslexic' : '')).toLowerCase()
   const isNonDyslexic = rawType.includes('non') || rawType === 'none' || rawType === 'general' || rawType === 'standard' || rawType === 'normal'

@@ -45,7 +45,7 @@ const DEFAULT_CHILDREN: ChildProfileData[] = [
   },
   {
     id: 'james',
-    name: 'James Patel',
+    name: 'James Bond',
     avatar: '🚀',
     dyslexia_type: 'Visual / Spatial',
     reading_stage: 2,
@@ -136,7 +136,8 @@ export async function GET() {
           }
 
           const fallback = DEFAULT_CHILDREN.find(d => d.id === childId)
-          const parsedName = extract(/- Full name:\s*(.+)/i, fallback?.name || (childId.charAt(0).toUpperCase() + childId.slice(1)))
+          const rawParsedName = extract(/- Full name:\s*(.+)/i, fallback?.name || (childId.charAt(0).toUpperCase() + childId.slice(1)))
+          const parsedName = rawParsedName.replace(/\bJames Patel\b/gi, 'James Bond')
 
           if (seenNames.has(parsedName.toLowerCase())) continue
           seenNames.add(parsedName.toLowerCase())

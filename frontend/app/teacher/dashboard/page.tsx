@@ -43,7 +43,7 @@ const FALLBACK_CHILDREN: ChildRow[] = [
   },
   {
     id: 'james',
-    name: 'James Patel',
+    name: 'James Bond',
     avatar: '🚀',
     dyslexia_type: 'Visual / Spatial',
     reading_stage: 2,
@@ -78,7 +78,7 @@ const FALLBACK_CHILDREN: ChildRow[] = [
 
 function dedupeName(name: string): string {
   if (!name) return ''
-  let cleaned = name.trim().replace(/\s+/g, ' ')
+  let cleaned = name.trim().replace(/\bJames Patel\b/gi, 'James Bond').replace(/\s+/g, ' ')
   while (/\b([A-Za-z'.-]+)\s+\1\b/i.test(cleaned)) {
     cleaned = cleaned.replace(/\b([A-Za-z'.-]+)\s+\1\b/gi, '$1')
   }

@@ -25,7 +25,7 @@ function ProfileForm() {
       colourOverlay: 'none', sessionLength: 5, candyGoal: 5, breakAfter: 5,
     },
     james: {
-      fullName: 'James Patel', age: 10, schoolYear: 'Year 5', dyslexiaType: 'visual',
+      fullName: 'James Bond', age: 10, schoolYear: 'Year 5', dyslexiaType: 'visual',
       coOccurring: ['dyspraxia'], readingLevel: 2, inputMode: 'tap', displayMode: 'opendyslexic',
       colourOverlay: 'yellow', sessionLength: 10, candyGoal: 8, breakAfter: 10,
     },
@@ -63,7 +63,10 @@ function ProfileForm() {
   }
 
   const [childId, setChildId] = useState(isNew ? 'child_new' : childParam)
-  const [fullName, setFullName] = useState<string>(() => getInitialField('fullName', isNew ? '' : (childParam.charAt(0).toUpperCase() + childParam.slice(1))))
+  const [fullName, setFullName] = useState<string>(() => {
+    const val = String(getInitialField('fullName', isNew ? '' : (childParam.charAt(0).toUpperCase() + childParam.slice(1))))
+    return val.replace(/\bJames Patel\b/gi, 'James Bond')
+  })
   const [parentEmail, setParentEmail] = useState<string>(() => getInitialField('parentEmail', isNew ? '' : 'parent@example.com'))
   const [age, setAge] = useState<string | number>(() => getInitialField('age', isNew ? '' : 9))
   const [schoolYear, setSchoolYear] = useState<string>(() => getInitialField('schoolYear', isNew ? '' : 'Year 4'))

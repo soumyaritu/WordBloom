@@ -107,7 +107,7 @@ function getInitialInstantSession(childParam: string) {
     },
     james: {
       child_id: 'james',
-      child_name: 'James Patel',
+      child_name: 'James Bond',
       reading_level: 2,
       reading_stage: 2,
       dyslexia_type: 'visual/spatial',

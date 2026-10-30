@@ -180,7 +180,7 @@ export default function DyslexiaMirrorPage({
   const fallbackNames: Record<string, string> = {
     emma: 'Emma Clarke',
     liam: "Liam O'Connor",
-    james: 'James Patel',
+    james: 'James Bond',
     sofia: 'Sony Mathew',
     sony: 'Sony Mathew',
     alex: 'Alex',
@@ -405,7 +405,8 @@ export default function DyslexiaMirrorPage({
     return () => { isMounted = false }
   }, [childId])
 
-  const childName = isSony ? 'Sony Mathew' : (profile?.name || profile?.child_name || defaultDisplayName)
+  const rawChildName = isSony ? 'Sony Mathew' : (profile?.name || profile?.child_name || defaultDisplayName)
+  const childName = rawChildName.replace(/\bJames Patel\b/gi, 'James Bond')
   const firstName = isSony ? 'Sony' : childName.split(' ')[0]
   const activeWord = wrongWords[activeWordIndex] || wrongWords[0] || initialWords[0]
   const rawType = (profile?.dyslexia_type || '').toLowerCase().trim()

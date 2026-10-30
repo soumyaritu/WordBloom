@@ -9,14 +9,14 @@ import { getStudentSessionSummary } from '../../lib/sessionData'
 const DEFAULT_STUDENTS = [
   { id: 'emma',  name: 'Emma Clarke',   level: 3, type: 'Phonological · ADHD' },
   { id: 'liam',  name: "Liam O'Connor", level: 2, type: 'Surface · DYSPRAXIA, ADHD' },
-  { id: 'james', name: 'James Patel',   level: 2, type: 'Visual · Dyspraxia'  },
+  { id: 'james', name: 'James Bond',    level: 2, type: 'Visual · Dyspraxia'  },
   { id: 'sofia', name: 'Sony Mathew',   level: 1, type: 'Bloom Profile: Not sure yet' },
   { id: 'alex',  name: 'Alex',          level: 4, type: 'Non-dyslexic (General)' },
 ]
 
 function dedupeName(name: string): string {
   if (!name) return ''
-  let cleaned = name.trim().replace(/\s+/g, ' ')
+  let cleaned = name.trim().replace(/\bJames Patel\b/gi, 'James Bond').replace(/\s+/g, ' ')
   while (/\b([A-Za-z'.-]+)\s+\1\b/i.test(cleaned)) {
     cleaned = cleaned.replace(/\b([A-Za-z'.-]+)\s+\1\b/gi, '$1')
   }
@@ -59,7 +59,7 @@ function enrichTeacherStudents(baseList: any[]) {
 
     const fallbackName = c.name && c.name.toLowerCase() !== c.id
       ? c.name
-      : (c.id === 'liam' ? "Liam O'Connor" : c.id === 'sofia' || c.id === 'sony' ? 'Sony Mathew' : c.id === 'emma' ? 'Emma Clarke' : c.id === 'james' ? 'James Patel' : c.id)
+      : (c.id === 'liam' ? "Liam O'Connor" : c.id === 'sofia' || c.id === 'sony' ? 'Sony Mathew' : c.id === 'emma' ? 'Emma Clarke' : c.id === 'james' ? 'James Bond' : c.id)
 
     result.push({
       id: c.id,
@@ -184,7 +184,7 @@ function TeacherDashboardContent() {
 
     const targetStudent = students.find(s => s.id === activeChildId) || {
       id: activeChildId,
-      name: activeChildId === 'liam' ? "Liam O'Connor" : activeChildId === 'james' ? 'James Patel' : activeChildId === 'sofia' || activeChildId === 'sony' ? 'Sony Mathew' : activeChildId === 'emma' ? 'Emma Clarke' : (activeChildId.charAt(0).toUpperCase() + activeChildId.slice(1)),
+      name: activeChildId === 'liam' ? "Liam O'Connor" : activeChildId === 'james' ? 'James Bond' : activeChildId === 'sofia' || activeChildId === 'sony' ? 'Sony Mathew' : activeChildId === 'emma' ? 'Emma Clarke' : (activeChildId.charAt(0).toUpperCase() + activeChildId.slice(1)),
       level: activeChildId === 'emma' ? 3 : activeChildId === 'alex' ? 4 : activeChildId === 'sofia' || activeChildId === 'sony' ? 1 : 2,
       type: activeChildId === 'liam' ? 'Surface' : activeChildId === 'james' ? 'Visual / Spatial' : activeChildId === 'sofia' || activeChildId === 'sony' ? 'Bloom Profile: Not sure yet' : activeChildId === 'alex' ? 'Non-dyslexic (General)' : 'Phonological'
     }
