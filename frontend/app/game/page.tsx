@@ -271,6 +271,13 @@ function GameContent() {
       return
     }
 
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort()
+      } catch (e) {}
+      recognitionRef.current = null
+    }
+
     if (currentAudioRef.current) {
       currentAudioRef.current.pause()
       currentAudioRef.current = null
@@ -279,6 +286,9 @@ function GameContent() {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel()
     }
+
+    setInterimSpoken('')
+    setAnswer('')
 
     try {
       const recognition = new SpeechRecognition()
@@ -301,69 +311,164 @@ function GameContent() {
         const targetClean = (activeWord?.word || currentWord || '').toLowerCase().trim().replace(/[.,!?:;'"]/g, '')
 
         // Helper: evaluate all speech alternatives to find target match or acoustic sound-alike match
-        const pickBestTranscript = (item: any): string => {
-          if (!item || item.length === 0) return ''
-          
-          // 1. Exact match among alternatives (e.g. alt[0] is "hope", alt[1] is "hop" -> picks "hop")
-          for (let j = 0; j < item.length; j++) {
-            const tr = (item[j]?.transcript || '').trim().toLowerCase().replace(/[.,!?:;'"]/g, '')
-            if (tr === targetClean) {
-              return targetClean
-            }
+        const matchesTarget = (rawTranscript: string): boolean => {
+          const tr = (rawTranscript || '').trim().toLowerCase().replace(/[.,!?:;'"]/g, '')
+          if (!tr || !targetClean) return false
+
+          const tokens = tr.split(/\s+/).filter(Boolean)
+          const candidates = [tr, ...tokens]
+
+          // 1. Exact match or carrier phrase token match (e.g. "the sun", "a cup")
+          if (candidates.includes(targetClean)) return true
+
+          // 2. Trailing silent 'e', plural 's'/'es', or 'ed' STT inflection
+          for (const tok of candidates) {
+            if (tok.endsWith('e') && tok.slice(0, -1) === targetClean) return true
+            if (targetClean.endsWith('e') && targetClean.slice(0, -1) === tok) return true
+            if (tok.endsWith('s') && tok.slice(0, -1) === targetClean) return true
+            if (tok.endsWith('es') && tok.slice(0, -2) === targetClean) return true
+            if (tok.endsWith('ed') && tok.slice(0, -2) === targetClean) return true
           }
 
-          // 2. Trailing silent 'e' elongation (e.g. child says "hop" -> STT hears "hope")
-          for (let j = 0; j < item.length; j++) {
-            const tr = (item[j]?.transcript || '').trim().toLowerCase().replace(/[.,!?:;'"]/g, '')
-            if (tr.endsWith('e') && tr.slice(0, -1) === targetClean) {
-              return targetClean
-            }
-            if (targetClean.endsWith('e') && targetClean.slice(0, -1) === tr) {
-              return targetClean
-            }
-          }
-
-          // 3. Known acoustic homophones & sound-alikes
+          // 3. Single-word browser STT homophones & acoustic sound-alikes
           const HOMOPHONE_MAP: Record<string, string[]> = {
-            hop: ['hope', 'hot'],
+            hop: ['hope', 'hot', 'hub', 'top', 'pop'],
             hope: ['hop'],
-            sun: ['son', 'some'],
-            son: ['sun'],
+            sun: ['son', 'some', 'sung', 'san', 'soon', 'fun', 'run'],
+            son: ['sun', 'some'],
             not: ['note', 'knot'],
             knot: ['not', 'note'],
-            pop: ['pope'],
+            pop: ['pope', 'top'],
             pope: ['pop'],
             rob: ['robe'],
             robe: ['rob'],
-            pin: ['pine'],
+            pin: ['pine', 'pen', 'bin', 'tin', 'ping', 'fin', 'in'],
             pine: ['pin'],
-            cut: ['cute'],
+            pen: ['pin', 'pan', 'ten', 'ben'],
+            cut: ['cute', 'cup', 'cat'],
             cute: ['cut'],
+            cup: ['cop', 'cap', 'cub', 'cut', 'up', 'pup'],
             tub: ['tube'],
             tube: ['tub'],
-            cap: ['cape'],
+            cap: ['cape', 'cup', 'cab', 'cat', 'tap'],
             cape: ['cap'],
-            tap: ['tape'],
+            tap: ['tape', 'top', 'cap', 'tab'],
             tape: ['tap'],
             rip: ['ripe'],
             ripe: ['rip'],
-            dog: ['dock', 'doc'],
-            cat: ['kat'],
-            right: ['write'],
+            dog: ['dock', 'doc', 'dawg', 'dug', 'fog', 'log'],
+            cat: ['kat', 'cut', 'cap', 'cab', 'chat'],
+            bat: ['bad', 'back', 'bag', 'but', 'bet', 'mat', 'pat'],
+            net: ['neck', 'next', 'met', 'let', 'wet', 'nut', 'not'],
+            fog: ['frog', 'dog', 'log', 'bog', 'folk'],
+            map: ['mat', 'nap', 'mop', 'lap', 'cap'],
+            red: ['read', 'reed', 'bed', 'led', 'fed'],
+            big: ['bag', 'beg', 'bug', 'dig', 'pig', 'fig'],
+            fox: ['box', 'folks', 'forks', 'socks', 'rocks', 'fax'],
+            box: ['fox', 'books', 'blocks', 'locks', 'socks'],
+            bug: ['bag', 'big', 'bog', 'mug', 'rug', 'hug', 'dug'],
+            van: ['fan', 'man', 'ran', 'pan', 'can', 'then'],
+            frog: ['frock', 'fog', 'from', 'front', 'blog'],
+            clap: ['club', 'class', 'clip', 'flap', 'slap', 'tap'],
+            drum: ['dram', 'drunk', 'drop', 'trum', 'run', 'from'],
+            ship: ['sheep', 'shop', 'chip', 'shape', 'sip', 'tip'],
+            fish: ['dish', 'wish', 'fresh', 'flesh'],
+            path: ['pass', 'past', 'bath', 'part', 'pack'],
+            wind: ['win', 'went', 'when', 'wing', 'wand'],
+            jump: ['jam', 'dump', 'bump', 'lump', 'pump'],
+            nest: ['next', 'best', 'rest', 'test', 'west'],
+            star: ['start', 'stare', 'store', 'stir', 'car', 'far'],
+            crab: ['crib', 'grab', 'cab', 'cram', 'crack'],
+            flag: ['flat', 'flog', 'bag', 'tag'],
+            bell: ['ball', 'bill', 'belt', 'well', 'tell', 'fell', 'sell'],
+            chin: ['chain', 'shin', 'thin', 'pin', 'in'],
+            plum: ['plan', 'plug', 'plus', 'thumb', 'drum'],
+            wrist: ['rist', 'list', 'rest', 'west', 'mist', 'twist'],
+            knock: ['not', 'knot', 'lock', 'rock', 'clock', 'block'],
+            thumb: ['thum', 'some', 'sum', 'come', 'plum', 'drum', 'fun'],
+            light: ['lite', 'like', 'line', 'night', 'right', 'white'],
+            bread: ['bred', 'red', 'bed', 'head', 'thread'],
+            knight: ['night', 'nite', 'light', 'right', 'kite'],
+            train: ['rain', 'chain', 'brain', 'drain', 'plane'],
+            float: ['flat', 'flight', 'boat', 'coat', 'goat'],
+            sword: ['sord', 'sort', 'word', 'cord', 'lord'],
+            climb: ['clime', 'clim', 'time', 'lime', 'line'],
+            beach: ['beech', 'peach', 'reach', 'teach', 'each'],
+            gnome: ['nome', 'home', 'no', 'note', 'known', 'foam'],
+            right: ['write', 'light', 'night'],
             write: ['right'],
-            see: ['sea'],
-            sea: ['see'],
+            see: ['sea', 'c'],
+            sea: ['see', 'c'],
             one: ['won'],
             won: ['one'],
             for: ['four'],
             four: ['for'],
           }
-          if (HOMOPHONE_MAP[targetClean]) {
-            for (let j = 0; j < item.length; j++) {
-              const tr = (item[j]?.transcript || '').trim().toLowerCase().replace(/[.,!?:;'"]/g, '')
-              if (HOMOPHONE_MAP[targetClean].includes(tr)) {
-                return targetClean
-              }
+          const validAlts = HOMOPHONE_MAP[targetClean]
+          if (validAlts) {
+            for (const tok of candidates) {
+              if (validAlts.includes(tok)) return true
+            }
+          }
+
+          // 4. Acoustic phonetic equivalence for laptop microphones (e.g. unvoiced th/s/t/f/p/k confusions like "tass"/"pass" for "path" or "cat")
+          const normalizePhonetic = (w: string) =>
+            w
+              .replace(/th/g, 's')
+              .replace(/sh/g, 's')
+              .replace(/ch/g, 's')
+              .replace(/ph/g, 'f')
+              .replace(/ck/g, 'k')
+              .replace(/gh/g, '')
+              .replace(/^kn/, 'n')
+              .replace(/^wr/, 'r')
+              .replace(/^gn/, 'n')
+              .replace(/mb$/, 'm')
+              .replace(/[c]/g, 'k')
+              .replace(/[dt]/g, 't')
+              .replace(/[bpv]/g, 'p')
+              .replace(/[gk]/g, 'k')
+              .replace(/[sz]/g, 's')
+              .replace(/[mn]/g, 'n')
+              .replace(/(.)\1+/g, '$1')
+
+          const targetPhon = normalizePhonetic(targetClean)
+          const targetVowels = targetClean.replace(/[^aeiou]/g, '')
+
+          // Do not auto-correct an intentional b/d or p/q mirror reversal on attempt 1
+          const mirrorMap: Record<string, string> = { b: 'd', d: 'b', p: 'q', q: 'p' }
+          const mirroredTarget = targetClean.split('').map(c => mirrorMap[c] || c).join('')
+
+          for (const tok of candidates) {
+            if (!tok || tok === mirroredTarget) continue
+            const tokPhon = normalizePhonetic(tok)
+            if (tokPhon === targetPhon) return true
+
+            // Vowel match + shared consonant or retry tolerance when visualHintB64 is active
+            const tokVowels = tok.replace(/[^aeiou]/g, '')
+            let sharedChars = 0
+            for (const ch of tok) {
+              if (targetClean.includes(ch)) sharedChars++
+            }
+            if (targetVowels && tokVowels === targetVowels && sharedChars >= Math.max(1, targetClean.length - 2)) {
+              return true
+            }
+            // If retrying after a hint in voice mode, accept any close spoken attempt that isn't the mirror word
+            if (visualHintB64 && sharedChars >= Math.max(1, Math.floor(targetClean.length / 2))) {
+              return true
+            }
+          }
+
+          return false
+        }
+
+        const pickBestTranscript = (item: any): string => {
+          if (!item || item.length === 0) return ''
+
+          for (let j = 0; j < item.length; j++) {
+            const rawTr = (item[j]?.transcript || '').trim()
+            if (matchesTarget(rawTr)) {
+              return targetClean
             }
           }
 
@@ -383,6 +488,17 @@ function GameContent() {
 
         const candidate = (final || interim).trim()
         if (candidate) {
+          // Ignore speaker echo if microphone picked up the app's own TTS audio scaffold
+          const lowerCand = candidate.toLowerCase()
+          if (
+            lowerCand.includes('sound it out') ||
+            lowerCand.includes('together') ||
+            lowerCand.includes('listen to the sounds') ||
+            lowerCand.includes('you nailed it')
+          ) {
+            return
+          }
+
           setInterimSpoken(candidate)
           setAnswer(candidate)
 
@@ -391,15 +507,17 @@ function GameContent() {
             silenceTimerRef.current = null
           }
 
-          if (final) {
+          const isTargetMatch = candidate.toLowerCase().trim() === targetClean
+
+          if (final || isTargetMatch) {
             if (!isSubmittingRef.current && !pendingWord && !loading) {
               try { recognition.stop() } catch (err) {}
               setIsListening(false)
-              setMicStatusMsg(`Heard: "${final}"`)
-              handleSubmit(final)
+              setMicStatusMsg(`Heard: "${candidate}"`)
+              handleSubmit(candidate)
             }
           } else {
-            // Rapid auto-submit if speaker pauses after candidate (eliminates 4s Chrome silence wait)
+            // Wait 1100ms on non-matching interim speech so user finishes pronouncing the word
             silenceTimerRef.current = setTimeout(() => {
               silenceTimerRef.current = null
               if (candidate && !isSubmittingRef.current && !pendingWord && !loading) {
@@ -408,7 +526,7 @@ function GameContent() {
                 setMicStatusMsg(`Heard: "${candidate}"`)
                 handleSubmit(candidate)
               }
-            }, 450)
+            }, 1100)
           }
         }
       }
@@ -648,6 +766,8 @@ function GameContent() {
     setMeaningIcon(null)
     setMeaningDesc(null)
     setAnswer('')
+    setInterimSpoken('')
+    setMicStatusMsg('')
     setTappedLetters([])
   }
 
@@ -698,6 +818,17 @@ function GameContent() {
     // Prevent duplicate concurrent submissions (rapid enter, double-click, speech race)
     if (isSubmittingRef.current || loading || pendingWord) return
     isSubmittingRef.current = true
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current)
+      silenceTimerRef.current = null
+    }
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current = null
+    }
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
+    }
     setLoading(true)
     const elapsed = (Date.now() - startTime.current) / 1000
     startTime.current = Date.now()
@@ -716,10 +847,18 @@ function GameContent() {
 
       setFeedback(result)
       setAnswer('')
+      setInterimSpoken('')
       setTappedLetters([])
 
       const isCorrect = Boolean(result.evaluation?.is_correct)
       if (isCorrect) {
+        if (currentAudioRef.current) {
+          currentAudioRef.current.pause()
+          currentAudioRef.current = null
+        }
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+          window.speechSynthesis.cancel()
+        }
         setVisualHintB64(null)
         setAudioScaffoldB64(null)
         setPhonicsChunks(null)
