@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { approveReport, startSession, getProfile } from '../../lib/api'
 import TeacherBackground from '../../components/TeacherBackground'
+import ProgressTab from '../../components/ProgressTab'
 import { getStudentSessionSummary } from '../../lib/sessionData'
 
 const DEFAULT_STUDENTS = [
@@ -117,6 +118,17 @@ function TeacherDashboardContent() {
   const [approved, setApproved]           = useState(false)
   const [loading, setLoading]             = useState(false)
   const [sessionStarting, setSessionStarting] = useState(false)
+  const [reportTab, setReportTab]         = useState<'summary' | 'progress'>('summary')
+
+  const handleTabKeyDown = (e: React.KeyboardEvent, current: 'summary' | 'progress') => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault()
+      const nextTab = current === 'summary' ? 'progress' : 'summary'
+      setReportTab(nextTab)
+      const nextBtn = document.getElementById(`tab-${nextTab}`)
+      if (nextBtn) nextBtn.focus()
+    }
+  }
 
   // Fetch children list on mount
   useEffect(() => {
@@ -485,8 +497,90 @@ function TeacherDashboardContent() {
             </div>
           </div>
 
-          {/* Report body */}
-          <div style={{ padding: '1.5rem' }}>
+          {/* Tab Navigation (Summary vs Progress) */}
+          <div
+            role="tablist"
+            aria-label="Session report views"
+            style={{
+              display: 'flex',
+              gap: 8,
+              padding: '0.75rem 1.5rem',
+              background: '#0B0F19',
+              borderBottom: '1px solid var(--border)',
+            }}
+          >
+            <button
+              role="tab"
+              id="tab-summary"
+              aria-selected={reportTab === 'summary'}
+              aria-controls="tabpanel-summary"
+              tabIndex={reportTab === 'summary' ? 0 : -1}
+              onClick={() => setReportTab('summary')}
+              onKeyDown={(e) => handleTabKeyDown(e, 'summary')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 18px',
+                borderRadius: 20,
+                border: reportTab === 'summary' ? '1.5px solid var(--bloom)' : '1px solid var(--border)',
+                background: reportTab === 'summary' ? 'var(--bloom-bg)' : 'transparent',
+                color: reportTab === 'summary' ? '#34D399' : 'var(--grey)',
+                fontSize: 14.5,
+                fontWeight: reportTab === 'summary' ? 700 : 500,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                outline: 'none',
+              }}
+            >
+              <span>📋</span>
+              <span>Summary</span>
+            </button>
+
+            <button
+              role="tab"
+              id="tab-progress"
+              aria-selected={reportTab === 'progress'}
+              aria-controls="tabpanel-progress"
+              tabIndex={reportTab === 'progress' ? 0 : -1}
+              onClick={() => setReportTab('progress')}
+              onKeyDown={(e) => handleTabKeyDown(e, 'progress')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 18px',
+                borderRadius: 20,
+                border: reportTab === 'progress' ? '1.5px solid var(--bloom)' : '1px solid var(--border)',
+                background: reportTab === 'progress' ? 'var(--bloom-bg)' : 'transparent',
+                color: reportTab === 'progress' ? '#34D399' : 'var(--grey)',
+                fontSize: 14.5,
+                fontWeight: reportTab === 'progress' ? 700 : 500,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                outline: 'none',
+              }}
+            >
+              <span>📈</span>
+              <span>Progress</span>
+            </button>
+          </div>
+
+          {/* Progress Tab Panel */}
+          {reportTab === 'progress' && (
+            <ProgressTab childId={activeChildId} studentName={activeStudent.name} />
+          )}
+
+          {/* Summary Tab Panel (Existing report body unchanged) */}
+          <div
+            role="tabpanel"
+            id="tabpanel-summary"
+            aria-labelledby="tab-summary"
+            style={{
+              padding: '1.5rem',
+              display: reportTab === 'summary' ? 'block' : 'none',
+            }}
+          >
 
             {/* Session Governance Audit */}
             <div style={{
