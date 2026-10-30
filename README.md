@@ -375,6 +375,17 @@ Praise delivered directly       Auto-healed with pre-vetted positive reinforceme
 * **Session Governance Audit:** Directly displays the Google Cloud Model Armor screening status on every session report (`🛡️ Screened by Model Armor`).
 * **Human-in-the-Loop Approval Gate:** Session progress summaries must be explicitly certified by the educator before parent dispatch.
 
+### 📈 Longitudinal Progress Tracking & Blooming Journey (`/teacher`)
+* **🌸 [Child]'s Blooming Journey**: Child-friendly session report title (e.g. *🌸 Emma's Blooming Journey*) celebrating learning growth rather than diagnostic scoring.
+* **Accessible "Summary" & "Progress" Tabs**: Integrated with WAI-ARIA tabs (`role="tablist"`, `role="tab"`, keyboard arrow navigation, visible focus indicators).
+* **"Then and Now" Comparative Analytics**: Compares the latest finished session to the prior session with neutral, growth-oriented feedback:
+  * Right first time % (`40% → 70% (more)`)
+  * Hints used per 10 words (`6 → 2 per 10 words (fewer)`)
+  * Error pattern changes (reversals, digraph blends, silent letters)
+  * Reading stage progression
+* **Last 5 Sessions Trend**: SVG visual line chart paired with readable text numbers for full WCAG AA accessibility.
+* **Zero-LLM Deterministic Engine**: Built entirely in pure Python (`progress.py` & `progress_router.py`) with zero hallucinations, protected by unit tests (`test_progress.py`), and decoupled from core session flow with a safe feature-flag hook (`PROGRESS_ENABLED`).
+
 ### ⚙️ Child Profile Setup & Customization Engine (`/profile`)
 * **Individualized Setup:** Configure identity, school year, reading stage (1–4), dyslexia typology, and co-occurring conditions.
 * **Intelligent Input Mode Recommendations:** Automatically highlights the optimal modality with clear pedagogical rationales:
@@ -414,11 +425,14 @@ WordBloom/
 │   ├── main.py                        ← FastAPI application server
 │   ├── requirements.txt               ← Python dependencies (FastAPI, ADK, Model Armor)
 │   ├── test_wordbloom.py              ← Automated 4-stage pipeline test suite
+│   ├── test_progress.py               ← Unit tests for deterministic longitudinal progress tracking
 │   └── wordbloom_agent/
 │       ├── __init__.py
 │       ├── .env.example               ← Vertex AI environment template (copy to .env)
 │       ├── agent.py                   ← Root ADK Orchestrator
 │       ├── governance.py              ← 🛡️ Child Safeguarding via Google Cloud Model Armor
+│       ├── progress.py                ← 📈 Zero-LLM deterministic longitudinal progress engine
+│       ├── progress_router.py         ← FastAPI router for GET /children/{child_id}/progress
 │       ├── profile_agent.py           ← ProfileAgent
 │       ├── word_selector_agent.py     ← WordSelectorAgent
 │       ├── evaluator_agent.py         ← EvaluatorAgent
@@ -445,7 +459,7 @@ WordBloom/
     │   ├── game/page.tsx              ← Adaptive word game & voice pipeline
     │   ├── profile/page.tsx           ← Profile setup & customisation screen
     │   └── teacher/                   ← Teacher dashboard, reports & Dyslexia Mirror
-    ├── components/                    ← Reusable UI components
+    ├── components/                    ← Reusable UI components (including ProgressTab.tsx)
     └── lib/
         └── api.ts                     ← Typed backend client
 ```
@@ -521,6 +535,18 @@ cd WordBloom/backend
 📍 Test 4: End session and generate report -> ✅ PASS (Approval required: True)
 ==================================================
 ✅ All tests passed! WordBloom is ready.
+```
+
+### Run Deterministic Longitudinal Progress Unit Tests:
+```bash
+cd WordBloom/backend
+./venv/bin/python test_progress.py
+```
+**Expected Output:**
+```
+Ran 5 tests in 0.005s
+
+OK (improvement, no_change, worse, one_session_only, zero_words)
 ```
 
 ### Run Frontend Production Build:
