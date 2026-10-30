@@ -202,6 +202,9 @@ VOICE_HOMOPHONES = {
     "flower": ["flour"],
     "knight": ["night", "nite"],
     "night": ["knight", "nite"],
+    "gnome": ["nome", "no", "know", "known", "gnomes", "nom", "num", "none"],
+    "know": ["no"],
+    "no": ["know"],
 }
 
 
