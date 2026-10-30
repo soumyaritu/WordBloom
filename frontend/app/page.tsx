@@ -104,7 +104,7 @@ export default function LandingPage() {
             maxWidth: 820,
           }}
         >
-          {/* Card 1: 🎒 I'm a Student */}
+          {/* Card 1: 🪴 I'm a Student */}
           <Link
             href="/child/select"
             className="wb-card wb-btn"
@@ -138,7 +138,7 @@ export default function LandingPage() {
                 boxShadow: '0 8px 24px rgba(251, 191, 36, 0.25)',
               }}
             >
-              🎒
+              🪴
             </div>
 
             <h2
@@ -183,7 +183,7 @@ export default function LandingPage() {
             </span>
           </Link>
 
-          {/* Card 2: 👩‍🏫 I'm a Teacher */}
+          {/* Card 2: ☀️ I'm a Teacher */}
           <Link
             href="/teacher/login"
             className="wb-card wb-btn"
@@ -217,7 +217,7 @@ export default function LandingPage() {
                 boxShadow: '0 8px 24px rgba(124, 58, 237, 0.3)',
               }}
             >
-              👩‍🏫
+              ☀️
             </div>
 
             <h2
