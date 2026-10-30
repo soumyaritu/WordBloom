@@ -628,3 +628,4 @@ export default function ProgressTab({ childId, studentName }: ProgressTabProps) 
     </div>
   )
 }
+

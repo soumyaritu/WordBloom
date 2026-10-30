@@ -17,7 +17,7 @@ const DEFAULT_STUDENTS = [
 
 function dedupeName(name: string): string {
   if (!name) return ''
-  let cleaned = name.trim().replace(/\bJames Patel\b/gi, 'James Bond').replace(/\s+/g, ' ')
+  let cleaned = name.trim().replace(/\bJames Patel\b/gi, 'James Bond').replace(/-modified/gi, '').replace(/\s+/g, ' ')
   while (/\b([A-Za-z'.-]+)\s+\1\b/i.test(cleaned)) {
     cleaned = cleaned.replace(/\b([A-Za-z'.-]+)\s+\1\b/gi, '$1')
   }
@@ -472,7 +472,7 @@ function TeacherDashboardContent() {
                 </div>
                 <div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--white)' }}>
-                    {dedupeName(activeStudent.name)} · Session Report
+                    🌸 {dedupeName(activeStudent.name).split(' ')[0] || 'Child'}&apos;s Blooming Journey
                   </div>
                   <div style={{ fontSize: 14.5, color: 'var(--grey)', marginTop: 2 }}>
                     {String(report.session_date_display || 'Recent session').replace(/·?\s*drafted by Report Agent/gi, '').trim()}

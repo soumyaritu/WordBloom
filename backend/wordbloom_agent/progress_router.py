@@ -19,3 +19,4 @@ async def get_child_progress(child_id: str):
     """
     clean_id = (child_id or "emma").lower().strip()
     return compute_progress(clean_id)
+

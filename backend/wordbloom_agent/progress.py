@@ -331,3 +331,4 @@ def compute_progress(child_id: str) -> Dict[str, Any]:
         },
         "history": history,
     }
+
