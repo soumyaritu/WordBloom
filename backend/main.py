@@ -35,12 +35,15 @@ sys.stderr = SafeStream(sys.stderr)
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from wordbloom_agent.agent import run_session_pipeline, _sessions
+from wordbloom_agent.progress_router import progress_router
 
 app = FastAPI(
     title="WordBloom API",
     description="Adaptive learning for every child — powered by Google ADK",
     version="1.0.0",
 )
+
+app.include_router(progress_router)
 
 app.add_middleware(
     CORSMiddleware,
