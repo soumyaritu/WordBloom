@@ -566,6 +566,17 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
 
         report["words"] = session.get("words", [])
         print(f"   ✅ Report ready — awaiting teacher approval")
+
+        try:
+            import os
+            progress_enabled = os.getenv("PROGRESS_ENABLED", "true").lower() in ("true", "1", "yes")
+            if progress_enabled:
+                from .progress import save_session_summary
+                child_id_key = (profile.get("child_id") or profile.get("child_name") or req_child_name or "child").lower().split()[0]
+                save_session_summary(child_id_key, session)
+        except Exception as e:
+            print(f"Progress save notice: {e}")
+
         return {"report": report, "success": True}
 
     return {"error": "Unknown action", "success": False}
