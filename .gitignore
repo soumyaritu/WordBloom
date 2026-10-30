@@ -17,6 +17,7 @@ env/
 .next/
 dist/
 build/
+backend/data/
 __pycache__/
 *.pyc
 *.pyo
