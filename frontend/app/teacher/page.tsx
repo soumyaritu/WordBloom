@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { approveReport, startSession, getProfile } from '../../lib/api'
 import TeacherBackground from '../../components/TeacherBackground'
+import { getStudentSessionSummary } from '../../lib/sessionData'
 
 const DEFAULT_STUDENTS = [
   { id: 'emma',  name: 'Emma Clarke',   level: 3, type: 'Phonological · ADHD' },
@@ -176,25 +177,26 @@ function TeacherDashboardContent() {
     return sanitized
   }
 
-  // Load report or profile state whenever activeChildId changes
+  // Load report or profile state whenever activeChildId or students list changes
   useEffect(() => {
-    setReport(null)
-    setChildProfile(null)
     setApproved(false)
     setNotes('')
 
     const targetStudent = students.find(s => s.id === activeChildId) || {
       id: activeChildId,
-      name: activeChildId === 'liam' ? "Liam O'Connor" : (activeChildId.charAt(0).toUpperCase() + activeChildId.slice(1)),
-      level: 2,
-      type: 'Surface'
+      name: activeChildId === 'liam' ? "Liam O'Connor" : activeChildId === 'james' ? 'James Patel' : activeChildId === 'sofia' || activeChildId === 'sony' ? 'Sony Mathew' : activeChildId === 'emma' ? 'Emma Clarke' : (activeChildId.charAt(0).toUpperCase() + activeChildId.slice(1)),
+      level: activeChildId === 'emma' ? 3 : activeChildId === 'alex' ? 4 : activeChildId === 'sofia' || activeChildId === 'sony' ? 1 : 2,
+      type: activeChildId === 'liam' ? 'Surface' : activeChildId === 'james' ? 'Visual / Spatial' : activeChildId === 'sofia' || activeChildId === 'sony' ? 'Bloom Profile: Not sure yet' : activeChildId === 'alex' ? 'Non-dyslexic (General)' : 'Phonological'
     }
 
-    // Always load child profile to know dyslexia type
+    // Load child profile from localStorage or backend
+    let resolvedDyslexiaType = targetStudent.type
     const savedProfile = localStorage.getItem(`wb_profile_${activeChildId}`)
     if (savedProfile) {
       try {
-        setChildProfile(JSON.parse(savedProfile))
+        const parsedProf = JSON.parse(savedProfile)
+        setChildProfile(parsedProf)
+        if (parsedProf.dyslexiaType) resolvedDyslexiaType = parsedProf.dyslexiaType
       } catch (e) {}
     } else {
       getProfile(activeChildId)
@@ -205,300 +207,21 @@ function TeacherDashboardContent() {
             const matchType = raw.match(/- (?:Dyslexia type|Type):\s*(.+)/i)
             const matchLevel = raw.match(/- Reading (?:level|stage):\s*(\d+)/i)
             const matchCo = raw.match(/- (?:Co-occurring|Conditions):\s*(.+)/i)
-            setChildProfile({
+            const loadedProf = {
               fullName: matchName ? matchName[1].trim() : activeChildId.toUpperCase(),
               dyslexiaType: matchType ? matchType[1].trim().toLowerCase() : 'phonological',
               readingLevel: matchLevel ? parseInt(matchLevel[1]) : 3,
               coOccurring: matchCo ? matchCo[1].split(',').map((s: string) => s.trim()) : [],
-            })
+            }
+            setChildProfile(loadedProf)
           }
         })
         .catch(() => {})
     }
 
-    const isStaleZeroReport = (r: any) =>
-      !r || (r.accuracy_percent === 0 && r.words_attempted === 3) || String(r.report_text || '').includes('0% accuracy across 3 words')
-
-    // 1. Try loading child-specific report from localStorage (matching ID and name variants)
-    const targetNameLower = (targetStudent?.name || '').toLowerCase()
-    const targetFirst = targetNameLower.split(' ')[0]
-    const savedChildReport = localStorage.getItem(`wb_report_${activeChildId}`) ||
-                             (targetFirst ? localStorage.getItem(`wb_report_${targetFirst}`) : null) ||
-                             (activeChildId === 'sofia' ? localStorage.getItem('wb_report_sony') : null) ||
-                             (activeChildId === 'sony' ? localStorage.getItem('wb_report_sofia') : null)
-    if (savedChildReport) {
-      try {
-        const parsed = JSON.parse(savedChildReport)
-        if (!isStaleZeroReport(parsed)) {
-          const sanitized = sanitizeReport(parsed, targetStudent)
-          localStorage.setItem(`wb_report_${activeChildId}`, JSON.stringify(sanitized))
-          setReport(sanitized)
-          return
-        } else {
-          localStorage.removeItem(`wb_report_${activeChildId}`)
-        }
-      } catch (e) {}
-    }
-
-    // 2. Try generic report if child name matches
-    const genericReport = localStorage.getItem('wb_report')
-    if (genericReport) {
-      try {
-        const parsed = JSON.parse(genericReport)
-        const nameMatch = (parsed.child_name || '').toLowerCase()
-        const isMatch = nameMatch.includes(activeChildId) ||
-                        (targetFirst && nameMatch.includes(targetFirst)) ||
-                        (targetNameLower && nameMatch.includes(targetNameLower)) ||
-                        ((activeChildId === 'sofia' || activeChildId === 'sony') && (nameMatch.includes('sofia') || nameMatch.includes('sony')))
-        if (isMatch && !isStaleZeroReport(parsed)) {
-          const sanitized = sanitizeReport(parsed, targetStudent)
-          localStorage.setItem(`wb_report_${activeChildId}`, JSON.stringify(sanitized))
-          setReport(sanitized)
-          return
-        }
-      } catch (e) {}
-    }
-
-    // 3. Try synthesizing report from latest session words in localStorage
-    const savedWordsRaw = localStorage.getItem(`wb_session_words_${activeChildId}`) ||
-                          (activeChildId === 'sofia' ? localStorage.getItem('wb_session_words_sony') : null) ||
-                          (activeChildId === 'sony' ? localStorage.getItem('wb_session_words_sofia') : null)
-    if (savedWordsRaw) {
-      try {
-        const wordsArr = JSON.parse(savedWordsRaw)
-        if (Array.isArray(wordsArr) && wordsArr.length > 0 && !(wordsArr.length === 3 && wordsArr.every((w: any) => !w.is_correct))) {
-          const uniqueCorrectSet = new Set<string>()
-          const uniqueIncorrectSet = new Set<string>()
-          wordsArr.forEach((w: any) => {
-            const wordText = String(typeof w === 'object' ? (w.target || w.word || '') : (w || '')).trim()
-            if (!wordText) return
-            const isC = typeof w === 'object' ? Boolean(w.is_correct) : true
-            if (isC) {
-              uniqueCorrectSet.add(wordText)
-              uniqueIncorrectSet.delete(wordText)
-            } else if (!uniqueCorrectSet.has(wordText)) {
-              uniqueIncorrectSet.add(wordText)
-            }
-          })
-          const correct = Array.from(uniqueCorrectSet)
-          const incorrect = Array.from(uniqueIncorrectSet)
-          const attempted = [...correct, ...incorrect]
-          const acc = Math.round((correct.length / Math.max(attempted.length, 1)) * 100)
-          const stdFirst = (targetStudent?.name || 'Sony Mathew').split(' ')[0]
-          const isUnknown = (targetStudent?.type || '').toLowerCase().includes('not sure') || (childProfile?.dyslexiaType || '').toLowerCase().includes('unknown')
-
-          // Infer assessment recommendation accurately from session patterns
-          let inferredRec: { recProfile: string; recReason: string } | null = null
-          if (isUnknown) {
-            let hasReversals = false
-            let hasTranspositions = false
-            let hasSilentLetters = false
-            let hasVowels = false
-
-            for (const item of wordsArr) {
-              if (item && !item.is_correct) {
-                const pat = ((item.error_pattern || item.pattern || '') as string).toLowerCase()
-                const tgt = ((item.target || item.word || '') as string).toLowerCase()
-                const ans = ((item.child_answer || item.answer || '') as string).toLowerCase()
-                if (pat.includes('reversal') || (tgt.includes('d') && ans.includes('b')) || (tgt.includes('b') && ans.includes('d')) || (tgt.includes('p') && ans.includes('q'))) {
-                  hasReversals = true
-                }
-                if (pat.includes('transposition') || pat.includes('attentional')) {
-                  hasTranspositions = true
-                }
-                if (pat.includes('silent') || ['knight', 'through', 'gnome', 'wrote'].includes(tgt)) {
-                  hasSilentLetters = true
-                }
-                if (pat.includes('vowel') || pat.includes('phon')) {
-                  hasVowels = true
-                }
-              }
-            }
-
-            if (hasReversals) {
-              inferredRec = {
-                recProfile: 'Visual / Spatial',
-                recReason: `${stdFirst} hesitated on letters that mirror or rotate (e.g., b↔d). OpenDyslexic weighted letter bases reduce spatial flipping.`,
-              }
-            } else if (hasTranspositions) {
-              inferredRec = {
-                recProfile: 'Attentional',
-                recReason: `${stdFirst} showed letter sequence drifting between word boundaries. Spotlight focus masking isolates words to prevent visual migration.`,
-              }
-            } else if (hasSilentLetters) {
-              inferredRec = {
-                recProfile: 'Surface',
-                recReason: `${stdFirst} struggled recognizing irregular whole-word shapes and silent letters. Visual spotlighting and word silhouettes strengthen orthographic memory.`,
-              }
-            } else if (acc >= 80 && incorrect.length === 0) {
-              inferredRec = {
-                recProfile: 'Non-dyslexic (Standard Mode)',
-                recReason: `${stdFirst} displayed natural decoding pace and high accuracy (${acc}%) without characteristic dyslexic errors. Standard typography and curriculum are recommended.`,
-              }
-            } else if (hasVowels) {
-              inferredRec = {
-                recProfile: 'Phonological',
-                recReason: `${stdFirst} showed difficulty distinguishing vowel sounds and letter-sound correspondence. Targeted phonics chunking provides direct phoneme reinforcement.`,
-              }
-            } else if (acc >= 70 && incorrect.length <= 1) {
-              inferredRec = {
-                recProfile: 'Non-dyslexic (Standard Mode)',
-                recReason: `${stdFirst} read comfortably without characteristic perceptual dyslexia patterns. Standard curriculum is recommended.`,
-              }
-            } else {
-              inferredRec = {
-                recProfile: 'Phonological',
-                recReason: `When typing words, ${stdFirst} demonstrated phonetic spelling patterns and sound-letter substitutions. Targeted sound-by-sound chunking and word-family practice will strengthen letter-sound mapping.`,
-              }
-            }
-          }
-
-          const syntheticReport = {
-            child_name: targetStudent?.name || 'Sony Mathew',
-            session_date: new Date().toISOString().split('T')[0],
-            session_date_display: new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
-            duration_minutes: 5,
-            words_attempted: attempted.length,
-            words_correct: correct.length,
-            accuracy_percent: acc,
-            new_words_mastered: correct,
-            words_to_revisit: incorrect,
-            error_patterns_seen: incorrect.length > 0 ? ['reversal / visual confusion'] : [],
-            adapter_actions: ['continue'],
-            breaks_taken: 0,
-            report_text: isUnknown
-              ? `🌸 WordBloom Assessment: ${stdFirst} earned ${correct.length} blooms 🌸 today (${acc}% accuracy across ${attempted.length} words). Evaluator Agent observed letter sound mapping and visual alignment patterns. WordBloom Recommended Profile: ${inferredRec?.recProfile || 'Phonological'}.`
-              : `${stdFirst} completed a focused WordBloom practice session, earning ${correct.length} blooms 🌸 with ${acc}% accuracy across ${attempted.length} words.`,
-            recommended_profile: isUnknown ? inferredRec?.recProfile : null,
-            recommendation_reason: isUnknown ? inferredRec?.recReason : null,
-            is_assessment: isUnknown,
-            approval_required: true,
-            approved: false,
-          }
-          localStorage.setItem(`wb_report_${activeChildId}`, JSON.stringify(syntheticReport))
-          setReport(syntheticReport)
-          return
-        }
-      } catch (e) {}
-    }
-
-    // 4. Fallback: query backend API for latest session
-    fetch(`/api/children/${activeChildId}/sessions/latest`)
-      .then(r => r.json())
-      .then(data => {
-        if (data && Array.isArray(data.words) && data.words.length > 0) {
-          const uniqueCorrectSet = new Set<string>()
-          const uniqueIncorrectSet = new Set<string>()
-          data.words.forEach((w: any) => {
-            const wordText = String(typeof w === 'object' ? (w.target || w.word || '') : (w || '')).trim()
-            if (!wordText) return
-            const isC = typeof w === 'object' ? Boolean(w.is_correct) : true
-            if (isC) {
-              uniqueCorrectSet.add(wordText)
-              uniqueIncorrectSet.delete(wordText)
-            } else if (!uniqueCorrectSet.has(wordText)) {
-              uniqueIncorrectSet.add(wordText)
-            }
-          })
-          const correct = Array.from(uniqueCorrectSet)
-          const incorrect = Array.from(uniqueIncorrectSet)
-          const attempted = [...correct, ...incorrect]
-          const acc = Math.round((correct.length / Math.max(attempted.length, 1)) * 100)
-          const stdFirst = (targetStudent?.name || 'Sony Mathew').split(' ')[0]
-          const isUnknown = (targetStudent?.type || '').toLowerCase().includes('not sure') || (childProfile?.dyslexiaType || '').toLowerCase().includes('unknown')
-
-          let apiInferredRec: { recProfile: string; recReason: string } | null = null
-          if (isUnknown) {
-            let hasReversals = false
-            let hasTranspositions = false
-            let hasSilentLetters = false
-            let hasVowels = false
-
-            for (const item of data.words) {
-              if (item && !item.is_correct) {
-                const pat = ((item.error_pattern || item.pattern || '') as string).toLowerCase()
-                const tgt = ((item.target || item.word || '') as string).toLowerCase()
-                const ans = ((item.child_answer || item.answer || '') as string).toLowerCase()
-                if (pat.includes('reversal') || (tgt.includes('d') && ans.includes('b')) || (tgt.includes('b') && ans.includes('d')) || (tgt.includes('p') && ans.includes('q'))) {
-                  hasReversals = true
-                }
-                if (pat.includes('transposition') || pat.includes('attentional')) {
-                  hasTranspositions = true
-                }
-                if (pat.includes('silent') || ['knight', 'through', 'gnome', 'wrote'].includes(tgt)) {
-                  hasSilentLetters = true
-                }
-                if (pat.includes('vowel') || pat.includes('phon')) {
-                  hasVowels = true
-                }
-              }
-            }
-
-            if (hasReversals) {
-              apiInferredRec = {
-                recProfile: 'Visual / Spatial',
-                recReason: `${stdFirst} hesitated on letters that mirror or rotate (e.g., b↔d). OpenDyslexic weighted letter bases reduce spatial flipping.`,
-              }
-            } else if (hasTranspositions) {
-              apiInferredRec = {
-                recProfile: 'Attentional',
-                recReason: `${stdFirst} showed letter sequence drifting between word boundaries. Spotlight focus masking isolates words to prevent visual migration.`,
-              }
-            } else if (hasSilentLetters) {
-              apiInferredRec = {
-                recProfile: 'Surface',
-                recReason: `${stdFirst} struggled recognizing irregular whole-word shapes and silent letters. Visual spotlighting and word silhouettes strengthen orthographic memory.`,
-              }
-            } else if (acc >= 80 && incorrect.length === 0) {
-              apiInferredRec = {
-                recProfile: 'Non-dyslexic (Standard Mode)',
-                recReason: `${stdFirst} displayed natural decoding pace and high accuracy (${acc}%) without characteristic dyslexic errors. Standard typography and curriculum are recommended.`,
-              }
-            } else if (hasVowels) {
-              apiInferredRec = {
-                recProfile: 'Phonological',
-                recReason: `${stdFirst} showed difficulty distinguishing vowel sounds and letter-sound correspondence. Targeted phonics chunking provides direct phoneme reinforcement.`,
-              }
-            } else if (acc >= 70 && incorrect.length <= 1) {
-              apiInferredRec = {
-                recProfile: 'Non-dyslexic (Standard Mode)',
-                recReason: `${stdFirst} read comfortably without characteristic perceptual dyslexia patterns. Standard curriculum is recommended.`,
-              }
-            } else {
-              apiInferredRec = {
-                recProfile: 'Phonological',
-                recReason: `When typing words, ${stdFirst} demonstrated phonetic spelling patterns and sound-letter substitutions. Targeted sound-by-sound chunking and word-family practice will strengthen letter-sound mapping.`,
-              }
-            }
-          }
-
-          const apiReport = {
-            child_name: targetStudent?.name || data.child_name || 'Sony Mathew',
-            session_date: data.session_date || new Date().toISOString().split('T')[0],
-            session_date_display: new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
-            duration_minutes: 5,
-            words_attempted: attempted.length,
-            words_correct: correct.length,
-            accuracy_percent: acc,
-            new_words_mastered: correct,
-            words_to_revisit: incorrect,
-            error_patterns_seen: incorrect.length > 0 ? ['reversal / visual confusion'] : [],
-            adapter_actions: ['continue'],
-            breaks_taken: 0,
-            report_text: isUnknown
-              ? `🌸 WordBloom Assessment: ${stdFirst} earned ${correct.length} blooms 🌸 today (${acc}% accuracy across ${attempted.length} words). Evaluator Agent observed letter sound mapping and visual alignment patterns. WordBloom Recommended Profile: ${apiInferredRec?.recProfile || 'Phonological'}.`
-              : `${stdFirst} completed a focused WordBloom practice session, earning ${correct.length} blooms 🌸 with ${acc}% accuracy across ${attempted.length} words.`,
-            recommended_profile: isUnknown ? apiInferredRec?.recProfile : null,
-            recommendation_reason: isUnknown ? apiInferredRec?.recReason : null,
-            is_assessment: isUnknown,
-            approval_required: true,
-            approved: false,
-          }
-          setReport(apiReport)
-        }
-      })
-      .catch(() => {})
-  }, [activeChildId])
+    const summary = getStudentSessionSummary(activeChildId, targetStudent?.name, resolvedDyslexiaType)
+    setReport(summary.report)
+  }, [activeChildId, students])
 
   const handleApprove = async () => {
     setLoading(true)

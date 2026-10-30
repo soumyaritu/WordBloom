@@ -4,6 +4,7 @@ import React, { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import TeacherBackground from '../../../../components/TeacherBackground'
+import { getStudentSessionSummary } from '../../../../lib/sessionData'
 
 interface ChildProfile {
   id: string
@@ -62,11 +63,16 @@ export default function ChildDetailPage({
   useEffect(() => {
     async function loadData() {
       setLoading(true)
+      let currentName = defaultDisplayName
+      let currentType = isAlex ? 'non_dyslexic' : childId === 'liam' ? 'surface' : childId === 'james' ? 'visual_spatial' : isSony ? 'unknown' : 'phonological'
+
       try {
         const res = await fetch(`/api/children/${childId}`)
         if (res.ok) {
           const data = await res.json()
           setProfile(data)
+          if (data.name || data.child_name) currentName = data.name || data.child_name
+          if (data.dyslexia_type) currentType = data.dyslexia_type
         }
       } catch (e) {}
 
@@ -75,6 +81,8 @@ export default function ChildDetailPage({
         if (savedProf) {
           try {
             const p = JSON.parse(savedProf)
+            if (p.fullName) currentName = p.fullName
+            if (p.dyslexiaType) currentType = p.dyslexiaType
             setProfile((prev: any) => ({
               ...(prev || {}),
               name: p.fullName || prev?.name,
@@ -88,23 +96,13 @@ export default function ChildDetailPage({
           } catch (e) {}
         }
 
-        const rep = localStorage.getItem(`wb_report_${childId}`)
-        if (rep) {
-          try {
-            const parsedRep = JSON.parse(rep)
-            // Ignore stale 0% accuracy reports generated from old 3-wrong-word fallback
-            if (parsedRep && !(parsedRep.accuracy_percent === 0 && parsedRep.words_attempted === 3)) {
-              setSessionReport(parsedRep)
-            } else {
-              localStorage.removeItem(`wb_report_${childId}`)
-            }
-          } catch (e) {}
-        }
+        const summary = getStudentSessionSummary(childId, currentName, currentType)
+        setSessionReport(summary.report)
       }
       setLoading(false)
     }
     loadData()
-  }, [childId])
+  }, [childId, defaultDisplayName, isAlex, isSony])
 
   const childName = isSony ? 'Sony Mathew' : (profile?.name || profile?.child_name || defaultDisplayName)
   const firstName = isSony ? 'Sony' : childName.split(' ')[0]
@@ -292,7 +290,19 @@ export default function ChildDetailPage({
         )}
 
         {/* Profile Details Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, marginBottom: '2rem' }}>
+          <div style={{ background: '#111827', border: '1px solid #1F2937', borderRadius: 16, padding: '1.5rem' }}>
+            <div style={{ fontSize: 12, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.8, fontWeight: 700, marginBottom: 12 }}>
+              Blooms Earned Today
+            </div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: '#34D399', marginBottom: 4 }}>
+              {sessionReport?.words_correct ?? 5} 🌸
+            </div>
+            <div style={{ fontSize: 13, color: '#9CA3AF' }}>
+              {sessionReport ? `${sessionReport.accuracy_percent}% accuracy across ${sessionReport.words_attempted} words` : 'Latest session blooms'}
+            </div>
+          </div>
+
           <div style={{ background: '#111827', border: '1px solid #1F2937', borderRadius: 16, padding: '1.5rem' }}>
             <div style={{ fontSize: 12, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.8, fontWeight: 700, marginBottom: 12 }}>
               Learning & Reading Level
@@ -323,20 +333,78 @@ export default function ChildDetailPage({
           </div>
         </div>
 
-        {/* Recent Session Summary if available */}
+        {/* Synchronized Recent Session Report */}
         {sessionReport && (
           <div style={{ background: '#111827', border: '1px solid #1F2937', borderRadius: 16, padding: '1.5rem', marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#F9FAFB' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#F9FAFB' }}>
                 Recent Session Report
               </div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#34D399', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.35)', borderRadius: 20, padding: '4px 12px' }}>
-                Session Governance Audit: 🛡️ Screened by Model Armor
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#34D399', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.35)', borderRadius: 20, padding: '4px 12px' }}>
+                  Session Governance Audit: 🛡️ Screened by Model Armor
+                </div>
+                <Link
+                  href={`/teacher?child=${childId}`}
+                  style={{
+                    fontSize: 12.5, fontWeight: 700, color: '#06080F', background: '#10B981',
+                    borderRadius: 20, padding: '5px 14px', textDecoration: 'none',
+                  }}
+                >
+                  Open Full Report & Approval Gate →
+                </Link>
               </div>
             </div>
-            <p style={{ fontSize: 14, color: '#D1D5DB', lineHeight: 1.6 }}>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 14 }}>
+              {[
+                { label: 'Blooms earned', value: `${sessionReport.words_correct} 🌸` },
+                { label: 'Words tried',   value: sessionReport.words_attempted },
+                { label: 'Accuracy',      value: `${sessionReport.accuracy_percent}%` },
+                { label: 'Duration',      value: `${sessionReport.duration_minutes || 5} min` },
+              ].map((stat, idx) => (
+                <div key={idx} style={{ background: '#0B0F19', border: '1px solid #1F2937', borderRadius: 12, padding: '10px 14px' }}>
+                  <div style={{ fontSize: 11, color: '#9CA3AF', textTransform: 'uppercase', fontWeight: 600 }}>{stat.label}</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: '#F9FAFB', marginTop: 2 }}>{stat.value}</div>
+                </div>
+              ))}
+            </div>
+
+            <p style={{ fontSize: 14.5, color: '#D1D5DB', lineHeight: 1.6, marginBottom: 14 }}>
               {sessionReport.report_text}
             </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+              <div style={{ background: '#0B0F19', border: '1px solid #1F2937', borderRadius: 12, padding: '12px 14px' }}>
+                <div style={{ fontSize: 11, color: '#9CA3AF', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>
+                  Mastered this session ({sessionReport.new_words_mastered?.length || 0})
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {(sessionReport.new_words_mastered || []).map((w: string, i: number) => (
+                    <span key={i} style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#34D399', padding: '3px 10px', borderRadius: 16, fontSize: 12.5, fontWeight: 600 }}>
+                      🌸 {w}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ background: '#0B0F19', border: '1px solid #1F2937', borderRadius: 12, padding: '12px 14px' }}>
+                <div style={{ fontSize: 11, color: '#9CA3AF', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>
+                  To revisit next session ({sessionReport.words_to_revisit?.length || 0})
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {(sessionReport.words_to_revisit || []).length > 0 ? (
+                    sessionReport.words_to_revisit.map((w: string, i: number) => (
+                      <span key={i} style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.35)', color: '#FBBF24', padding: '3px 10px', borderRadius: 16, fontSize: 12.5, fontWeight: 600 }}>
+                        ↻ {w}
+                      </span>
+                    ))
+                  ) : (
+                    <span style={{ fontSize: 12.5, color: '#9CA3AF' }}>None — all words mastered!</span>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

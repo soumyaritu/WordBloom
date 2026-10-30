@@ -4,6 +4,7 @@ import React, { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import TeacherBackground from '../../../../../components/TeacherBackground'
+import { getStudentSessionSummary } from '../../../../../lib/sessionData'
 
 interface WrongWord {
   target: string
@@ -147,6 +148,8 @@ export default function DyslexiaMirrorPage({
       { target: 'star',  child_answer: 'star',  is_correct: true,  sentence: 'Look up at the bright twinkling star.' },
       { target: 'jump',  child_answer: 'jump',  is_correct: true,  sentence: 'Jump high into the air.' },
       { target: 'fish',  child_answer: 'fish',  is_correct: true,  sentence: 'A colourful fish swam past.' },
+      { target: 'frog',  child_answer: 'frog',  is_correct: true,  sentence: 'The green frog jumped in the pond.' },
+      { target: 'clap',  child_answer: 'clap',  is_correct: true,  sentence: 'Clap your hands to the music.' },
     ],
     sofia: [
       { target: 'through', child_answer: 'thru', is_correct: false, sentence: 'They walked through the bright forest.' },
@@ -269,67 +272,20 @@ export default function DyslexiaMirrorPage({
 
         let detectedRec: string | null = null
 
-        // 2. Prioritize localStorage for latest session words
+        // 2. Use unified session summary for words and recommendations
         let sessionWords: WrongWord[] = []
         if (typeof window !== 'undefined') {
-          const keysToTry = [
-            `wb_session_words_${childId}`,
-            `wb_session_words_sony`,
-            `wb_session_words_sofia`,
-          ]
-          for (const k of keysToTry) {
-            const raw = localStorage.getItem(k)
-            if (raw) {
-              try {
-                const parsed = JSON.parse(raw)
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                  sessionWords = parsed
-                  break
-                }
-              } catch (e) {}
-            }
+          const summary = getStudentSessionSummary(
+            childId,
+            loadedProfile?.name || defaultDisplayName,
+            loadedProfile?.dyslexia_type
+          )
+          sessionWords = summary.words as WrongWord[]
+          if (summary.report.recommended_profile) {
+            detectedRec = summary.report.recommended_profile
           }
-
-          const reportKeys = [
-            `wb_report_${childId}`,
-            childId === 'sofia' || childId === 'sony' ? 'wb_report_sony' : null,
-            childId === 'sofia' || childId === 'sony' ? 'wb_report_sofia' : null,
-            'wb_report',
-          ].filter(Boolean) as string[]
-
-          for (const rk of reportKeys) {
-            const repRaw = localStorage.getItem(rk)
-            if (repRaw) {
-              try {
-                const rep = JSON.parse(repRaw)
-                const repChild = (rep.child_id || rep.child_name || '').toLowerCase()
-                const matchesChild = !repChild || repChild.includes(childId) || ((childId === 'sofia' || childId === 'sony') && (repChild.includes('sofia') || repChild.includes('sony') || repChild.includes('mathew')))
-                if (matchesChild && rep.recommended_profile) {
-                  detectedRec = rep.recommended_profile
-                }
-                if (matchesChild && rep.recommendation_reason) {
-                  setRecommendationReason(rep.recommendation_reason)
-                }
-                if (matchesChild && sessionWords.length === 0) {
-                  if (Array.isArray(rep.words) && rep.words.length > 0) {
-                    sessionWords = rep.words
-                  } else if (Array.isArray(rep.words_to_revisit) && rep.words_to_revisit.length > 0) {
-                    const attemptMap: Record<string, string> = {
-                      dog: 'bog', knight: 'nite', wrote: 'rote', through: 'thru', gnome: 'nome', light: 'lite',
-                    }
-                    sessionWords = rep.words_to_revisit.map((w: any) => {
-                      const text = typeof w === 'object' && w !== null ? (w.word || w.target || '') : String(w || '')
-                      return {
-                        target: text,
-                        child_answer: attemptMap[text.toLowerCase()] || `${text.slice(1)}e`,
-                        is_correct: false,
-                        sentence: CONTEXT_SENTENCES[text.toLowerCase()] || `The word "${text}" was shown in the reading exercise.`,
-                      }
-                    })
-                  }
-                }
-              } catch (e) {}
-            }
+          if (summary.report.recommendation_reason) {
+            setRecommendationReason(summary.report.recommendation_reason)
           }
         }
 

@@ -250,6 +250,8 @@ DEFAULT_DIAGNOSTIC_WORDS = {
         {"target": "star",  "child_answer": "star",  "is_correct": True,  "sentence": "Look up at the bright twinkling star."},
         {"target": "jump",  "child_answer": "jump",  "is_correct": True,  "sentence": "Jump high into the air."},
         {"target": "fish",  "child_answer": "fish",  "is_correct": True,  "sentence": "A colourful fish swam past."},
+        {"target": "frog",  "child_answer": "frog",  "is_correct": True,  "sentence": "The green frog jumped in the pond."},
+        {"target": "clap",  "child_answer": "clap",  "is_correct": True,  "sentence": "Clap your hands to the music."},
         {"target": "dog",   "child_answer": "bog",   "is_correct": False, "sentence": "The dog ran across the grass."},
         {"target": "beach", "child_answer": "deach", "is_correct": False, "sentence": "We built a sandcastle on the sunny beach."},
     ],

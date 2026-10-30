@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import TeacherBackground from '../../../components/TeacherBackground'
+import { getStudentSessionSummary } from '../../../lib/sessionData'
 
 interface ChildRow {
   id: string
@@ -42,14 +43,14 @@ const FALLBACK_CHILDREN: ChildRow[] = [
   },
   {
     id: 'james',
-    name: 'James Bond',
+    name: 'James Patel',
     avatar: '🚀',
     dyslexia_type: 'Visual / Spatial',
     reading_stage: 2,
     input_mode: 'tap',
     conditions: ['Dyspraxia'],
-    last_session: 'Oct 16',
-    candy_count: 3,
+    last_session: 'Today',
+    candy_count: 5,
   },
   {
     id: 'sofia',
@@ -122,20 +123,13 @@ function enrichChildrenWithLocalStorage(baseList: ChildRow[]): ChildRow[] {
         if (p.readingLevel !== undefined) child.reading_stage = Number(p.readingLevel)
         if (p.inputMode) child.input_mode = p.inputMode
         if (Array.isArray(p.coOccurring)) child.conditions = p.coOccurring
-        if (p.candyGoal !== undefined) child.candy_count = Number(p.candyGoal)
       } else {
         child.name = dedupeName(child.name)
       }
 
-      const sessionRaw = localStorage.getItem(`wb_session_words_${lookupId}`)
-      if (sessionRaw) {
-        const words = JSON.parse(sessionRaw)
-        if (Array.isArray(words) && words.length > 0) {
-          const correctCount = words.filter((w: any) => w.is_correct).length
-          child.candy_count = correctCount
-          child.last_session = 'Today'
-        }
-      }
+      const summary = getStudentSessionSummary(lookupId, child.name, child.dyslexia_type)
+      child.candy_count = summary.bloomsCount
+      child.last_session = 'Today'
     } catch (e) { }
 
     result.push(child)
@@ -162,16 +156,18 @@ function enrichChildrenWithLocalStorage(baseList: ChildRow[]): ChildRow[] {
       if (!raw) return
       try {
         const p = JSON.parse(raw)
+        const cName = p.fullName || (id.charAt(0).toUpperCase() + id.slice(1))
+        const summary = getStudentSessionSummary(id, cName, p.dyslexiaType)
         result.push({
           id,
-          name: p.fullName || (id.charAt(0).toUpperCase() + id.slice(1)),
+          name: cName,
           avatar: id === 'emma' ? '👧' : id === 'liam' ? '👦' : id === 'james' ? '🚀' : id === 'sofia' || id === 'sony' ? '🌟' : '🎨',
           dyslexia_type: formatDyslexiaType(p.dyslexiaType),
           reading_stage: Number(p.readingLevel) || 1,
           input_mode: p.inputMode || 'voice',
           conditions: Array.isArray(p.coOccurring) ? p.coOccurring : [],
           last_session: 'Today',
-          candy_count: Number(p.candyGoal) || 5,
+          candy_count: summary.bloomsCount,
         })
       } catch (e) { }
     })

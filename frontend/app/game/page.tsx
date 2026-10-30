@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { submitAnswer, endSession, startSession } from '../../lib/api'
 import { playCandyRewardSound, playCandyTapSound, playGoalCelebrationSound } from '../../lib/sounds'
+import { recordStudentWordAttempt, getStudentSessionSummary } from '../../lib/sessionData'
 
 // WCAG AAA High-Contrast Pastel Palette for Dark Mode (#080C14 / #1E293B)
 const LETTER_COLOURS = [
@@ -888,7 +889,7 @@ function GameContent() {
         return id === rawChildParam || id === firstWordId
       })))
 
-      // Save word attempt for Dyslexia Mirror diagnostic across both ID variants
+      // Save word attempt and synchronize report across all Teacher screens
       try {
         const attemptRecord = {
           target: currentWordTarget,
@@ -897,16 +898,13 @@ function GameContent() {
           error_pattern: result.evaluation?.error_pattern || result.evaluation?.pattern || null,
           sentence: activeWord?.sentence || `The ${currentWordTarget} appeared on screen.`,
         }
-        childIds.forEach(cid => {
-          const existingWordsRaw = localStorage.getItem(`wb_session_words_${cid}`)
-          let existingWords = []
-          if (existingWordsRaw) {
-            try { existingWords = JSON.parse(existingWordsRaw) } catch (e) {}
-            if (!Array.isArray(existingWords)) existingWords = []
-          }
-          existingWords.push(attemptRecord)
-          localStorage.setItem(`wb_session_words_${cid}`, JSON.stringify(existingWords))
-        })
+        recordStudentWordAttempt(
+          childIds,
+          session?.session_id || 'active',
+          attemptRecord,
+          childFullName,
+          session?.profile?.dyslexia_type
+        )
       } catch (e) {}
 
       // Update session stats and candies immediately so candy counter lights up in real-time
@@ -954,24 +952,15 @@ function GameContent() {
         setLoading(false)
         const childId = childFullName.toLowerCase().split(' ')[0]
         
-        // Finalize teacher report silently in the background
+        // Finalize teacher report silently in the background and keep stats 100% aligned
         try {
-          const endResult = await endSession(session.session_id, childFullName)
-          const report = endResult.report || {}
-          report.child_name = childFullName
-          const firstName = childFullName.split(' ')[0]
-          if (report.report_text) {
-            report.report_text = report.report_text
-              .replace(/\b(Emma Clarke|James Patel|Sofia Mensah|Liam O'Connor)\b/gi, childFullName)
-              .replace(/\b(Emma|James|Sofia|Child)\b/gi, firstName)
-              .replace(/^[A-Za-z'.-]+(?=\s+(?:worked|demonstrated|showed|checked|completed|navigated|read))/i, firstName)
-          }
-          try {
-            const storedWords = JSON.parse(localStorage.getItem(`wb_session_words_${childId}`) || '[]')
-            if (storedWords.length > 0) report.words = storedWords
-          } catch (e) {}
-          localStorage.setItem('wb_report', JSON.stringify(report))
-          localStorage.setItem(`wb_report_${childId}`, JSON.stringify(report))
+          await endSession(session.session_id, childFullName).catch(() => {})
+          const primaryId = childIds[0] || childId
+          const summary = getStudentSessionSummary(primaryId, childFullName, session?.profile?.dyslexia_type)
+          localStorage.setItem('wb_report', JSON.stringify(summary.report))
+          childIds.forEach(cid => {
+            localStorage.setItem(`wb_report_${cid}`, JSON.stringify(summary.report))
+          })
         } catch (e) {
           console.error('Silent report finalize error:', e)
         }
