@@ -144,7 +144,7 @@ SILENT_VARIANTS = {
 }
 
 VOICE_HOMOPHONES = {
-    "sun": ["son", "some"],
+    "sun": ["son"],
     "son": ["sun"],
     "right": ["write"],
     "write": ["right"],
@@ -159,7 +159,7 @@ VOICE_HOMOPHONES = {
     "too": ["to", "two"],
     "be": ["bee"],
     "bee": ["be"],
-    "hop": ["hope", "hot"],
+    "hop": ["hope"],
     "hope": ["hop"],
     "not": ["note", "knot"],
     "knot": ["not", "note"],
@@ -177,7 +177,7 @@ VOICE_HOMOPHONES = {
     "tape": ["tap"],
     "rip": ["ripe"],
     "ripe": ["rip"],
-    "dog": ["dock", "doc", "dawg"],
+    "dog": ["dawg"],
     "cat": ["kat"],
     "pop": ["pope"],
     "pope": ["pop"],
@@ -188,7 +188,7 @@ VOICE_HOMOPHONES = {
     "pan": ["pane", "pain"],
     "pane": ["pan", "pain"],
     "pain": ["pan", "pane"],
-    "red": ["read"],
+    "red": ["read", "reed"],
     "read": ["red", "reed"],
     "hear": ["here"],
     "here": ["hear"],
@@ -200,8 +200,8 @@ VOICE_HOMOPHONES = {
     "stare": ["stair"],
     "flour": ["flower"],
     "flower": ["flour"],
-    "knight": ["night"],
-    "night": ["knight"],
+    "knight": ["night", "nite"],
+    "night": ["knight", "nite"],
 }
 
 
@@ -213,11 +213,10 @@ def is_correct_for_profile(correct_word, child_answer, dyslexia_type,
     (microphone acoustic distortion affects all learners).
     For non-dyslexic learners in written modes, standard exact spelling is required.
     For dyslexic learners, genuine dyslexia accommodations apply:
-      - Mirror letter swaps (b/d, p/q) on attempt 1 trigger scaffolded retry; on attempt 2+ visual profile accommodation applies
+      - Mirror letter swaps (b/d, p/q) trigger scaffolded retry until the correct word is given
       - Silent letter phonetic variants e.g. knight -> nite
-      - Adjacent letter transposition e.g. chair -> chair
       - Voice mode homophones & acoustic STT phonetic variants e.g. sun -> son, hop -> hope
-    Incorrect words (e.g. run for sun, cat for dog, bad for bed) are strictly False.
+    Incorrect words (e.g. run for sun, cat for dog, bad for bed, bog for dog) are strictly False.
     """
     clean_target = str(correct_word or "").lower().strip(" .,!?:;'\"")
     clean_answer = str(child_answer or "").lower().strip(" .,!?:;'\"")
@@ -248,12 +247,9 @@ def is_correct_for_profile(correct_word, child_answer, dyslexia_type,
         return False
 
     # 2. Mirror letter swap (b/d, p/q) when length is identical:
-    # Option 1 (Scaffolded Retry): On attempt 1, do NOT mark as correct.
-    # This allows the evaluator to accurately log the 'reversal' error pattern and present a visual hint so the child learns the correct orientation.
-    # On attempt 2+, if the child already has a confirmed visual dyslexia profile, grant the accommodation.
+    # Scaffolded Retry: Never mark a mirror reversal as correct; keep the visual clue
+    # active until the child provides the correct word.
     if len(clean_target) == len(clean_answer) and clean_answer.translate(DYSLEXIC_MIRRORS) == clean_target:
-        if attempt_number >= 2 and norm_dt in ("visual_spatial", "visual"):
-            return True
         return False
 
     # 3. Recognized silent letter phonetic variant

@@ -310,7 +310,7 @@ function GameContent() {
 
         const targetClean = (activeWord?.word || currentWord || '').toLowerCase().trim().replace(/[.,!?:;'"]/g, '')
 
-        // Helper: evaluate all speech alternatives to find target match or acoustic sound-alike match
+        // Helper: evaluate speech alternatives to find exact target match or true homophone match
         const matchesTarget = (rawTranscript: string): boolean => {
           const tr = (rawTranscript || '').trim().toLowerCase().replace(/[.,!?:;'"]/g, '')
           if (!tr || !targetClean) return false
@@ -321,81 +321,58 @@ function GameContent() {
           // 1. Exact match or carrier phrase token match (e.g. "the sun", "a cup")
           if (candidates.includes(targetClean)) return true
 
-          // 2. Trailing silent 'e', plural 's'/'es', or 'ed' STT inflection
+          // 2. Trailing silent 'e' or plural 's' browser STT artifact on the exact target word
           for (const tok of candidates) {
             if (tok.endsWith('e') && tok.slice(0, -1) === targetClean) return true
             if (targetClean.endsWith('e') && targetClean.slice(0, -1) === tok) return true
             if (tok.endsWith('s') && tok.slice(0, -1) === targetClean) return true
-            if (tok.endsWith('es') && tok.slice(0, -2) === targetClean) return true
-            if (tok.endsWith('ed') && tok.slice(0, -2) === targetClean) return true
           }
 
-          // 3. Single-word browser STT homophones & acoustic sound-alikes
+          // 3. Strictly true homophones & silent-letter phonetic spellings (never rhymes or different words)
           const HOMOPHONE_MAP: Record<string, string[]> = {
-            hop: ['hope', 'hot', 'hub', 'top', 'pop'],
+            hop: ['hope'],
             hope: ['hop'],
-            sun: ['son', 'some', 'sung', 'san', 'soon', 'fun', 'run'],
-            son: ['sun', 'some'],
+            sun: ['son'],
+            son: ['sun'],
             not: ['note', 'knot'],
             knot: ['not', 'note'],
-            pop: ['pope', 'top'],
+            pop: ['pope'],
             pope: ['pop'],
             rob: ['robe'],
             robe: ['rob'],
-            pin: ['pine', 'pen', 'bin', 'tin', 'ping', 'fin', 'in'],
+            pin: ['pine'],
             pine: ['pin'],
-            pen: ['pin', 'pan', 'ten', 'ben'],
-            cut: ['cute', 'cup', 'cat'],
+            cut: ['cute'],
             cute: ['cut'],
-            cup: ['cop', 'cap', 'cub', 'cut', 'up', 'pup'],
             tub: ['tube'],
             tube: ['tub'],
-            cap: ['cape', 'cup', 'cab', 'cat', 'tap'],
+            cap: ['cape'],
             cape: ['cap'],
-            tap: ['tape', 'top', 'cap', 'tab'],
+            tap: ['tape'],
             tape: ['tap'],
             rip: ['ripe'],
             ripe: ['rip'],
-            dog: ['dock', 'doc', 'dawg', 'dug', 'fog', 'log'],
-            cat: ['kat', 'cut', 'cap', 'cab', 'chat'],
-            bat: ['bad', 'back', 'bag', 'but', 'bet', 'mat', 'pat'],
-            net: ['neck', 'next', 'met', 'let', 'wet', 'nut', 'not'],
-            fog: ['frog', 'dog', 'log', 'bog', 'folk'],
-            map: ['mat', 'nap', 'mop', 'lap', 'cap'],
-            red: ['read', 'reed', 'bed', 'led', 'fed'],
-            big: ['bag', 'beg', 'bug', 'dig', 'pig', 'fig'],
-            fox: ['box', 'folks', 'forks', 'socks', 'rocks', 'fax'],
-            box: ['fox', 'books', 'blocks', 'locks', 'socks'],
-            bug: ['bag', 'big', 'bog', 'mug', 'rug', 'hug', 'dug'],
-            van: ['fan', 'man', 'ran', 'pan', 'can', 'then'],
-            frog: ['frock', 'fog', 'from', 'front', 'blog'],
-            clap: ['club', 'class', 'clip', 'flap', 'slap', 'tap'],
-            drum: ['dram', 'drunk', 'drop', 'trum', 'run', 'from'],
-            ship: ['sheep', 'shop', 'chip', 'shape', 'sip', 'tip'],
-            fish: ['dish', 'wish', 'fresh', 'flesh'],
-            path: ['pass', 'past', 'bath', 'part', 'pack'],
-            wind: ['win', 'went', 'when', 'wing', 'wand'],
-            jump: ['jam', 'dump', 'bump', 'lump', 'pump'],
-            nest: ['next', 'best', 'rest', 'test', 'west'],
-            star: ['start', 'stare', 'store', 'stir', 'car', 'far'],
-            crab: ['crib', 'grab', 'cab', 'cram', 'crack'],
-            flag: ['flat', 'flog', 'bag', 'tag'],
-            bell: ['ball', 'bill', 'belt', 'well', 'tell', 'fell', 'sell'],
-            chin: ['chain', 'shin', 'thin', 'pin', 'in'],
-            plum: ['plan', 'plug', 'plus', 'thumb', 'drum'],
-            wrist: ['rist', 'list', 'rest', 'west', 'mist', 'twist'],
-            knock: ['not', 'knot', 'lock', 'rock', 'clock', 'block'],
-            thumb: ['thum', 'some', 'sum', 'come', 'plum', 'drum', 'fun'],
-            light: ['lite', 'like', 'line', 'night', 'right', 'white'],
-            bread: ['bred', 'red', 'bed', 'head', 'thread'],
-            knight: ['night', 'nite', 'light', 'right', 'kite'],
-            train: ['rain', 'chain', 'brain', 'drain', 'plane'],
-            float: ['flat', 'flight', 'boat', 'coat', 'goat'],
-            sword: ['sord', 'sort', 'word', 'cord', 'lord'],
-            climb: ['clime', 'clim', 'time', 'lime', 'line'],
-            beach: ['beech', 'peach', 'reach', 'teach', 'each'],
-            gnome: ['nome', 'home', 'no', 'note', 'known', 'foam'],
-            right: ['write', 'light', 'night'],
+            dog: ['dawg'],
+            cat: ['kat'],
+            fox: ['foks'],
+            box: ['boks'],
+            crab: ['krab'],
+            bell: ['belle', 'bel'],
+            plum: ['plumb'],
+            wrist: ['rist'],
+            knock: ['nock', 'nok', 'knocked'],
+            thumb: ['thum'],
+            light: ['lite'],
+            bread: ['bred'],
+            knight: ['night', 'nite'],
+            train: ['trayn'],
+            float: ['flote'],
+            sword: ['sord'],
+            climb: ['clime', 'clim'],
+            beach: ['beech'],
+            gnome: ['nome'],
+            red: ['read', 'reed'],
+            right: ['write'],
             write: ['right'],
             see: ['sea', 'c'],
             sea: ['see', 'c'],
@@ -403,59 +380,26 @@ function GameContent() {
             won: ['one'],
             for: ['four'],
             four: ['for'],
+            to: ['two', 'too'],
+            two: ['to', 'too'],
+            too: ['to', 'two'],
+            be: ['bee'],
+            bee: ['be'],
+            hear: ['here'],
+            here: ['hear'],
+            blue: ['blew'],
+            blew: ['blue'],
+            meat: ['meet'],
+            meet: ['meat'],
+            stair: ['stare'],
+            stare: ['stair'],
+            flour: ['flower'],
+            flower: ['flour'],
           }
           const validAlts = HOMOPHONE_MAP[targetClean]
           if (validAlts) {
             for (const tok of candidates) {
               if (validAlts.includes(tok)) return true
-            }
-          }
-
-          // 4. Acoustic phonetic equivalence for laptop microphones (e.g. unvoiced th/s/t/f/p/k confusions like "tass"/"pass" for "path" or "cat")
-          const normalizePhonetic = (w: string) =>
-            w
-              .replace(/th/g, 's')
-              .replace(/sh/g, 's')
-              .replace(/ch/g, 's')
-              .replace(/ph/g, 'f')
-              .replace(/ck/g, 'k')
-              .replace(/gh/g, '')
-              .replace(/^kn/, 'n')
-              .replace(/^wr/, 'r')
-              .replace(/^gn/, 'n')
-              .replace(/mb$/, 'm')
-              .replace(/[c]/g, 'k')
-              .replace(/[dt]/g, 't')
-              .replace(/[bpv]/g, 'p')
-              .replace(/[gk]/g, 'k')
-              .replace(/[sz]/g, 's')
-              .replace(/[mn]/g, 'n')
-              .replace(/(.)\1+/g, '$1')
-
-          const targetPhon = normalizePhonetic(targetClean)
-          const targetVowels = targetClean.replace(/[^aeiou]/g, '')
-
-          // Do not auto-correct an intentional b/d or p/q mirror reversal on attempt 1
-          const mirrorMap: Record<string, string> = { b: 'd', d: 'b', p: 'q', q: 'p' }
-          const mirroredTarget = targetClean.split('').map(c => mirrorMap[c] || c).join('')
-
-          for (const tok of candidates) {
-            if (!tok || tok === mirroredTarget) continue
-            const tokPhon = normalizePhonetic(tok)
-            if (tokPhon === targetPhon) return true
-
-            // Vowel match + shared consonant or retry tolerance when visualHintB64 is active
-            const tokVowels = tok.replace(/[^aeiou]/g, '')
-            let sharedChars = 0
-            for (const ch of tok) {
-              if (targetClean.includes(ch)) sharedChars++
-            }
-            if (targetVowels && tokVowels === targetVowels && sharedChars >= Math.max(1, targetClean.length - 2)) {
-              return true
-            }
-            // If retrying after a hint in voice mode, accept any close spoken attempt that isn't the mirror word
-            if (visualHintB64 && sharedChars >= Math.max(1, Math.floor(targetClean.length / 2))) {
-              return true
             }
           }
 
