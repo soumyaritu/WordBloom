@@ -184,3 +184,4 @@ def get_agent_identity_status() -> Dict[str, Any]:
             "agent_card_url": "/.well-known/agent-card.json",
         },
     }
+
