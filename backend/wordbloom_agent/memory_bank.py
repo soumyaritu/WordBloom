@@ -250,3 +250,4 @@ def get_retention_word_candidate(child_id: str) -> Optional[str]:
     if retention_list:
         return retention_list[0]
     return None
+

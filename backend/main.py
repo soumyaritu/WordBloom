@@ -396,6 +396,29 @@ async def patch_child_profile(child_id: str, body: dict):
 
 
 # ─────────────────────────────────────────────
+# GOOGLE CLOUD AGENT REGISTRY & AGENT IDENTITY
+# Standards-compliant A2A Agent Card & Least-Privilege Identity
+# ─────────────────────────────────────────────
+@app.get("/.well-known/agent-card.json")
+@app.get("/a2a/wordbloom/.well-known/agent-card.json")
+async def agent_card():
+    try:
+        from wordbloom_agent.agent_identity import get_agent_card
+        return get_agent_card()
+    except Exception as e:
+        return {"error": str(e), "status": "fallback"}
+
+
+@app.get("/agent/identity")
+async def agent_identity():
+    try:
+        from wordbloom_agent.agent_identity import get_agent_identity_status
+        return get_agent_identity_status()
+    except Exception as e:
+        return {"error": str(e), "status": "fallback"}
+
+
+# ─────────────────────────────────────────────
 # GET /
 # Health check — visit http://localhost:8000
 # ─────────────────────────────────────────────
@@ -412,6 +435,11 @@ async def health():
             "Encouragement Agent",
             "Report Agent",
         ],
+        "agent_registry": {
+            "status": "registered",
+            "card_url": "/.well-known/agent-card.json",
+            "identity_url": "/agent/identity",
+        },
         "version": "1.0.0",
     }
 

@@ -378,6 +378,11 @@ Praise delivered directly       Auto-healed with pre-vetted positive reinforceme
    * Automatically isolates retention words (words requiring scaffolded retry in previous sessions) and promotes mastered phonics patterns once the child demonstrates independent fluency.
    * Feeds sensory and accommodation observations directly into the Profile Engine.
 
+5. **Google Cloud Agent Registry & Least-Privilege Agent Identity (`agent_identity.py`)**:
+   * **Standards-Compliant A2A Agent Card**: Exposes `/.well-known/agent-card.json` and `/a2a/wordbloom/.well-known/agent-card.json` implementing the Google ADK and Agent-to-Agent (A2A) protocol for catalog discovery and ecosystem interop.
+   * **Least-Privilege IAM Policy Enforcement**: Explicitly binds runtime execution to dedicated service account `wordbloom-agent@soumyaaidevcamppro.iam.gserviceaccount.com` restricted strictly to required roles (`roles/aiplatform.user`, `roles/modelarmor.user`, `roles/dlp.user`) while actively forbidding elevated administrative access (`roles/owner`, `roles/editor`, `roles/iam.serviceAccountAdmin`).
+   * **Runtime Identity Inspection (`/agent/identity`)**: Provides verifiable live endpoint for platform audits, compliance reporting, and CI/CD security posture gates.
+
 ---
 
 ## 7. Teacher Dashboard, Profile Engine & Dyslexia Mirror Suite
@@ -589,6 +594,18 @@ cd WordBloom/backend
 Ran 6 tests in 0.001s
 
 OK (session persistence, auto-recovery from L2, retention tracking, mastery promotion, session cleanup)
+```
+
+### Run Google Cloud Agent Registry & Least-Privilege Identity Tests:
+```bash
+cd WordBloom/backend
+./venv/bin/python test_agent_registry.py
+```
+**Expected Output:**
+```
+Ran 7 tests in 0.007s
+
+OK (A2A agent card, sub-agents manifest, least privilege IAM, forbidden role traps, FastAPI endpoints)
 ```
 
 ### Run ADK 7-Case Golden Benchmark Continuous Quality Gate:
