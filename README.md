@@ -468,14 +468,15 @@ WordBloom/
 ├── backend/
 │   ├── main.py                        ← FastAPI application server
 │   ├── requirements.txt               ← Python dependencies (FastAPI, ADK, Model Armor)
-│   ├── test_wordbloom.py              ← Automated 4-stage pipeline test suite
-│   ├── test_progress.py               ← Unit tests for deterministic longitudinal progress tracking
-│   ├── test_offline_suite.py          ← 30 comprehensive offline unit tests (< 0.5s)
-│   ├── test_dlp.py                    ← Unit tests for Cloud DLP & local surrogate fallback
-│   ├── test_memory_bank.py            ← Unit tests for Vertex AI sessions & longitudinal memory
-│   ├── test_agent_registry.py         ← Unit tests for A2A Agent Card & least-privilege IAM identity
+│   ├── test_wordbloom.py              ← Automated 4-stage pipeline test suite (4 integration tests)
+│   ├── test_offline_suite.py          ← 30 deterministic phonics & dyslexia unit tests
+│   ├── test_dlp.py                    ← 7 unit tests for Cloud DLP & local surrogate child PII redaction
+│   ├── test_agent_registry.py         ← 7 unit tests for A2A Agent Card & least-privilege IAM identity
+│   ├── test_memory_bank.py            ← 6 unit tests for Vertex AI sessions & longitudinal memory
+│   ├── test_progress.py               ← 5 unit tests for deterministic longitudinal progress tracking
+│   │                                  ↳ (Total Unit Tests: 55 passing in 0.014s)
 │   ├── eval_golden_7.json             ← 7-case golden evaluation benchmark dataset
-│   ├── run_adk_eval.py                ← Automated fail-closed CI/CD evaluation gate
+│   ├── run_adk_eval.py                ← Automated fail-closed CI/CD evaluation gate (7 benchmark cases)
 │   └── wordbloom_agent/
 │       ├── __init__.py
 │       ├── .env.example               ← Vertex AI environment template (copy to .env)
@@ -575,25 +576,76 @@ Visit **`http://localhost:3000`** in your browser.
 
 ## 11. Testing & Verification
 
-### 📊 Full Test Suite Summary (66/66 Tests Passing)
+### 📊 Full Automated Test Suite Summary (66/66 Tests Passing)
 
-| Test Suite | Command | Cases | Latency | Key Verification |
-| :--- | :--- | :---: | :---: | :--- |
-| **30 Deterministic Phonics & Dyslexia Tests** | `python test_offline_suite.py` | **30** | 0.002s | 245 mapped phonetic & mirror terms, 6 dyslexia types, 3 input modalities, ADHD rest thresholds |
-| **ADK 7-Case Golden Continuous CI Gate** | `python run_adk_eval.py` | **7** | 0.015s | 100% pass on ADHD rest pacing, Autism predictability, mirror orientation hints, teacher approval gate |
-| **Google Cloud DLP Child Privacy Redaction** | `python test_dlp.py` | **7** | 0.001s | Full name, first name, email, phone redaction + local surrogate fallback + educator re-identification |
-| **Vertex AI Sessions & Memory Bank** | `python test_memory_bank.py` | **6** | 0.001s | L1 RAM cache + L2 disk persistence, serverless recovery, cross-session phonetic retention & mastery |
-| **Google Cloud Agent Registry & IAM Identity** | `python test_agent_registry.py` | **7** | 0.007s | Standards-compliant A2A Agent Card, 6 sub-agents manifest, least-privilege IAM policy matrix |
-| **Deterministic Longitudinal Progress** | `python test_progress.py` | **5** | 0.005s | Zero-LLM multi-session trend verification, "Then & Now" metrics, zero-word bounds safety |
-| **Full Multi-Agent Integration Pipeline** | `python test_wordbloom.py` | **4** | ~2.1s | End-to-end integration from ProfileAgent to Model Armor-screened praise and Teacher Approval Gate |
-| **Next.js 15 Production Build** | `npm run build` | **19 Routes** | ~1.2s | Zero compilation or type errors across all application and API routes |
+WordBloom enforces a rigorous 3-tier testing architecture totaling **66 automated tests**:
+1. **55 Automated Python Unit Tests** (offline, deterministic, runs in **0.014s** via standard `unittest`)
+2. **7 ADK Golden Benchmark Continuous CI Gate Cases** (evaluating pedagogical safety, ADHD pacing, autism predictability shields, and teacher approval gates in **0.015s**)
+3. **4 End-to-End Multi-Agent Integration Pipeline Tests** (testing full orchestration from `ProfileAgent` to `ReportAgent`)
+
+| Tier | Test Suite | Module / Command | Tests | Latency | Scope & Coverage |
+| :--- | :--- | :--- | :---: | :---: | :--- |
+| **Tier 1: Unit** | Phonics, Mirror & Dyslexia Suite | `test_offline_suite.py` | **30** | 0.002s | 245 mapped phonetic & mirror terms, 6 dyslexia types, 3 input modes, ADHD rest thresholds |
+| **Tier 1: Unit** | Google Cloud DLP Child Privacy | `test_dlp.py` | **7** | 0.001s | Full name, first name, email, phone de-identification + surrogate fallback + educator re-identification |
+| **Tier 1: Unit** | Agent Registry & IAM Identity | `test_agent_registry.py` | **7** | 0.007s | Standards-compliant A2A Agent Card (`/.well-known/agent-card.json`), 6 sub-agents, least-privilege IAM |
+| **Tier 1: Unit** | Vertex AI Sessions & Memory Bank | `test_memory_bank.py` | **6** | 0.001s | L1 RAM cache + L2 disk persistence, serverless recovery, cross-session phonetic retention & mastery |
+| **Tier 1: Unit** | Longitudinal Progress Engine | `test_progress.py` | **5** | 0.005s | Deterministic "Then & Now" progress analytics, trend indicators, zero-word edge cases |
+| ↳ **Subtotal** | **All Python Unit Tests (Unified Runner)** | `python3 -m unittest ...` | **55** | **0.014s** | **100% Deterministic, Offline, Zero-Flake Unit Tests** |
+| **Tier 2: CI Gate** | ADK 7-Case Golden Benchmark Gate | `python3 run_adk_eval.py` | **7** | 0.015s | 100% pass on ADHD rest pacing, Autism predictability, mirror orientation hints, teacher approval gate |
+| **Tier 3: E2E** | Multi-Agent Orchestration Pipeline | `python3 test_wordbloom.py` | **4** | ~2.1s | End-to-end integration from ProfileAgent to Model Armor-screened praise and Teacher Approval Gate |
+| **GRAND TOTAL** | **Full Automated Test Suite** | | **66 / 66** | **~2.2s** | **100% Pass Rate Across All 3 Tiers** |
 
 ---
 
-### Run Automated Multi-Agent Pipeline Test:
+### 🚀 1. Run All 55 Python Unit Tests in One Command (0.014s):
 ```bash
 cd WordBloom/backend
-./venv/bin/python test_wordbloom.py
+python3 -m unittest test_offline_suite test_dlp test_memory_bank test_agent_registry test_progress
+```
+**Expected Output:**
+```
+.......................................................
+----------------------------------------------------------------------
+Ran 55 tests in 0.014s
+
+OK
+```
+
+---
+
+### 🛡️ 2. Run ADK 7-Case Golden Benchmark Continuous Quality Gate:
+```bash
+cd WordBloom/backend
+python3 run_adk_eval.py
+```
+**Expected Output:**
+```
+=================================================================
+🌸 WordBloom ADK Golden Set Evaluation — Continuous CI/CD Gate
+   Dataset: eval_golden_7.json (7 benchmark cases)
+=================================================================
+
+📍 Benchmark Case 1/7: case_1_mirror_reversal               ✅ PASSED
+📍 Benchmark Case 2/7: case_2_pediatric_acoustic_clip       ✅ PASSED
+📍 Benchmark Case 3/7: case_3_adhd_break_pacing             ✅ PASSED
+📍 Benchmark Case 4/7: case_4_autism_predictable_pacing     ✅ PASSED
+📍 Benchmark Case 5/7: case_5_double_deficit_support        ✅ PASSED
+📍 Benchmark Case 6/7: case_6_phonological_silent_chunking  ✅ PASSED
+📍 Benchmark Case 7/7: case_7_teacher_approval_gate         ✅ PASSED
+
+=================================================================
+📊 Golden Set Result: 7/7 passed (100.0%)
+🎉 QUALITY GATE PASSED: All safety, pedagogical and accommodation checks passed.
+   Ready for safe CI/CD deployment.
+=================================================================
+```
+
+---
+
+### 🔄 3. Run Automated Multi-Agent Pipeline Test (4 Stages):
+```bash
+cd WordBloom/backend
+python3 test_wordbloom.py
 ```
 **Expected Output:**
 ```
@@ -606,79 +658,39 @@ cd WordBloom/backend
 ✅ All tests passed! WordBloom is ready.
 ```
 
-### Run 30 Offline Deterministic Unit Tests:
-```bash
-cd WordBloom/backend
-./venv/bin/python test_offline_suite.py
-```
-**Expected Output:**
-```
-Ran 30 tests in 0.002s
+---
 
-OK (thresholds, input modes, stages, conditions, reversals, transpositions, vowels, phonetics)
-```
+### 🔍 4. Granular Unit Test Runners (By Subsystem):
 
-### Run Google Cloud DLP Child Privacy Tests:
-```bash
-cd WordBloom/backend
-./venv/bin/python test_dlp.py
-```
-**Expected Output:**
-```
-Ran 7 tests in 0.001s
+* **30 Deterministic Phonics & Dyslexia Tests** (`python3 test_offline_suite.py`):
+  ```
+  Ran 30 tests in 0.002s
+  OK (thresholds, input modes, stages, conditions, reversals, transpositions, vowels, phonetics)
+  ```
+* **7 Google Cloud DLP Child Privacy Tests** (`python3 test_dlp.py`):
+  ```
+  Ran 7 tests in 0.001s
+  OK (full name, first name, email, phone, re-identification, report integration)
+  ```
+* **7 Agent Registry & Least-Privilege Identity Tests** (`python3 test_agent_registry.py`):
+  ```
+  Ran 7 tests in 0.007s
+  OK (A2A agent card, sub-agents manifest, least privilege IAM, forbidden role traps, FastAPI endpoints)
+  ```
+* **6 Vertex AI Sessions & Longitudinal Memory Bank Tests** (`python3 test_memory_bank.py`):
+  ```
+  Ran 6 tests in 0.001s
+  OK (session persistence, auto-recovery from L2, retention tracking, mastery promotion, session cleanup)
+  ```
+* **5 Deterministic Longitudinal Progress Unit Tests** (`python3 test_progress.py`):
+  ```
+  Ran 5 tests in 0.005s
+  OK (improvement, no_change, worse, one_session_only, zero_words)
+  ```
 
-OK (full name, first name, email, phone, re-identification, report integration)
-```
+---
 
-### Run Vertex AI Sessions & Longitudinal Memory Bank Tests:
-```bash
-cd WordBloom/backend
-./venv/bin/python test_memory_bank.py
-```
-**Expected Output:**
-```
-Ran 6 tests in 0.001s
-
-OK (session persistence, auto-recovery from L2, retention tracking, mastery promotion, session cleanup)
-```
-
-### Run Google Cloud Agent Registry & Least-Privilege Identity Tests:
-```bash
-cd WordBloom/backend
-./venv/bin/python test_agent_registry.py
-```
-**Expected Output:**
-```
-Ran 7 tests in 0.007s
-
-OK (A2A agent card, sub-agents manifest, least privilege IAM, forbidden role traps, FastAPI endpoints)
-```
-
-### Run ADK 7-Case Golden Benchmark Continuous Quality Gate:
-```bash
-cd WordBloom/backend
-./venv/bin/python run_adk_eval.py
-```
-**Expected Output:**
-```
-📊 Golden Set Result: 7/7 passed (100.0%)
-🎉 QUALITY GATE PASSED: All safety, pedagogical and accommodation checks passed.
-   Ready for safe CI/CD deployment.
-```
-
-### Run Deterministic Longitudinal Progress Unit Tests:
-```bash
-cd WordBloom/backend
-./venv/bin/python test_progress.py
-```
-**Expected Output:**
-```
-Ran 5 tests in 0.005s
-
-OK (improvement, no_change, worse, one_session_only, zero_words)
-```
-
-### Run Frontend Production Build:
+### 🌐 Frontend Production Build Verification:
 ```bash
 cd WordBloom/frontend
 npm run build
