@@ -48,7 +48,7 @@ WordBloom is fully deployed and accessible on Google Cloud:
 * 🔨 **BUILD**: **Google ADK 6-Agent System** grounded in pediatric phonics (`SKILL.md`) with Gemini 2.5 Flash and 3 multimodal input modes (Voice, Tap, Type).
 * 📈 **SCALE**: **Serverless Google Cloud Run** auto-scaling containers with dual-layer auto-recovery session storage and **Google A2A Agent Card** discovery.
 * 🛡️ **GOVERN**: **Google Cloud Model Armor** real-time praise filtering + **Cloud DLP** student PII redaction + **Human-in-the-Loop Teacher Approval Gate**.
-* ⚡ **OPTIMISE**: **~48% faster response latency** via `asyncio.gather()` concurrent agent execution + **Zero-LLM deterministic phonics engine** saving thousands of tokens.
+* ⚡ **OPTIMISE**: **~48% faster response latency** via `asyncio.gather()` concurrent agent execution + **Zero-LLM deterministic phonics engine** save tokens.
 
 ---
 
