@@ -7,7 +7,10 @@
 [![Agent Runtime](https://img.shields.io/badge/Agent_Runtime-Vertex_AI-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/us-central1/agent-engines/1398722001920589824?project=soumyaaidevcamppro)
 
 [![Model Armor](https://img.shields.io/badge/Google_Cloud-Model_Armor_Protected-10B981?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/security)
-[![AI Governance](https://img.shields.io/badge/Governance-Dual--Layer_Safety-4285F4?style=for-the-badge)](#6-enterprise-ai-governance--child-safeguarding-google-cloud-model-armor)
+[![Cloud DLP](https://img.shields.io/badge/Google_Cloud-DLP_Sensitive_Data_Protection-10B981?style=for-the-badge&logo=google-cloud&logoColor=white)](#6-enterprise-ai-governance--child-safeguarding-google-cloud-model-armor)
+[![Agent Registry](https://img.shields.io/badge/Vertex_AI-Agent_Registry_&_Identity-4285F4?style=for-the-badge&logo=google&logoColor=white)](#6-enterprise-ai-governance--child-safeguarding-google-cloud-model-armor)
+[![CI/CD Eval Gate](https://img.shields.io/badge/CI_Gate-100%25_Golden_Benchmark-10B981?style=for-the-badge)](#11-testing--verification)
+[![AI Governance](https://img.shields.io/badge/Governance-Defense--in--Depth-4285F4?style=for-the-badge)](#6-enterprise-ai-governance--child-safeguarding-google-cloud-model-armor)
 
 [![Google ADK](https://img.shields.io/badge/Google_ADK-Multi--Agent_System-4285F4?logo=google&logoColor=white)](https://cloud.google.com/vertex-ai)
 [![Google Cloud Vertex AI](https://img.shields.io/badge/Vertex_AI-Gemini_2.5_Flash-34A853?logo=google-cloud&logoColor=white)](https://cloud.google.com/vertex-ai)
@@ -29,6 +32,14 @@ WordBloom is fully deployed and accessible on Google Cloud:
 * ⚡ **Live Backend API (Google Cloud Run)**:  
   👉 **[https://wordbloom-backend-820113329049.us-central1.run.app](https://wordbloom-backend-820113329049.us-central1.run.app)**  
   *(FastAPI multi-agent service with Google Cloud Model Armor child safeguarding)*
+
+* 📇 **Google A2A Standards Agent Card**:  
+  👉 **[https://wordbloom-backend-820113329049.us-central1.run.app/.well-known/agent-card.json](https://wordbloom-backend-820113329049.us-central1.run.app/.well-known/agent-card.json)**  
+  *(Machine-readable discovery manifest adhering to Google ADK & A2A protocol)*
+
+* 🛡️ **Agent Identity & Least-Privilege IAM Status**:  
+  👉 **[https://wordbloom-backend-820113329049.us-central1.run.app/agent/identity](https://wordbloom-backend-820113329049.us-central1.run.app/agent/identity)**  
+  *(Live compliance verification of least-privilege IAM policy and dedicated service account identity)*
 
 ---
 
@@ -445,6 +456,8 @@ WordBloom/
 │   ├── test_progress.py               ← Unit tests for deterministic longitudinal progress tracking
 │   ├── test_offline_suite.py          ← 30 comprehensive offline unit tests (< 0.5s)
 │   ├── test_dlp.py                    ← Unit tests for Cloud DLP & local surrogate fallback
+│   ├── test_memory_bank.py            ← Unit tests for Vertex AI sessions & longitudinal memory
+│   ├── test_agent_registry.py         ← Unit tests for A2A Agent Card & least-privilege IAM identity
 │   ├── eval_golden_7.json             ← 7-case golden evaluation benchmark dataset
 │   ├── run_adk_eval.py                ← Automated fail-closed CI/CD evaluation gate
 │   └── wordbloom_agent/
@@ -453,6 +466,8 @@ WordBloom/
 │       ├── agent.py                   ← Root ADK Orchestrator
 │       ├── governance.py              ← 🛡️ Child Safeguarding via Google Cloud Model Armor
 │       ├── dlp_redaction.py           ← 🔒 Google Cloud DLP & Deterministic Child PII Redaction
+│       ├── memory_bank.py             ← 🧠 Vertex AI Sessions & Longitudinal Memory Bank
+│       ├── agent_identity.py          ← 📇 Google Cloud Agent Registry & Least-Privilege IAM Identity
 │       ├── phonetic_map.py            ← 🔤 245-term deterministic pediatric phonetic & mirror map
 │       ├── progress.py                ← 📈 Zero-LLM deterministic longitudinal progress engine
 │       ├── progress_router.py         ← FastAPI router for GET /children/{child_id}/progress
@@ -543,6 +558,21 @@ Visit **`http://localhost:3000`** in your browser.
 ---
 
 ## 11. Testing & Verification
+
+### 📊 Full Test Suite Summary (66/66 Tests Passing)
+
+| Test Suite | Command | Cases | Latency | Key Verification |
+| :--- | :--- | :---: | :---: | :--- |
+| **30 Deterministic Phonics & Dyslexia Tests** | `python test_offline_suite.py` | **30** | 0.002s | 245 mapped phonetic & mirror terms, 6 dyslexia types, 3 input modalities, ADHD rest thresholds |
+| **ADK 7-Case Golden Continuous CI Gate** | `python run_adk_eval.py` | **7** | 0.015s | 100% pass on ADHD rest pacing, Autism predictability, mirror orientation hints, teacher approval gate |
+| **Google Cloud DLP Child Privacy Redaction** | `python test_dlp.py` | **7** | 0.001s | Full name, first name, email, phone redaction + local surrogate fallback + educator re-identification |
+| **Vertex AI Sessions & Memory Bank** | `python test_memory_bank.py` | **6** | 0.001s | L1 RAM cache + L2 disk persistence, serverless recovery, cross-session phonetic retention & mastery |
+| **Google Cloud Agent Registry & IAM Identity** | `python test_agent_registry.py` | **7** | 0.007s | Standards-compliant A2A Agent Card, 6 sub-agents manifest, least-privilege IAM policy matrix |
+| **Deterministic Longitudinal Progress** | `python test_progress.py` | **5** | 0.005s | Zero-LLM multi-session trend verification, "Then & Now" metrics, zero-word bounds safety |
+| **Full Multi-Agent Integration Pipeline** | `python test_wordbloom.py` | **4** | ~2.1s | End-to-end integration from ProfileAgent to Model Armor-screened praise and Teacher Approval Gate |
+| **Next.js 15 Production Build** | `npm run build` | **19 Routes** | ~1.2s | Zero compilation or type errors across all application and API routes |
+
+---
 
 ### Run Automated Multi-Agent Pipeline Test:
 ```bash
