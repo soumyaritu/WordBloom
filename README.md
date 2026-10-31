@@ -184,68 +184,75 @@ flowchart TB
         UI_HOME["🏠 Child Portal Home (/)"]
         UI_GAME["🎮 Adaptive Word Game (/game)<br/>• Type Input (Keyboard Focus)<br/>• Voice Input (5-Alt Web Speech)<br/>• Tap Letters (Dyspraxia Grid)<br/>• WCAG AA Overlays & OpenDyslexic"]
         UI_PROFILE["⚙️ Profile Editor (/profile)"]
-        UI_TEACHER["👩‍🏫 Teacher Center & Dyslexia Mirror (/teacher)<br/>• Perceptual Mirror Simulator<br/>• Live Bloom Goals Tracker<br/>• Human-In-The-Loop Approval Gate"]
+        UI_TEACHER["👩‍🏫 Teacher Center & Dyslexia Mirror (/teacher)<br/>• Perceptual Mirror Simulator<br/>• Live Bloom Goals Tracker<br/>• Longitudinal Progress Tracking (ProgressTab)<br/>• Human-In-The-Loop Approval Gate"]
     end
 
     subgraph ORCHESTRATION["⚡ API & Orchestration (FastAPI + Google ADK)"]
         direction TB
-        API["FastAPI REST Endpoints<br/>(/session/start, /session/answer, /session/end, /report/approve)"]
-        ROOT["🌸 Root Orchestrator (agent.py)<br/>• Session State Memory<br/>• ADHD 5-Min / 5-Bloom Auto-Pacing<br/>• Hybrid Sequential & Concurrent Dispatch"]
+        API["FastAPI REST Endpoints<br/>• /session/start, /session/answer, /session/end<br/>• /report/approve, /children/{id}/progress<br/>• /.well-known/agent-card.json, /agent/identity"]
+        ROOT["🌸 Root Orchestrator (agent.py)<br/>• Dual-Layer Session Store (L1 RAM + L2 Disk)<br/>• Longitudinal Memory Bank (Retention & Mastery)<br/>• ADHD 5-Min / 5-Bloom Auto-Pacing<br/>• Hybrid Sequential & Concurrent Dispatch"]
     end
 
     subgraph AGENTS["🤖 Google ADK Multi-Agent Team"]
         direction TB
         AG_PROF["👤 ProfileAgent<br/>Loads learning profiles, dyslexia types & condition flags"]
         AG_WORD["📖 WordSelectorAgent<br/>Gemini 2.5 Flash dynamic phonics generator (Stage 1-4)"]
-        AG_EVAL["🔍 EvaluatorAgent<br/>Profile-aware scoring, mirror reversals (b↔d), acoustic STT match"]
-        AG_ADAPT["⚡ AdapterAgent<br/>Dynamic difficulty leveling, break alerts & multimodal hints"]
+        AG_EVAL["🔍 EvaluatorAgent<br/>245-term phonetic map, mirror reversals (b↔d), acoustic tolerance"]
+        AG_ADAPT["⚡ AdapterAgent<br/>Dynamic difficulty leveling, ADHD break alerts & multimodal hints"]
         AG_ENCOURAGE["💚 EncouragementAgent<br/>Specific, non-patronizing, growth-mindset praise"]
         AG_REPORT["📋 ReportAgent<br/>Synthesizes learning progress & drafts teacher reports"]
     end
 
-    subgraph GOVERNANCE["🔒 Governance & Foundation Layer"]
+    subgraph GOVERNANCE["🔒 Enterprise Governance & Security Layer"]
         direction TB
         VERTEX["☁️ Google Cloud Vertex AI<br/>(Gemini 2.5 Flash via google.genai SDK)"]
-        SKILLS["📁 Markdown Agent Skills (SKILL.md)<br/>(Emma, Liam, James, Sofia, Alex, Word-Bank)"]
-        HITL["🔒 Human-In-The-Loop Approval Gate<br/>(Zero auto-dispatch without educator sign-off)"]
+        ARMOR["🛡️ Google Cloud Model Armor<br/>(Template: wordbloom-child-guard RAI screening)"]
+        DLP["🔒 Google Cloud DLP<br/>(Student PII redaction + local surrogate fallback)"]
+        REGISTRY["📇 Google Cloud Agent Registry<br/>(Standards A2A Agent Card & Least-Privilege IAM)"]
+        HITL["🔒 Human-In-The-Loop Approval Gate<br/>(Zero parent dispatch without educator sign-off)"]
     end
 
     %% Flow connections
     PRESENTATION <--> API
     API <--> ROOT
     ROOT --> AG_PROF
-    AG_PROF -.-> SKILLS
     ROOT --> AG_EVAL
     AG_EVAL --> AG_ADAPT
     AG_ADAPT --> AG_WORD
     AG_ADAPT --> AG_ENCOURAGE
     AG_WORD -.-> VERTEX
-    AG_ENCOURAGE -.-> VERTEX
+    AG_ENCOURAGE -.-> ARMOR
     ROOT --> AG_REPORT
-    AG_REPORT --> HITL
+    AG_REPORT --> DLP
+    DLP --> HITL
     HITL -.-> UI_TEACHER
+    API -.-> REGISTRY
 ```
 
 ### 🔁 Runtime Execution Sequence Diagram
 
 ```mermaid
 graph TD
-    A["POST /session/start"] --> B["👤 Profile Agent"]
-    B --> C["📖 Word Selector Agent"]
+    A["POST /session/start"] --> B["👤 Profile Agent (Load SKILL.md)"]
+    B --> MEM["🧠 Check Longitudinal Memory Bank (Retention Words)"]
+    MEM --> C["📖 Word Selector Agent"]
     C --> D["Child Practices (Type / Voice / Tap)"]
     D --> E["POST /session/answer"]
-    E --> F["🔍 Evaluator Agent"]
-    F --> G["⚡ Adapter Agent"]
+    E --> F["🔍 Evaluator Agent (245-term Phonetic & Mirror Map)"]
+    F --> G["⚡ Adapter Agent (Pacing, ADHD Rest Breaks & Scaffolds)"]
     G --> H1["💚 Encouragement Agent"]
     G --> H2["📖 Word Selector Agent"]
     H1 --> MA["🛡️ Google Cloud Model Armor (SanitizeModelResponse)"]
-    MA -->|"Screened by Model Armor"| I["Return Next Word + Screened Feedback"]
-    MA -->|"Flagged by Model Armor"| HEAL["Auto-Heal: Pre-vetted Uplifting Praise"]
+    MA -->|"Screened Clean"| I["Return Next Word + Screened Feedback"]
+    MA -->|"Flagged Content"| HEAL["Auto-Heal: Pre-vetted Uplifting Praise"]
     HEAL --> I
     H2 --> I
     I --> J["POST /session/end"]
-    J --> K["📋 Report Agent"]
-    K --> L["🔒 Human-in-the-Loop Teacher Approval Gate"]
+    J --> K["📋 Report Agent (Synthesize Session Metrics)"]
+    K --> DLP["🔒 Google Cloud DLP (Child PII Redaction)"]
+    DLP --> L["🔒 Human-in-the-Loop Teacher Approval Gate"]
+    L -->|"Teacher Approves"| DISPATCH["Certified Report Dispatched to Parents"]
+    J --> UP_MEM["🧠 Memory Bank: Update Mastered Phonics & Retention State"]
 ```
 
 ### ⚡ Sequential Core + Concurrent Optimization:
