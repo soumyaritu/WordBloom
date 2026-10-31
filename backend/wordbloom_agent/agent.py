@@ -219,7 +219,7 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
         )
 
         # Store session
-        _sessions[session_id] = {
+        session_data = {
             "profile":            profile,
             "words_attempted":    list(exclude_words),
             "words_correct":      [],
@@ -235,6 +235,12 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             "start_time":         __import__("time").time(),
             "word_attempts":      {},
         }
+        _sessions[session_id] = session_data
+        try:
+            from .memory_bank import SessionStore
+            SessionStore.save_session(session_id, session_data)
+        except Exception:
+            pass
 
         return {
             "session_id": session_id,
@@ -247,6 +253,14 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
     elif action == "answer":
         session_id = body.get("session_id")
         session    = _sessions.get(session_id)
+        if not session:
+            try:
+                from .memory_bank import SessionStore
+                session = SessionStore.get_session(session_id)
+                if session:
+                    _sessions[session_id] = session
+            except Exception:
+                pass
         if not session:
             # Auto-recover session if server reloaded or session expired
             raw_child = body.get("child_name") or "liam"
@@ -284,6 +298,11 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
             }
             if session_id:
                 _sessions[session_id] = session
+                try:
+                    from .memory_bank import SessionStore
+                    SessionStore.save_session(session_id, session)
+                except Exception:
+                    pass
 
         profile      = session.get("profile", {})
         target_param = body.get("current_word")
@@ -576,6 +595,14 @@ async def run_session_pipeline(action: str, body: dict) -> dict:
                 save_session_summary(child_id_key, session)
         except Exception as e:
             print(f"Progress save notice: {e}")
+
+        try:
+            from .memory_bank import record_session_memory, SessionStore
+            child_id_key = (profile.get("child_id") or profile.get("child_name") or req_child_name or "child").lower().split()[0]
+            record_session_memory(child_id_key, session)
+            SessionStore.delete_session(session_id)
+        except Exception as e:
+            print(f"Memory Bank notice: {e}")
 
         return {"report": report, "success": True}
 

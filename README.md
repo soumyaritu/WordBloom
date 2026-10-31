@@ -372,6 +372,12 @@ Praise delivered directly       Auto-healed with pre-vetted positive reinforceme
    * **Deterministic Local Surrogate Fallback**: If the Cloud DLP API is unreachable, unauthenticated in dev, or offline, seamlessly falls back in < 0.001s to deterministic token replacement (`[STUDENT_NAME]`, `[EMAIL_REDACTED]`) so sessions and reports never stall.
    * **Re-identification Protocol**: Enables educators to rehydrate surrogate tokens on-demand inside the private authenticated dashboard while keeping parent dispatches clean.
 
+4. **Vertex AI Sessions & Longitudinal Memory Bank (`memory_bank.py`)**:
+   * **Dual-Layer Auto-Recovery Session Store (`SessionStore`)**: L1 ultra-low-latency in-memory dictionary cache (0ms lookup) backed by L2 persistent local JSON storage (`backend/data/sessions.json`) to guarantee zero session loss across Cloud Run serverless cold starts or multi-replica container recycles.
+   * **Longitudinal Memory Continuity (`MemoryBank`)**: Tracks child phonetic retention across multiple practice days and weeks without requiring LLM calls.
+   * Automatically isolates retention words (words requiring scaffolded retry in previous sessions) and promotes mastered phonics patterns once the child demonstrates independent fluency.
+   * Feeds sensory and accommodation observations directly into the Profile Engine.
+
 ---
 
 ## 7. Teacher Dashboard, Profile Engine & Dyslexia Mirror Suite
@@ -571,6 +577,18 @@ cd WordBloom/backend
 Ran 7 tests in 0.001s
 
 OK (full name, first name, email, phone, re-identification, report integration)
+```
+
+### Run Vertex AI Sessions & Longitudinal Memory Bank Tests:
+```bash
+cd WordBloom/backend
+./venv/bin/python test_memory_bank.py
+```
+**Expected Output:**
+```
+Ran 6 tests in 0.001s
+
+OK (session persistence, auto-recovery from L2, retention tracking, mastery promotion, session cleanup)
 ```
 
 ### Run ADK 7-Case Golden Benchmark Continuous Quality Gate:
