@@ -426,11 +426,15 @@ WordBloom/
 │   ├── requirements.txt               ← Python dependencies (FastAPI, ADK, Model Armor)
 │   ├── test_wordbloom.py              ← Automated 4-stage pipeline test suite
 │   ├── test_progress.py               ← Unit tests for deterministic longitudinal progress tracking
+│   ├── test_offline_suite.py          ← 30 comprehensive offline unit tests (< 0.5s)
+│   ├── eval_golden_7.json             ← 7-case golden evaluation benchmark dataset
+│   ├── run_adk_eval.py                ← Automated fail-closed CI/CD evaluation gate
 │   └── wordbloom_agent/
 │       ├── __init__.py
 │       ├── .env.example               ← Vertex AI environment template (copy to .env)
 │       ├── agent.py                   ← Root ADK Orchestrator
 │       ├── governance.py              ← 🛡️ Child Safeguarding via Google Cloud Model Armor
+│       ├── phonetic_map.py            ← 🔤 245-term deterministic pediatric phonetic & mirror map
 │       ├── progress.py                ← 📈 Zero-LLM deterministic longitudinal progress engine
 │       ├── progress_router.py         ← FastAPI router for GET /children/{child_id}/progress
 │       ├── profile_agent.py           ← ProfileAgent
@@ -535,6 +539,30 @@ cd WordBloom/backend
 📍 Test 4: End session and generate report -> ✅ PASS (Approval required: True)
 ==================================================
 ✅ All tests passed! WordBloom is ready.
+```
+
+### Run 30 Offline Deterministic Unit Tests:
+```bash
+cd WordBloom/backend
+./venv/bin/python test_offline_suite.py
+```
+**Expected Output:**
+```
+Ran 30 tests in 0.002s
+
+OK (thresholds, input modes, stages, conditions, reversals, transpositions, vowels, phonetics)
+```
+
+### Run ADK 7-Case Golden Benchmark Continuous Quality Gate:
+```bash
+cd WordBloom/backend
+./venv/bin/python run_adk_eval.py
+```
+**Expected Output:**
+```
+📊 Golden Set Result: 7/7 passed (100.0%)
+🎉 QUALITY GATE PASSED: All safety, pedagogical and accommodation checks passed.
+   Ready for safe CI/CD deployment.
 ```
 
 ### Run Deterministic Longitudinal Progress Unit Tests:

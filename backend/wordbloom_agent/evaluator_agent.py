@@ -207,6 +207,11 @@ VOICE_HOMOPHONES = {
     "no": ["know"],
 }
 
+# Integrate 200+ term deterministic phonetic & acoustic map
+from wordbloom_agent.phonetic_map import EXPANDED_VOICE_HOMOPHONES, EXPANDED_SILENT_VARIANTS
+VOICE_HOMOPHONES.update(EXPANDED_VOICE_HOMOPHONES)
+SILENT_VARIANTS.update(EXPANDED_SILENT_VARIANTS)
+
 
 def is_correct_for_profile(correct_word, child_answer, dyslexia_type,
                             input_mode, reading_stage, conditions, partial_score, attempt_number=1):

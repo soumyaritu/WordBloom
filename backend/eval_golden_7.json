@@ -1,0 +1,120 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "description": "WordBloom 7-Case Golden Benchmark Set for Continuous Evaluation and Quality Gates",
+    "author": "Google ADK Multi-Agent Team",
+    "target_pass_threshold": 1.0
+  },
+  "cases": [
+    {
+      "id": "case_1_mirror_reversal",
+      "description": "Scaffolded retry for mirror reversals: 'bog' for 'dog' on Visual Dyslexia must not fail permanently, but trigger orientation hint",
+      "input": {
+        "correct_word": "dog",
+        "child_answer": "bog",
+        "response_time_seconds": 3.5,
+        "input_mode": "type",
+        "dyslexia_type": "visual_spatial",
+        "reading_stage": 1,
+        "attempt_number": 1
+      },
+      "expected": {
+        "is_correct": false,
+        "error_pattern": "reversal",
+        "needs_visual_hint": true
+      }
+    },
+    {
+      "id": "case_2_pediatric_acoustic_clip",
+      "description": "Pediatric voice acoustic tolerance: 'gnome' spoken as 'no' or 'know' due to STT trailing nasal clipping must be recognized as valid voice match",
+      "input": {
+        "correct_word": "gnome",
+        "child_answer": "no",
+        "response_time_seconds": 2.2,
+        "input_mode": "voice",
+        "dyslexia_type": "phonological",
+        "reading_stage": 3,
+        "attempt_number": 1
+      },
+      "expected": {
+        "is_correct": true,
+        "error_pattern": "voice_match",
+        "needs_visual_hint": false
+      }
+    },
+    {
+      "id": "case_3_adhd_break_pacing",
+      "description": "ADHD sensory safeguard: session must enforce a 30-second rest break after 5 attempted words to prevent cognitive fatigue",
+      "input": {
+        "words_done": 5,
+        "has_adhd": true,
+        "is_correct": true,
+        "current_level": 2
+      },
+      "expected": {
+        "action": "take_break",
+        "break_duration_seconds": 30
+      }
+    },
+    {
+      "id": "case_4_autism_predictable_pacing",
+      "description": "Autism predictability shield: streak of 3 correct answers must maintain calm steady level without sudden difficulty escalation",
+      "input": {
+        "consecutive_correct": 3,
+        "has_autism": true,
+        "is_non_dyslexic": false,
+        "is_double": false
+      },
+      "expected": {
+        "action": "continue",
+        "level_change": 0
+      }
+    },
+    {
+      "id": "case_5_double_deficit_support",
+      "description": "Double deficit accommodation: lowest threshold (0.60) protects fragile confidence; zero speed penalty on slow retrieval",
+      "input": {
+        "correct_word": "frog",
+        "child_answer": "flog",
+        "response_time_seconds": 12.0,
+        "typical_response_time": 5.0,
+        "input_mode": "tap",
+        "dyslexia_type": "double_deficit",
+        "reading_stage": 2,
+        "conditions": []
+      },
+      "expected": {
+        "max_threshold": 0.60,
+        "confidence_signal": "very_slow"
+      }
+    },
+    {
+      "id": "case_6_phonological_silent_chunking",
+      "description": "Phonological silent letter recognition: 'knight' spelled phonetically as 'nite' recognized as silent letter attempt",
+      "input": {
+        "correct_word": "knight",
+        "child_answer": "nite",
+        "response_time_seconds": 4.0,
+        "input_mode": "type",
+        "dyslexia_type": "phonological",
+        "reading_stage": 3,
+        "attempt_number": 1
+      },
+      "expected": {
+        "is_correct": true,
+        "error_pattern": "silent_letter"
+      }
+    },
+    {
+      "id": "case_7_teacher_approval_gate",
+      "description": "Human-in-the-loop safety gate: completed session report must mandate educator certification prior to parent dispatch",
+      "input": {
+        "session_ended": true,
+        "words_attempted": 5
+      },
+      "expected": {
+        "approval_required": true
+      }
+    }
+  ]
+}
