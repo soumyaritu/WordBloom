@@ -366,6 +366,12 @@ Praise delivered directly       Auto-healed with pre-vetted positive reinforceme
    * Student learning progress reports drafted by the system are held in pending review.
    * **Zero reports are sent to parents or permanent records** until the educator reviews, edits, and certifies them in the Teacher Dashboard.
 
+3. **Google Cloud Sensitive Data Protection (`Cloud DLP`) & Child PII Redaction (`dlp_redaction.py`)**:
+   * Shields child personal data (full names, emails, phone numbers, school locations) from external leaks and parent export payloads.
+   * **Enterprise Cloud DLP**: De-identifies text using Google Cloud DLP (`google.cloud.dlp_v2`).
+   * **Deterministic Local Surrogate Fallback**: If the Cloud DLP API is unreachable, unauthenticated in dev, or offline, seamlessly falls back in < 0.001s to deterministic token replacement (`[STUDENT_NAME]`, `[EMAIL_REDACTED]`) so sessions and reports never stall.
+   * **Re-identification Protocol**: Enables educators to rehydrate surrogate tokens on-demand inside the private authenticated dashboard while keeping parent dispatches clean.
+
 ---
 
 ## 7. Teacher Dashboard, Profile Engine & Dyslexia Mirror Suite
@@ -427,6 +433,7 @@ WordBloom/
 │   ├── test_wordbloom.py              ← Automated 4-stage pipeline test suite
 │   ├── test_progress.py               ← Unit tests for deterministic longitudinal progress tracking
 │   ├── test_offline_suite.py          ← 30 comprehensive offline unit tests (< 0.5s)
+│   ├── test_dlp.py                    ← Unit tests for Cloud DLP & local surrogate fallback
 │   ├── eval_golden_7.json             ← 7-case golden evaluation benchmark dataset
 │   ├── run_adk_eval.py                ← Automated fail-closed CI/CD evaluation gate
 │   └── wordbloom_agent/
@@ -434,6 +441,7 @@ WordBloom/
 │       ├── .env.example               ← Vertex AI environment template (copy to .env)
 │       ├── agent.py                   ← Root ADK Orchestrator
 │       ├── governance.py              ← 🛡️ Child Safeguarding via Google Cloud Model Armor
+│       ├── dlp_redaction.py           ← 🔒 Google Cloud DLP & Deterministic Child PII Redaction
 │       ├── phonetic_map.py            ← 🔤 245-term deterministic pediatric phonetic & mirror map
 │       ├── progress.py                ← 📈 Zero-LLM deterministic longitudinal progress engine
 │       ├── progress_router.py         ← FastAPI router for GET /children/{child_id}/progress
@@ -551,6 +559,18 @@ cd WordBloom/backend
 Ran 30 tests in 0.002s
 
 OK (thresholds, input modes, stages, conditions, reversals, transpositions, vowels, phonetics)
+```
+
+### Run Google Cloud DLP Child Privacy Tests:
+```bash
+cd WordBloom/backend
+./venv/bin/python test_dlp.py
+```
+**Expected Output:**
+```
+Ran 7 tests in 0.001s
+
+OK (full name, first name, email, phone, re-identification, report integration)
 ```
 
 ### Run ADK 7-Case Golden Benchmark Continuous Quality Gate:

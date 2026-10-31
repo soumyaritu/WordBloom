@@ -169,6 +169,18 @@ def generate_session_report(
 
     is_unknown = any(k in str(dyslexia_type or "").lower() for k in ["unknown", "not_sure", "not sure yet", "not_sure_yet", "undetermined"])
 
+    # Safe DLP PII de-identification for parent export & external records
+    deidentified_report_text = report_text
+    dlp_screened = False
+    try:
+        from wordbloom_agent.dlp_redaction import redact_personal_data, DLP_ENABLED
+        if DLP_ENABLED:
+            dlp_res = redact_personal_data(report_text, child_name=child_name)
+            deidentified_report_text = dlp_res.get("redacted_text") or report_text
+            dlp_screened = True
+    except Exception:
+        deidentified_report_text = report_text
+
     return {
         "child_name":             child_name,
         "session_date":           datetime.now().strftime("%Y-%m-%d"),
@@ -183,6 +195,8 @@ def generate_session_report(
         "adapter_actions":        adapter_actions,
         "breaks_taken":           breaks_taken,
         "report_text":            report_text,
+        "deidentified_report_text": deidentified_report_text,
+        "dlp_screened":            dlp_screened,
         "recommended_profile":    recommended_profile,
         "recommendation_reason":  recommendation_reason,
         "is_assessment":          is_unknown,
